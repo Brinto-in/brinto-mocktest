@@ -9,13 +9,7 @@ const nav = [
 <header class="header">
   <div class="wrap bar">
     <a href="/" class="brand" aria-label="Brinto MockTest home">
-      <div class="logo-mark">
-        <img src="/logo.png" alt="Brinto MockTest logo" width="32" height="32" />
-      </div>
-      <div class="brand-text">
-        <span class="brand-name">Brinto</span>
-        <span class="brand-tag">MockTest</span>
-      </div>
+      <img src="/logo.png" alt="Brinto MockTest logo" width="32" height="32" class="logo-mark" />
     </a>
 
     <nav class="nav-desktop" aria-label="Primary">
@@ -72,27 +66,13 @@ const nav = [
   .brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex-shrink: 0;
   }
-  .brand-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1;
-    gap: 2px;
-  }
-  .brand-name {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--ink);
-  }
-  .brand-tag {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--brand);
+  .logo-mark {
+    width: auto;
+    height: 36px;
+    object-fit: contain;
   }
   .nav-desktop { margin-left: auto; }
   .nav-desktop ul {
