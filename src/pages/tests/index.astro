@@ -1,0 +1,540 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const allTests = [
+  { slug: 'osssc-ri-ari-mock-1', title: 'OSSSC RI/ARI Full Mock Test 1', exam: 'OSSSC', questions: 100, duration: 90, difficulty: 'Medium', attempts: 12480, rating: 4.8, isFree: true, isNew: false, tags: ['GK','Reasoning','Maths'] },
+  { slug: 'osssc-ri-ari-mock-2', title: 'OSSSC RI/ARI Full Mock Test 2', exam: 'OSSSC', questions: 100, duration: 90, difficulty: 'Hard', attempts: 9340, rating: 4.7, isFree: true, isNew: false, tags: ['GK','Reasoning','Maths'] },
+  { slug: 'osssc-si-mock-1', title: 'OSSSC SI/ASI Prelims Mock Test 1', exam: 'OSSSC', questions: 100, duration: 60, difficulty: 'Medium', attempts: 7210, rating: 4.6, isFree: true, isNew: true, tags: ['GK','English','Maths'] },
+  { slug: 'opsc-oas-prelims-gs1', title: 'OPSC OAS Prelims GS Paper I', exam: 'OPSC', questions: 200, duration: 120, difficulty: 'Hard', attempts: 8930, rating: 4.9, isFree: true, isNew: false, tags: ['History','Polity','Geography'] },
+  { slug: 'opsc-oas-prelims-gs2', title: 'OPSC OAS Prelims GS Paper II (CSAT)', exam: 'OPSC', questions: 100, duration: 120, difficulty: 'Hard', attempts: 6120, rating: 4.7, isFree: true, isNew: false, tags: ['Reasoning','Comprehension','Maths'] },
+  { slug: 'ssc-cgl-tier1-mock-1', title: 'SSC CGL Tier 1 Full Mock Test 1', exam: 'SSC', questions: 100, duration: 60, difficulty: 'Medium', attempts: 21060, rating: 4.8, isFree: true, isNew: false, tags: ['GK','Reasoning','English','Maths'] },
+  { slug: 'ssc-cgl-reasoning-4', title: 'SSC CGL – Reasoning Section Test 4', exam: 'SSC', questions: 25, duration: 20, difficulty: 'Easy', attempts: 18400, rating: 4.7, isFree: true, isNew: true, tags: ['Reasoning'] },
+  { slug: 'ssc-chsl-mock-1', title: 'SSC CHSL Tier 1 Full Mock Test', exam: 'SSC', questions: 100, duration: 60, difficulty: 'Easy', attempts: 14300, rating: 4.6, isFree: true, isNew: false, tags: ['GK','Reasoning','English','Maths'] },
+  { slug: 'rrb-ntpc-cbt1', title: 'RRB NTPC CBT 1 Full Mock Test', exam: 'Railway', questions: 100, duration: 90, difficulty: 'Medium', attempts: 15700, rating: 4.6, isFree: true, isNew: false, tags: ['Maths','GK','Reasoning'] },
+  { slug: 'rrb-group-d-mock-1', title: 'RRB Group D Full Mock Test 1', exam: 'Railway', questions: 100, duration: 90, difficulty: 'Easy', attempts: 11200, rating: 4.5, isFree: true, isNew: false, tags: ['Maths','GK','Reasoning','Science'] },
+  { slug: 'ibps-po-prelims-mock-1', title: 'IBPS PO Prelims Full Mock Test 1', exam: 'Banking', questions: 100, duration: 60, difficulty: 'Medium', attempts: 9870, rating: 4.7, isFree: true, isNew: false, tags: ['Reasoning','English','Quant'] },
+  { slug: 'sbi-clerk-prelims-mock-1', title: 'SBI Clerk Prelims Mock Test 1', exam: 'Banking', questions: 100, duration: 60, difficulty: 'Easy', attempts: 13600, rating: 4.6, isFree: true, isNew: true, tags: ['Reasoning','English','Quant'] },
+  { slug: 'ossc-cgl-gk-2026', title: 'OSSC CGL 2026 – GK & Current Affairs', exam: 'OSSC', questions: 50, duration: 40, difficulty: 'Medium', attempts: 6320, rating: 4.5, isFree: true, isNew: true, tags: ['GK','Current Affairs'] },
+  { slug: 'odisha-police-constable-mock-1', title: 'Odisha Police Constable Mock Test 1', exam: 'Police', questions: 100, duration: 90, difficulty: 'Medium', attempts: 5490, rating: 4.5, isFree: true, isNew: false, tags: ['GK','Reasoning','Maths'] },
+  { slug: 'odisha-gk-district', title: 'Odisha GK – Districts, History & Culture', exam: 'General', questions: 75, duration: 60, difficulty: 'Easy', attempts: 9850, rating: 4.8, isFree: true, isNew: false, tags: ['Odisha GK'] },
+  { slug: 'current-affairs-june-2026', title: 'Current Affairs June 2026 – Full Set', exam: 'General', questions: 50, duration: 30, difficulty: 'Easy', attempts: 4200, rating: 4.6, isFree: true, isNew: true, tags: ['Current Affairs'] },
+];
+
+const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 'Police', 'General'];
+---
+
+<BaseLayout
+  title="All Mock Tests"
+  description="Browse 280+ free mock tests for OSSSC, OPSC, OSSC, SSC, Railway, Banking and more. Filter by exam, difficulty, and topic."
+>
+
+<section class="page-hero">
+  <div class="wrap hero-inner">
+    <div class="hero-text">
+      <h1>All Mock Tests</h1>
+      <p>280+ free tests across all major Odisha & central govt exams.</p>
+    </div>
+    <div class="search-box">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input
+        type="search"
+        id="search-input"
+        placeholder="Search tests, exams, topics…"
+        autocomplete="off"
+        aria-label="Search tests"
+      />
+    </div>
+  </div>
+</section>
+
+<div class="wrap listing-layout">
+
+  <!-- Filters sidebar -->
+  <aside class="filters" aria-label="Filter tests">
+    <div class="filter-group">
+      <h3>Exam</h3>
+      <ul class="filter-list" id="exam-filter">
+        {examTypes.map((e, i) => (
+          <li>
+            <button
+              class={`filter-btn ${i === 0 ? 'active' : ''}`}
+              data-exam={e}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              {e}
+              <span class="filter-count">{e === 'All' ? allTests.length : allTests.filter(t => t.exam === e).length}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="filter-group">
+      <h3>Difficulty</h3>
+      <ul class="filter-list" id="diff-filter">
+        {['All', 'Easy', 'Medium', 'Hard'].map((d, i) => (
+          <li>
+            <button class={`filter-btn ${i === 0 ? 'active' : ''}`} data-diff={d} aria-pressed={i === 0 ? 'true' : 'false'}>
+              {d}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="filter-group">
+      <h3>Duration</h3>
+      <ul class="filter-list" id="dur-filter">
+        {['All', 'Under 30 min', '30–60 min', 'Over 60 min'].map((d, i) => (
+          <li>
+            <button class={`filter-btn ${i === 0 ? 'active' : ''}`} data-dur={d} aria-pressed={i === 0 ? 'true' : 'false'}>
+              {d}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="tests-main">
+    <div class="toolbar">
+      <span class="result-count" id="result-count">{allTests.length} tests</span>
+      <div class="sort-row">
+        <label for="sort-select">Sort:</label>
+        <select id="sort-select" aria-label="Sort tests">
+          <option value="popular">Most Popular</option>
+          <option value="newest">Newest</option>
+          <option value="rating">Top Rated</option>
+          <option value="duration-asc">Shortest First</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tests-grid" id="tests-grid">
+      {allTests.map(t => (
+        <a
+          href={`/test/${t.slug}`}
+          class="test-card"
+          data-exam={t.exam}
+          data-diff={t.difficulty}
+          data-duration={t.duration}
+          data-attempts={t.attempts}
+          data-rating={t.rating}
+          data-isnew={t.isNew}
+        >
+          <div class="tc-top">
+            <span class="exam-tag">{t.exam}</span>
+            <div class="badges">
+              {t.isNew && <span class="badge-new">New</span>}
+              <span class="badge-free">Free</span>
+            </div>
+          </div>
+
+          <h2 class="tc-title">{t.title}</h2>
+
+          <div class="tc-tags">
+            {t.tags.map(tag => <span class="tag">{tag}</span>)}
+          </div>
+
+          <div class="tc-meta">
+            <span class="meta-item">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              {t.questions} Questions
+            </span>
+            <span class="meta-item">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              {t.duration} min
+            </span>
+            <span class={`diff-badge diff-${t.difficulty.toLowerCase()}`}>{t.difficulty}</span>
+          </div>
+
+          <div class="tc-footer">
+            <div class="tc-stats">
+              <span>
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                {t.attempts.toLocaleString('en-IN')}
+              </span>
+              <span class="star-rating">★ {t.rating}</span>
+            </div>
+            <span class="attempt-cta">Attempt →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <p class="empty-msg" id="empty-msg" style="display:none">
+      No tests match your filters. <button id="reset-filters">Reset filters</button>
+    </p>
+  </div>
+
+</div>
+
+</BaseLayout>
+
+<script is:inline>
+  // ── State
+  let activeExam = 'All';
+  let activeDiff = 'All';
+  let activeDur = 'All';
+  let searchQ = '';
+  let sortBy = 'popular';
+
+  const grid = document.getElementById('tests-grid');
+  const cards = Array.from(grid.querySelectorAll('.test-card'));
+  const countEl = document.getElementById('result-count');
+  const emptyEl = document.getElementById('empty-msg');
+
+  function durMatch(duration, filter) {
+    if (filter === 'All') return true;
+    if (filter === 'Under 30 min') return duration < 30;
+    if (filter === '30–60 min') return duration >= 30 && duration <= 60;
+    if (filter === 'Over 60 min') return duration > 60;
+    return true;
+  }
+
+  function applyFilters() {
+    let visible = [];
+    cards.forEach(card => {
+      const exam = card.dataset.exam;
+      const diff = card.dataset.diff;
+      const dur = parseInt(card.dataset.duration);
+      const title = card.querySelector('.tc-title').textContent.toLowerCase();
+      const tags = Array.from(card.querySelectorAll('.tag')).map(t => t.textContent.toLowerCase()).join(' ');
+
+      const matches =
+        (activeExam === 'All' || exam === activeExam) &&
+        (activeDiff === 'All' || diff === activeDiff) &&
+        durMatch(dur, activeDur) &&
+        (searchQ === '' || title.includes(searchQ) || tags.includes(searchQ));
+
+      card.style.display = matches ? '' : 'none';
+      if (matches) visible.push(card);
+    });
+
+    // Sort visible cards
+    const sorted = visible.sort((a, b) => {
+      if (sortBy === 'popular') return parseInt(b.dataset.attempts) - parseInt(a.dataset.attempts);
+      if (sortBy === 'rating') return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+      if (sortBy === 'newest') return b.dataset.isnew === 'true' ? 1 : -1;
+      if (sortBy === 'duration-asc') return parseInt(a.dataset.duration) - parseInt(b.dataset.duration);
+      return 0;
+    });
+    sorted.forEach(card => grid.appendChild(card));
+
+    countEl.textContent = `${visible.length} test${visible.length !== 1 ? 's' : ''}`;
+    emptyEl.style.display = visible.length === 0 ? '' : 'none';
+  }
+
+  // Filter button groups
+  function setupFilterGroup(groupId, prop) {
+    document.getElementById(groupId).addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      document.querySelectorAll(`#${groupId} .filter-btn`).forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      if (prop === 'exam') activeExam = btn.dataset.exam;
+      if (prop === 'diff') activeDiff = btn.dataset.diff;
+      if (prop === 'dur') activeDur = btn.dataset.dur;
+      applyFilters();
+    });
+  }
+
+  setupFilterGroup('exam-filter', 'exam');
+  setupFilterGroup('diff-filter', 'diff');
+  setupFilterGroup('dur-filter', 'dur');
+
+  document.getElementById('search-input').addEventListener('input', e => {
+    searchQ = e.target.value.trim().toLowerCase();
+    applyFilters();
+  });
+
+  document.getElementById('sort-select').addEventListener('change', e => {
+    sortBy = e.target.value;
+    applyFilters();
+  });
+
+  document.getElementById('reset-filters').addEventListener('click', () => {
+    activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = '';
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    document.querySelectorAll('.filter-btn:first-child').forEach(b => {
+      b.classList.add('active');
+      b.setAttribute('aria-pressed', 'true');
+    });
+    document.getElementById('search-input').value = '';
+    applyFilters();
+  });
+</script>
+
+<style>
+  .page-hero {
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    padding: 48px 0 36px;
+  }
+  .hero-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-text h1 {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .hero-text p { color: var(--ink-soft); }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1.5px solid var(--rule);
+    border-radius: var(--radius-pill);
+    padding: 10px 18px;
+    min-width: 300px;
+    color: var(--ink-muted);
+    transition: border-color 0.15s;
+  }
+  .search-box:focus-within {
+    border-color: var(--brand);
+    color: var(--ink);
+  }
+  .search-box input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    color: var(--ink);
+    width: 100%;
+  }
+  .search-box input::placeholder { color: var(--ink-muted); }
+
+  /* Layout */
+  .listing-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 32px;
+    padding-top: 36px;
+    padding-bottom: 72px;
+    align-items: start;
+  }
+
+  /* Sidebar */
+  .filters {
+    position: sticky;
+    top: 88px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .filter-group h3 {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+  }
+  .filter-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .filter-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .filter-btn.active { background: var(--brand-light); color: var(--brand-dark); font-weight: 700; }
+  .filter-count {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    background: var(--surface-2);
+    padding: 1px 7px;
+    border-radius: 99px;
+  }
+  .filter-btn.active .filter-count { background: var(--brand-mid); color: var(--brand-dark); }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .result-count {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .sort-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+  select {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+
+  /* Grid */
+  .tests-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  .test-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .test-card:hover {
+    border-color: var(--brand);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(176,0,32,0.08);
+  }
+  .tc-top { display: flex; justify-content: space-between; align-items: center; }
+  .exam-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--brand);
+    background: var(--brand-light);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+  .badges { display: flex; gap: 5px; }
+  .badge-new {
+    font-size: 0.68rem; font-weight: 700;
+    color: var(--green); background: var(--green-light);
+    padding: 2px 8px; border-radius: var(--radius-pill);
+  }
+  .badge-free {
+    font-size: 0.68rem; font-weight: 700;
+    color: var(--gold); background: var(--gold-light);
+    padding: 2px 8px; border-radius: var(--radius-pill);
+  }
+  .tc-title {
+    font-size: 0.96rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.4;
+    margin: 0;
+  }
+  .tc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--rule);
+  }
+  .tc-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .meta-item { display: flex; align-items: center; gap: 4px; }
+  .diff-badge {
+    padding: 2px 9px;
+    border-radius: var(--radius-pill);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .diff-easy   { color: var(--green); background: var(--green-light); }
+  .diff-medium { color: var(--gold);  background: var(--gold-light); }
+  .diff-hard   { color: var(--brand); background: var(--brand-light); }
+
+  .tc-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    margin-top: auto;
+  }
+  .tc-stats { display: flex; align-items: center; gap: 12px; font-size: 0.78rem; color: var(--ink-muted); }
+  .tc-stats span { display: flex; align-items: center; gap: 4px; }
+  .star-rating { color: var(--gold); font-weight: 600; }
+  .attempt-cta { font-size: 0.86rem; font-weight: 700; color: var(--brand); }
+
+  .empty-msg {
+    text-align: center;
+    padding: 48px;
+    color: var(--ink-soft);
+  }
+  .empty-msg button {
+    background: none;
+    border: none;
+    color: var(--brand);
+    font-weight: 700;
+    cursor: pointer;
+    font-size: inherit;
+  }
+
+  @media (max-width: 900px) {
+    .listing-layout { grid-template-columns: 1fr; }
+    .filters {
+      position: static;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .filter-group { flex: 1; min-width: 140px; }
+    .filter-list { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+    .filter-btn { width: auto; padding: 6px 12px; }
+    .hero-inner { flex-direction: column; align-items: flex-start; }
+    .search-box { min-width: 100%; }
+  }
+  @media (max-width: 600px) {
+    .tests-grid { grid-template-columns: 1fr; }
+  }
+</style>

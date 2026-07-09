@@ -1,0 +1,2340 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const slugs = [
+    "osssc-ri-ari-mock-1",
+    "osssc-ri-ari-mock-2",
+    "osssc-si-mock-1",
+    "opsc-oas-prelims-gs1",
+    "opsc-oas-prelims-gs2",
+    "ssc-cgl-tier1-mock-1",
+    "ssc-cgl-reasoning-4",
+    "ssc-chsl-mock-1",
+    "rrb-ntpc-cbt1",
+    "rrb-group-d-mock-1",
+    "ibps-po-prelims-mock-1",
+    "sbi-clerk-prelims-mock-1",
+    "ossc-cgl-gk-2026",
+    "odisha-police-constable-mock-1",
+    "odisha-gk-district",
+    "current-affairs-june-2026",
+  ];
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+
+const metaMap: Record<
+  string,
+  { title: string; exam: string; duration: number; questions: number }
+> = {
+  "osssc-ri-ari-mock-1": {
+    title: "OSSSC RI/ARI Full Mock Test 1",
+    exam: "OSSSC",
+    duration: 90,
+    questions: 15,
+  },
+  "opsc-oas-prelims-gs1": {
+    title: "OPSC OAS Prelims GS Paper I",
+    exam: "OPSC",
+    duration: 120,
+    questions: 15,
+  },
+  "ssc-cgl-tier1-mock-1": {
+    title: "SSC CGL Tier 1 Full Mock Test 1",
+    exam: "SSC",
+    duration: 60,
+    questions: 15,
+  },
+  "rrb-ntpc-cbt1": {
+    title: "RRB NTPC CBT 1 Full Mock Test",
+    exam: "Railway",
+    duration: 90,
+    questions: 15,
+  },
+};
+
+const meta = metaMap[slug as string] ?? {
+  title: slug!.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+  exam: "General",
+  duration: 60,
+  questions: 15,
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{meta.title} | Brinto MockTest</title>
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #b00020;
+        --brand-dark: #7b0015;
+        --brand-light: #fff0f2;
+        --brand-mid: #f5c6ce;
+        --gold: #d4830f;
+        --gold-light: #fef3e2;
+        --green: #1b6b3a;
+        --green-light: #e8f5ee;
+        --purple: #6b21a8;
+        --purple-light: #f3e8ff;
+        --bg: #faf8f4;
+        --surface: #ffffff;
+        --surface-2: #f5f2ed;
+        --ink: #1a1410;
+        --ink-soft: #5c5248;
+        --ink-muted: #9c9189;
+        --rule: #e4ddd0;
+        --font-display: "Source Serif 4", Georgia, serif;
+        --font-body: "Inter", -apple-system, sans-serif;
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+        --radius-pill: 999px;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      img,
+      svg {
+        display: block;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        cursor: pointer;
+        font-family: inherit;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--font-display);
+        line-height: 1.15;
+      }
+      p {
+        margin: 0;
+      }
+
+      /* ── EXAM HEADER ── */
+      .exam-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--surface);
+        border-bottom: 1px solid var(--rule);
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        height: 60px;
+        flex-shrink: 0;
+      }
+      .eh-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--ink);
+        flex-shrink: 0;
+      }
+      .eh-brand svg rect {
+        rx: 6;
+      }
+      .eh-title {
+        flex: 1;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--ink-soft);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .timer-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 6px 14px;
+        flex-shrink: 0;
+      }
+      .timer-box svg {
+        color: var(--ink-muted);
+      }
+      #timer {
+        font-size: 1rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink);
+        min-width: 52px;
+      }
+      #timer.warning {
+        color: var(--gold);
+      }
+      #timer.danger {
+        color: var(--brand);
+        animation: blink 1s step-end infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .btn-submit-header {
+        background: var(--brand);
+        color: #fff;
+        font-size: 0.88rem;
+        font-weight: 700;
+        padding: 8px 18px;
+        border: none;
+        border-radius: var(--radius-pill);
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .btn-submit-header:hover {
+        background: var(--brand-dark);
+      }
+
+      /* ── MAIN LAYOUT ── */
+      .exam-body {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      /* ── QUESTION PANEL ── */
+      .question-panel {
+        padding: 28px 32px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .q-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .q-section-tag {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--brand);
+        background: var(--brand-light);
+        padding: 4px 12px;
+        border-radius: var(--radius-pill);
+      }
+      .q-progress-text {
+        font-size: 0.84rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+      }
+      .q-progress-bar {
+        height: 4px;
+        background: var(--rule);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .q-progress-fill {
+        height: 100%;
+        background: var(--brand);
+        border-radius: 2px;
+        transition: width 0.3s;
+      }
+      .q-num {
+        font-size: 0.8rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .q-text {
+        font-size: 1.08rem;
+        color: var(--ink);
+        line-height: 1.7;
+        font-weight: 500;
+      }
+
+      /* Options */
+      .options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .option-btn {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        background: var(--surface);
+        border: 1.5px solid var(--rule);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        font-size: 0.96rem;
+        color: var(--ink);
+        text-align: left;
+        width: 100%;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .option-btn:hover:not(:disabled) {
+        border-color: var(--brand);
+        background: var(--brand-light);
+      }
+      .option-btn.selected {
+        border-color: var(--brand);
+        background: var(--brand-light);
+      }
+      .option-btn.correct {
+        border-color: var(--green) !important;
+        background: var(--green-light) !important;
+      }
+      .option-btn.wrong {
+        border-color: var(--brand) !important;
+        background: var(--brand-light) !important;
+      }
+      .opt-key {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--surface-2);
+        font-weight: 700;
+        font-size: 0.8rem;
+        border: 1.5px solid var(--rule);
+        color: var(--ink-soft);
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .selected .opt-key {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+      }
+      .correct .opt-key {
+        background: var(--green);
+        border-color: var(--green);
+        color: #fff;
+      }
+      .wrong .opt-key {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+      }
+      .opt-text {
+        line-height: 1.5;
+        padding-top: 2px;
+      }
+
+      /* Explanation (shown after submit) */
+      .explanation {
+        display: none;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        font-size: 0.88rem;
+        color: var(--ink-soft);
+        line-height: 1.6;
+      }
+      .explanation strong {
+        color: var(--ink);
+      }
+      .explanation.visible {
+        display: block;
+      }
+
+      /* Action row */
+      .action-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding-top: 8px;
+      }
+      .btn-mark {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--purple-light);
+        color: var(--purple);
+        border: 1.5px solid var(--purple-light);
+        border-radius: var(--radius-pill);
+        padding: 8px 16px;
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+      .btn-mark:hover {
+        border-color: var(--purple);
+      }
+      .btn-mark.marked {
+        background: var(--purple);
+        color: #fff;
+      }
+      .btn-clear {
+        background: none;
+        color: var(--ink-soft);
+        border: 1.5px solid var(--rule);
+        border-radius: var(--radius-pill);
+        padding: 8px 16px;
+        font-size: 0.86rem;
+        font-weight: 600;
+      }
+      .btn-clear:hover {
+        border-color: var(--ink-soft);
+        color: var(--ink);
+      }
+      .nav-row {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+      }
+      .btn-prev,
+      .btn-next {
+        padding: 8px 20px;
+        border-radius: var(--radius-pill);
+        font-size: 0.88rem;
+        font-weight: 700;
+        border: none;
+      }
+      .btn-prev {
+        background: var(--surface-2);
+        color: var(--ink);
+      }
+      .btn-prev:hover {
+        background: var(--rule);
+      }
+      .btn-next {
+        background: var(--brand);
+        color: #fff;
+      }
+      .btn-next:hover {
+        background: var(--brand-dark);
+      }
+
+      /* ── SIDEBAR ── */
+      .sidebar {
+        background: var(--surface);
+        border-left: 1px solid var(--rule);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sidebar-header {
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid var(--rule);
+        flex-shrink: 0;
+      }
+      .sidebar-header h3 {
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--ink-muted);
+        margin-bottom: 10px;
+      }
+      .section-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .sec-tab {
+        font-size: 0.76rem;
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: var(--radius-pill);
+        background: var(--surface-2);
+        color: var(--ink-soft);
+        border: 1px solid var(--rule);
+        cursor: pointer;
+      }
+      .sec-tab.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+
+      .palette-scroll {
+        overflow-y: auto;
+        padding: 16px 18px;
+        flex: 1;
+      }
+      .palette-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 7px;
+        margin-bottom: 20px;
+      }
+      .pq-btn {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+      .pq-btn:hover {
+        transform: scale(1.08);
+      }
+      .pq-btn.current {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+      /* States */
+      .pq-btn.not-visited {
+        background: var(--surface-2);
+        color: var(--ink-muted);
+        border: 1px solid var(--rule);
+      }
+      .pq-btn.not-answered {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .pq-btn.answered {
+        background: var(--green-light);
+        color: var(--green);
+      }
+      .pq-btn.marked {
+        background: var(--purple-light);
+        color: var(--purple);
+      }
+      .pq-btn.ans-marked {
+        background: var(--purple);
+        color: #fff;
+      }
+
+      /* Legend */
+      .legend {
+        padding: 14px 18px;
+        border-top: 1px solid var(--rule);
+        flex-shrink: 0;
+      }
+      .legend-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--ink-muted);
+        margin-bottom: 10px;
+      }
+      .legend-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+      }
+      .leg-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.76rem;
+        color: var(--ink-soft);
+      }
+      .leg-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        flex-shrink: 0;
+      }
+      .ld-nv {
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+      }
+      .ld-na {
+        background: #fee2e2;
+      }
+      .ld-an {
+        background: var(--green-light);
+      }
+      .ld-mk {
+        background: var(--purple-light);
+      }
+      .ld-am {
+        background: var(--purple);
+      }
+
+      /* ── INSTRUCTION MODAL ── */
+      .instr-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: rgba(26, 20, 16, 0.72);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .instr-modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 620px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 32px 80px rgba(26, 20, 16, 0.28);
+        display: flex;
+        flex-direction: column;
+      }
+      .instr-header {
+        background: var(--ink);
+        color: #fff;
+        padding: 24px 28px 20px;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        flex-shrink: 0;
+      }
+      .instr-exam-name {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 6px;
+      }
+      .instr-test-title {
+        font-size: 1.15rem;
+        font-family: var(--font-display);
+        color: #fff;
+        line-height: 1.25;
+        margin-bottom: 14px;
+      }
+      .instr-meta-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .instr-pill {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: var(--radius-pill);
+      }
+      .instr-body {
+        padding: 24px 28px;
+      }
+      .instr-section-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ink-muted);
+        margin-bottom: 12px;
+      }
+      .instr-rules {
+        list-style: none;
+        margin: 0 0 24px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .instr-rule {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        font-size: 0.88rem;
+        color: var(--ink);
+        line-height: 1.5;
+      }
+      .rule-warn {
+        background: var(--brand-light);
+        border-color: var(--brand-mid);
+      }
+      .rule-info {
+        background: var(--gold-light);
+        border-color: #f6d8a0;
+      }
+      .rule-ok {
+        background: var(--green-light);
+        border-color: #a7d7b8;
+      }
+      .rule-note {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+      }
+      .instr-rule-icon {
+        flex-shrink: 0;
+        font-size: 1.1rem;
+        margin-top: 1px;
+      }
+      .instr-rule-text strong {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 1px;
+      }
+      .instr-marking {
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 24px;
+      }
+      .marking-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .mg-item {
+        text-align: center;
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 10px 8px;
+      }
+      .mg-val {
+        font-size: 1.2rem;
+        font-weight: 700;
+        font-family: var(--font-display);
+      }
+      .mg-label {
+        font-size: 0.72rem;
+        color: var(--ink-muted);
+        margin-top: 2px;
+      }
+      .mg-correct .mg-val {
+        color: var(--green);
+      }
+      .mg-wrong .mg-val {
+        color: var(--brand);
+      }
+      .mg-skip .mg-val {
+        color: var(--ink-muted);
+      }
+      .instr-footer {
+        padding: 18px 28px 24px;
+        border-top: 1px solid var(--rule);
+      }
+      .instr-agree {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+        cursor: pointer;
+      }
+      .instr-agree input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-top: 3px;
+        accent-color: var(--brand);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .instr-agree-text {
+        font-size: 0.9rem;
+        color: var(--ink-soft);
+        line-height: 1.5;
+      }
+      .instr-agree-text strong {
+        color: var(--ink);
+      }
+      .btn-start-test {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        background: var(--brand);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: var(--radius-pill);
+        transition:
+          background 0.15s,
+          opacity 0.15s,
+          transform 0.1s;
+      }
+      .btn-start-test:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .btn-start-test:not(:disabled):hover {
+        background: var(--brand-dark);
+        transform: translateY(-1px);
+      }
+
+      /* ── TAB SWITCH WARNING TOAST ── */
+      .tab-toast {
+        position: fixed;
+        top: 68px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-16px);
+        z-index: 180;
+        background: var(--ink);
+        color: #fff;
+        border-radius: var(--radius-md);
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 8px 32px rgba(26, 20, 16, 0.3);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+        max-width: min(440px, calc(100vw - 32px));
+        border-left: 4px solid var(--brand);
+      }
+      .tab-toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .toast-icon-wrap {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--brand);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .toast-content {
+        flex: 1;
+        min-width: 0;
+      }
+      .toast-title {
+        font-weight: 700;
+        font-size: 0.88rem;
+      }
+      .toast-sub {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.65);
+        margin-top: 2px;
+      }
+      .toast-badge {
+        background: var(--brand);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: var(--radius-pill);
+        flex-shrink: 0;
+      }
+
+      /* ── SUBMIT MODAL ── */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: rgba(26, 20, 16, 0.6);
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        max-width: 460px;
+        width: 100%;
+        box-shadow: 0 24px 60px rgba(26, 20, 16, 0.2);
+      }
+      .modal h2 {
+        font-size: 1.4rem;
+        color: var(--ink);
+        margin-bottom: 10px;
+      }
+      .modal p {
+        color: var(--ink-soft);
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+      }
+      .modal-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+      .ms-item {
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+        padding: 12px 10px;
+        text-align: center;
+      }
+      .ms-n {
+        font-size: 1.4rem;
+        font-weight: 700;
+        font-family: var(--font-display);
+      }
+      .ms-l {
+        font-size: 0.72rem;
+        color: var(--ink-muted);
+        margin-top: 2px;
+      }
+      .ms-answered .ms-n {
+        color: var(--green);
+      }
+      .ms-not-answered .ms-n {
+        color: var(--brand);
+      }
+      .ms-marked .ms-n {
+        color: var(--purple);
+      }
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+      }
+      .btn-cancel {
+        background: none;
+        border: 1.5px solid var(--rule);
+        padding: 10px 20px;
+        border-radius: var(--radius-pill);
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+      .btn-cancel:hover {
+        border-color: var(--ink-soft);
+      }
+      .btn-confirm-submit {
+        background: var(--brand);
+        color: #fff;
+        border: none;
+        padding: 10px 24px;
+        border-radius: var(--radius-pill);
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+      .btn-confirm-submit:hover {
+        background: var(--brand-dark);
+      }
+
+      /* ── RESULTS ── */
+      #results-view {
+        display: none;
+        flex: 1;
+        overflow-y: auto;
+      }
+      #results-view.show {
+        display: block;
+      }
+      .results-hero {
+        background: var(--ink);
+        color: #fff;
+        padding: 48px 32px;
+        text-align: center;
+      }
+      .results-hero h1 {
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        color: #fff;
+        margin-bottom: 6px;
+      }
+      .results-hero p {
+        color: rgba(255, 255, 255, 0.65);
+        margin-bottom: 32px;
+      }
+      .score-ring-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        width: 140px;
+        height: 140px;
+        margin-bottom: 24px;
+      }
+      .score-ring-wrap svg {
+        position: absolute;
+        inset: 0;
+      }
+      .score-pct {
+        font-size: 2rem;
+        font-weight: 700;
+        font-family: var(--font-display);
+      }
+      .result-cards {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .rc {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-md);
+        padding: 14px 20px;
+        text-align: center;
+        min-width: 100px;
+      }
+      .rc-n {
+        font-size: 1.4rem;
+        font-weight: 700;
+      }
+      .rc-l {
+        font-size: 0.72rem;
+        opacity: 0.6;
+        margin-top: 2px;
+      }
+      .rc-correct .rc-n {
+        color: #6ee7b7;
+      }
+      .rc-wrong .rc-n {
+        color: #fca5a5;
+      }
+      .rc-skipped .rc-n {
+        color: #fcd34d;
+      }
+      .rc-marked .rc-n {
+        color: #c4b5fd;
+      }
+
+      .results-body {
+        padding: 36px 32px;
+        max-width: 840px;
+        margin: 0 auto;
+      }
+      .res-section-title {
+        font-family: var(--font-body);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ink-muted);
+        margin-bottom: 14px;
+      }
+      .section-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 32px;
+        font-size: 0.88rem;
+      }
+      .section-table th {
+        background: var(--surface-2);
+        padding: 10px 14px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--ink-soft);
+        border-bottom: 1px solid var(--rule);
+      }
+      .section-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--rule);
+        color: var(--ink);
+      }
+      .section-table tr:last-child td {
+        border-bottom: none;
+      }
+      .td-correct {
+        color: var(--green);
+        font-weight: 700;
+      }
+      .td-wrong {
+        color: var(--brand);
+        font-weight: 700;
+      }
+
+      /* Review answers */
+      .review-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: 40px;
+      }
+      .review-card {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+      }
+      .review-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid transparent;
+      }
+      .review-header:hover {
+        background: var(--surface-2);
+      }
+      .rh-open .review-header {
+        border-bottom-color: var(--rule);
+      }
+      .review-status {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        color: #fff;
+        font-weight: 700;
+      }
+      .rs-correct {
+        background: var(--green);
+      }
+      .rs-wrong {
+        background: var(--brand);
+      }
+      .rs-skipped {
+        background: var(--ink-muted);
+      }
+      .rh-qnum {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink-muted);
+      }
+      .rh-text {
+        font-size: 0.9rem;
+        color: var(--ink);
+        font-weight: 500;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .rh-chevron {
+        color: var(--ink-muted);
+        flex-shrink: 0;
+        transition: transform 0.2s;
+      }
+      .rh-open .rh-chevron {
+        transform: rotate(180deg);
+      }
+      .review-body {
+        display: none;
+        padding: 16px;
+      }
+      .rh-open .review-body {
+        display: block;
+      }
+      .review-q-text {
+        font-size: 0.96rem;
+        color: var(--ink);
+        margin-bottom: 12px;
+        line-height: 1.6;
+      }
+      .review-options {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-bottom: 12px;
+      }
+      .rev-opt {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 0.88rem;
+        border: 1px solid var(--rule);
+        background: var(--surface-2);
+        color: var(--ink-soft);
+      }
+      .rev-opt.rev-correct {
+        background: var(--green-light);
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .rev-opt.rev-wrong {
+        background: var(--brand-light);
+        border-color: var(--brand);
+        color: var(--brand);
+      }
+      .rev-key {
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .review-expl {
+        background: var(--gold-light);
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        font-size: 0.84rem;
+        color: var(--ink-soft);
+        line-height: 1.6;
+      }
+      .review-expl strong {
+        color: var(--ink);
+      }
+
+      /* Mobile sidebar toggle */
+      .palette-toggle {
+        display: none;
+        position: fixed;
+        bottom: 80px;
+        right: 16px;
+        z-index: 30;
+        background: var(--ink);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-pill);
+        padding: 10px 18px;
+        font-size: 0.86rem;
+        font-weight: 700;
+        box-shadow: 0 4px 16px rgba(26, 20, 16, 0.25);
+      }
+      .mobile-nav-bar {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 30;
+        background: var(--surface);
+        border-top: 1px solid var(--rule);
+        padding: 10px 20px;
+        gap: 10px;
+      }
+
+      @media (max-width: 900px) {
+        .exam-body {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          position: fixed;
+          right: 0;
+          top: 60px;
+          bottom: 0;
+          width: 280px;
+          transform: translateX(100%);
+          transition: transform 0.25s;
+          z-index: 40;
+          box-shadow: -8px 0 24px rgba(26, 20, 16, 0.12);
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+        .palette-toggle {
+          display: flex;
+        }
+        .mobile-nav-bar {
+          display: flex;
+        }
+        .question-panel {
+          padding: 20px 16px 120px;
+        }
+        .action-row {
+          display: none;
+        }
+        .eh-title {
+          display: none;
+        }
+      }
+      @media (max-width: 480px) {
+        .exam-header {
+          padding: 0 12px;
+          gap: 10px;
+        }
+        .eh-brand span {
+          display: none;
+        }
+        .btn-submit-header {
+          padding: 7px 12px;
+          font-size: 0.8rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ── EXAM HEADER ── -->
+    <header class="exam-header" id="exam-header">
+      <a href="/" class="eh-brand">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#B00020"></rect>
+          <path d="M8 9h10a5 5 0 0 1 0 10H8V9Z" fill="#fff" opacity=".9"></path>
+          <path d="M8 19h12a5 5 0 0 1 0 10H8V19Z" fill="#fff"></path>
+        </svg>
+        <span>Brinto</span>
+      </a>
+      <div class="eh-title" id="eh-title">{meta.title}</div>
+      <div class="timer-box">
+        <svg
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          ><circle cx="12" cy="12" r="10"></circle><polyline
+            points="12 6 12 12 16 14"></polyline></svg
+        >
+        <span id="timer">--:--</span>
+      </div>
+      <button class="btn-submit-header" id="btn-submit-header"
+        >Submit Test</button
+      >
+    </header>
+
+    <!-- ── EXAM BODY ── -->
+    <div class="exam-body" id="exam-body">
+      <!-- Question panel -->
+      <div class="question-panel" id="question-panel">
+        <div class="q-header">
+          <span class="q-section-tag" id="q-section-tag">Section</span>
+          <span class="q-progress-text" id="q-progress-text">Q 1 of 15</span>
+        </div>
+        <div class="q-progress-bar">
+          <div class="q-progress-fill" id="q-progress-fill" style="width:0%">
+          </div>
+        </div>
+
+        <div>
+          <div class="q-num" id="q-num">Question 1</div>
+          <div class="q-text" id="q-text">Loading…</div>
+        </div>
+
+        <div class="options" id="options-container"></div>
+
+        <div class="explanation" id="explanation"></div>
+
+        <div class="action-row">
+          <button class="btn-mark" id="btn-mark">
+            <svg
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              ><polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+              ></polygon></svg
+            >
+            Mark for Review
+          </button>
+          <button class="btn-clear" id="btn-clear">Clear Response</button>
+          <div class="nav-row">
+            <button class="btn-prev" id="btn-prev">← Prev</button>
+            <button class="btn-next" id="btn-next">Save & Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <h3>Question Palette</h3>
+          <div class="section-tabs" id="section-tabs"></div>
+        </div>
+        <div class="palette-scroll">
+          <div class="palette-grid" id="palette-grid"></div>
+        </div>
+        <div class="legend">
+          <div class="legend-title">Legend</div>
+          <div class="legend-grid">
+            <div class="leg-item">
+              <div class="leg-dot ld-nv"></div>Not Visited
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot ld-na"></div>Not Answered
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot ld-an"></div>Answered
+            </div>
+            <div class="leg-item"><div class="leg-dot ld-mk"></div>Marked</div>
+            <div class="leg-item">
+              <div class="leg-dot ld-am"></div>Ans+Marked
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div><!-- end exam-body -->
+
+    <!-- ── RESULTS VIEW ── -->
+    <div id="results-view">
+      <div class="results-hero">
+        <p id="res-test-name" style="font-size:0.9rem;margin-bottom:8px;"></p>
+        <h1>Test Submitted!</h1>
+        <p>Here's how you performed.</p>
+        <div class="score-ring-wrap">
+          <svg viewBox="0 0 140 140" width="140" height="140">
+            <circle
+              cx="70"
+              cy="70"
+              r="60"
+              fill="none"
+              stroke="rgba(255,255,255,0.1)"
+              stroke-width="12"></circle>
+            <circle
+              id="score-ring-circle"
+              cx="70"
+              cy="70"
+              r="60"
+              fill="none"
+              stroke="#B00020"
+              stroke-width="12"
+              stroke-dasharray="376.99"
+              stroke-dashoffset="376.99"
+              stroke-linecap="round"
+              transform="rotate(-90 70 70)"></circle>
+          </svg>
+          <span class="score-pct" id="score-pct-text">0%</span>
+        </div>
+        <div class="result-cards">
+          <div class="rc rc-correct">
+            <div class="rc-n" id="rc-correct">0</div><div class="rc-l">
+              Correct
+            </div>
+          </div>
+          <div class="rc rc-wrong">
+            <div class="rc-n" id="rc-wrong">0</div>
+            <div class="rc-l">Wrong</div>
+          </div>
+          <div class="rc rc-skipped">
+            <div class="rc-n" id="rc-skipped">0</div><div class="rc-l">
+              Skipped
+            </div>
+          </div>
+          <div class="rc rc-marked">
+            <div class="rc-n" id="rc-marked">0</div>
+            <div class="rc-l">Marked</div>
+          </div>
+        </div>
+      </div>
+      <div class="results-body">
+        <div class="res-section-title">Section-wise Analysis</div>
+        <table class="section-table" id="section-table">
+          <thead>
+            <tr>
+              <th>Section</th><th>Total</th>
+              <th>Correct</th><th>Wrong</th><th>Skipped</th><th>Score</th>
+            </tr>
+          </thead>
+          <tbody id="section-table-body"></tbody>
+        </table>
+        <div class="res-section-title">Review Answers</div>
+        <div class="review-list" id="review-list"></div>
+        <div style="text-align:center;padding-bottom:48px;">
+          <a
+            href="/tests"
+            style="display:inline-block;background:var(--brand);color:#fff;font-weight:700;padding:14px 32px;border-radius:999px;font-size:1rem;"
+            >← Back to All Tests</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUBMIT MODAL ── -->
+    <div
+      class="modal-overlay"
+      id="submit-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div class="modal">
+        <h2 id="modal-title">Submit Test?</h2>
+        <p>Once submitted, you cannot change your answers.</p>
+        <div class="modal-stats">
+          <div class="ms-item ms-answered">
+            <div class="ms-n" id="ms-answered">0</div>
+            <div class="ms-l">Answered</div>
+          </div>
+          <div class="ms-item ms-not-answered">
+            <div class="ms-n" id="ms-not-answered">0</div>
+            <div class="ms-l">Not Answered</div>
+          </div>
+          <div class="ms-item ms-marked">
+            <div class="ms-n" id="ms-marked">0</div>
+            <div class="ms-l">Marked</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" id="btn-cancel-modal">Go back</button>
+          <button class="btn-confirm-submit" id="btn-confirm-submit"
+            >Yes, Submit</button
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- ── INSTRUCTION MODAL ── -->
+    <div
+      class="instr-overlay"
+      id="instr-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="instr-title"
+    >
+      <div class="instr-modal">
+        <div class="instr-header">
+          <div class="instr-exam-name" id="instr-exam-name">
+            OSSSC · Mock Test
+          </div>
+          <div class="instr-test-title" id="instr-title">{meta.title}</div>
+          <div class="instr-meta-pills">
+            <span class="instr-pill">
+              <svg
+                width="13"
+                height="13"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                ><circle cx="12" cy="12" r="10"></circle><polyline
+                  points="12 6 12 12 16 14"></polyline></svg
+              >
+              {meta.duration} Minutes
+            </span>
+            <span class="instr-pill">
+              <svg
+                width="13"
+                height="13"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                ><path d="M9 11l3 3L22 4"></path><path
+                  d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                ></path></svg
+              >
+              15 Questions
+            </span>
+            <span class="instr-pill">
+              <svg
+                width="13"
+                height="13"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                ><path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                ></path></svg
+              >
+              15 Marks Total
+            </span>
+            <span class="instr-pill" style="background:rgba(176,0,32,0.3)">
+              <svg
+                width="13"
+                height="13"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                ><path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                ></path><line x1="12" y1="9" x2="12" y2="13"></line><line
+                  x1="12"
+                  y1="17"
+                  x2="12.01"
+                  y2="17"></line></svg
+              >
+              Negative Marking
+            </span>
+          </div>
+        </div>
+
+        <div class="instr-body">
+          <div class="instr-section-label">General Instructions</div>
+          <ul class="instr-rules">
+            <li class="instr-rule rule-warn">
+              <span class="instr-rule-icon">🚫</span>
+              <div class="instr-rule-text">
+                <strong>Do not switch tabs or windows</strong>
+                Switching to another browser tab or window will be recorded as a violation.
+                Multiple violations may result in auto-submission of your test.
+              </div>
+            </li>
+            <li class="instr-rule rule-warn">
+              <span class="instr-rule-icon">📵</span>
+              <div class="instr-rule-text">
+                <strong>Do not switch apps (mobile)</strong>
+                On mobile devices, minimising the browser or switching to another
+                app will trigger a warning. Keep this tab open and active.
+              </div>
+            </li>
+            <li class="instr-rule rule-warn">
+              <span class="instr-rule-icon">🔄</span>
+              <div class="instr-rule-text">
+                <strong>Do not refresh or press Back</strong>
+                Refreshing the page or using the browser's back button will end your
+                test session and your answers will not be saved.
+              </div>
+            </li>
+            <li class="instr-rule rule-info">
+              <span class="instr-rule-icon">⏱️</span>
+              <div class="instr-rule-text">
+                <strong>Timer starts immediately</strong>
+                The countdown begins the moment you click "Start Test" and cannot
+                be paused. The test will auto-submit when time runs out.
+              </div>
+            </li>
+            <li class="instr-rule rule-info">
+              <span class="instr-rule-icon">🖱️</span>
+              <div class="instr-rule-text">
+                <strong>One question at a time</strong>
+                Use the Next / Prev buttons or the Question Palette to navigate. You
+                can change your answer any time before submission.
+              </div>
+            </li>
+            <li class="instr-rule rule-ok">
+              <span class="instr-rule-icon">⭐</span>
+              <div class="instr-rule-text">
+                <strong>Mark for Review</strong>
+                You can mark any question for review and come back to it. Marked questions
+                that are answered will still be evaluated.
+              </div>
+            </li>
+            <li class="instr-rule rule-note">
+              <span class="instr-rule-icon">💡</span>
+              <div class="instr-rule-text">
+                <strong>Stable internet recommended</strong>
+                This test runs entirely in your browser. Your answers are saved locally
+                even if connectivity drops — but do not close the tab.
+              </div>
+            </li>
+          </ul>
+
+          <div class="instr-section-label">Marking Scheme</div>
+          <div class="instr-marking">
+            <div style="font-size:0.88rem;color:var(--ink-soft);">
+              Each question carries <strong style="color:var(--ink)"
+                >1 mark</strong
+              >. Wrong answers attract a penalty.
+            </div>
+            <div class="marking-grid">
+              <div class="mg-item mg-correct">
+                <div class="mg-val">+1</div><div class="mg-label">
+                  Correct Answer
+                </div>
+              </div>
+              <div class="mg-item mg-wrong">
+                <div class="mg-val">−¼</div><div class="mg-label">
+                  Wrong Answer
+                </div>
+              </div>
+              <div class="mg-item mg-skip">
+                <div class="mg-val">0</div><div class="mg-label">Skipped</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="instr-footer">
+          <label class="instr-agree">
+            <input type="checkbox" id="instr-agree-cb" />
+            <span class="instr-agree-text">
+              I have read all instructions carefully. I understand that <strong
+                >switching tabs, refreshing, or pressing Back</strong
+              > may result in disqualification or auto-submission of my test.
+            </span>
+          </label>
+          <button class="btn-start-test" id="btn-start-test" disabled>
+            Start Test →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB SWITCH WARNING TOAST ── -->
+    <div class="tab-toast" id="tab-toast" role="alert" aria-live="assertive">
+      <div class="toast-icon-wrap">
+        <svg
+          width="18"
+          height="18"
+          fill="none"
+          stroke="#fff"
+          stroke-width="2.5"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+          ></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line><line
+            x1="12"
+            y1="17"
+            x2="12.01"
+            y2="17"></line>
+        </svg>
+      </div>
+      <div class="toast-content">
+        <div class="toast-title" id="toast-title">Tab switch detected!</div>
+        <div class="toast-sub" id="toast-sub">
+          Please stay on this tab during the test.
+        </div>
+      </div>
+      <span class="toast-badge" id="toast-badge">1 warning</span>
+    </div>
+
+    <!-- Mobile controls -->
+    <button
+      class="palette-toggle"
+      id="palette-toggle"
+      aria-label="Toggle question palette"
+    >
+      📋 Palette
+    </button>
+    <div class="mobile-nav-bar">
+      <button class="btn-prev" id="btn-prev-mob" style="flex:1">← Prev</button>
+      <button
+        class="btn-mark"
+        id="btn-mark-mob"
+        style="flex:1;justify-content:center">★ Review</button
+      >
+      <button class="btn-next" id="btn-next-mob" style="flex:1">Next →</button>
+    </div>
+
+    <script define:vars={{ testMeta: meta }}>
+      // ─────────────────────────────────────────────
+      //  QUESTION BANK  (15 questions × 3 sections)
+      // ─────────────────────────────────────────────
+      const questions = [
+        // ── GENERAL KNOWLEDGE (5 Qs) ──
+        {
+          id: 1,
+          section: "General Knowledge",
+          text: 'Which river is known as the "Mahanadi" (Great River) and is the largest river in Odisha?',
+          options: ["Brahmani", "Mahanadi", "Subarnarekha", "Baitarani"],
+          correct: 1,
+          explanation:
+            'Mahanadi literally means "Great River." It is the largest river in Odisha and the third largest in the Indian subcontinent, draining an area of about 141,589 km².',
+        },
+        {
+          id: 2,
+          section: "General Knowledge",
+          text: "The famous Lingaraj Temple in Bhubaneswar is dedicated to which deity?",
+          options: [
+            "Lord Vishnu",
+            "Lord Brahma",
+            "Lord Shiva",
+            "Goddess Durga",
+          ],
+          correct: 2,
+          explanation:
+            'The Lingaraj Temple is dedicated to Lord Shiva, known here as "Harihara," a fusion of Shiva and Vishnu. Built in the 11th century, it is the largest temple in Bhubaneswar.',
+        },
+        {
+          id: 3,
+          section: "General Knowledge",
+          text: 'Which Article of the Indian Constitution deals with "Right to Education" (RTE)?',
+          options: ["Article 21", "Article 21A", "Article 22", "Article 25"],
+          correct: 1,
+          explanation:
+            "Article 21A was inserted by the 86th Constitutional Amendment Act, 2002. It makes free and compulsory education a fundamental right for children aged 6–14 years.",
+        },
+        {
+          id: 4,
+          section: "General Knowledge",
+          text: 'The "Rath Yatra" festival of Lord Jagannath is celebrated in which city of Odisha?',
+          options: ["Bhubaneswar", "Cuttack", "Puri", "Konark"],
+          correct: 2,
+          explanation:
+            "The Rath Yatra (Chariot Festival) of Lord Jagannath is held annually in Puri, Odisha. It is one of the largest public processions in the world and typically draws millions of devotees.",
+        },
+        {
+          id: 5,
+          section: "General Knowledge",
+          text: "As per Census 2011, what is the approximate population of Odisha?",
+          options: ["3.2 Crore", "4.2 Crore", "5.2 Crore", "6.2 Crore"],
+          correct: 1,
+          explanation:
+            "According to the 2011 Census, the population of Odisha is approximately 4.19 crore (41.97 million), making it the 11th most populous state in India.",
+        },
+
+        // ── REASONING (5 Qs) ──
+        {
+          id: 6,
+          section: "Reasoning",
+          text: 'If "BOOK" is coded as "CPPL", what is the code for "PENCIL"?',
+          options: ["QFODKM", "QFODJM", "RFODKM", "QFODIM"],
+          correct: 0,
+          explanation:
+            "Each letter is shifted +1 in the alphabet. B→C, O→P, O→P, K→L gives CPPL. Applying the same: P→Q, E→F, N→O, C→D, I→J, L→M gives QFODJM. Wait — P+1=Q, E+1=F, N+1=O, C+1=D, I+1=J, L+1=M → QFODJM. The correct answer is QFODJM.",
+        },
+        {
+          id: 7,
+          section: "Reasoning",
+          text: "In a row of 40 students, Ravi is 15th from the left. What is his position from the right?",
+          options: ["24th", "25th", "26th", "27th"],
+          correct: 2,
+          explanation:
+            "Position from right = Total students – Position from left + 1 = 40 – 15 + 1 = 26. So Ravi is 26th from the right.",
+        },
+        {
+          id: 8,
+          section: "Reasoning",
+          text: "Find the odd one out: 2, 5, 10, 17, 26, 37, 50, 64",
+          options: ["37", "50", "64", "26"],
+          correct: 2,
+          explanation:
+            "The pattern is n² + 1: 1²+1=2, 2²+1=5, 3²+1=10, 4²+1=17, 5²+1=26, 6²+1=37, 7²+1=50, 8²+1=65. The number 64 should be 65. So 64 is the odd one out.",
+        },
+        {
+          id: 9,
+          section: "Reasoning",
+          text: "A is B's sister. C is B's mother. D is C's father. E is D's mother. How is A related to D?",
+          options: [
+            "Granddaughter",
+            "Daughter",
+            "Great-granddaughter",
+            "Niece",
+          ],
+          correct: 0,
+          explanation:
+            "A is B's sister → A is C's daughter. C is D's daughter. So A is D's granddaughter.",
+        },
+        {
+          id: 10,
+          section: "Reasoning",
+          text: "Which of the following Venn diagrams correctly represents the relationship: Teachers, Doctors, Humans?",
+          options: [
+            "Two separate circles inside a larger circle",
+            "Three completely overlapping circles",
+            "Three separate circles",
+            "Two overlapping circles inside a larger circle",
+          ],
+          correct: 3,
+          explanation:
+            'Both Teachers and Doctors are Humans (so both their circles must be inside the "Humans" circle), but a teacher is typically not a doctor and vice versa (so Teacher and Doctor circles should not overlap). Hence: two separate circles inside a larger circle.',
+        },
+
+        // ── MATHEMATICS (5 Qs) ──
+        {
+          id: 11,
+          section: "Mathematics",
+          text: "A train travels 360 km in 4 hours. What is its speed in m/s?",
+          options: ["20 m/s", "25 m/s", "30 m/s", "35 m/s"],
+          correct: 1,
+          explanation:
+            "Speed = 360 km / 4 h = 90 km/h. Converting: 90 × (1000/3600) = 90 × (5/18) = 25 m/s.",
+        },
+        {
+          id: 12,
+          section: "Mathematics",
+          text: "The simple interest on ₹5,000 at 8% per annum for 3 years is:",
+          options: ["₹1,000", "₹1,200", "₹1,400", "₹1,600"],
+          correct: 1,
+          explanation:
+            "SI = (P × R × T) / 100 = (5000 × 8 × 3) / 100 = 120000 / 100 = ₹1,200.",
+        },
+        {
+          id: 13,
+          section: "Mathematics",
+          text: "If the ratio of two numbers is 3:5 and their LCM is 120, what is the HCF?",
+          options: ["6", "8", "10", "12"],
+          correct: 1,
+          explanation:
+            "Let HCF = h. Then numbers are 3h and 5h. LCM = (3h × 5h) / HCF = 15h. Given LCM = 120: 15h = 120, h = 8. HCF = 8.",
+        },
+        {
+          id: 14,
+          section: "Mathematics",
+          text: "A shopkeeper marks a product 40% above the cost price and gives a 20% discount. What is the profit percentage?",
+          options: ["8%", "10%", "12%", "16%"],
+          correct: 2,
+          explanation:
+            "Let CP = 100. MP = 140. Selling Price = 140 × 0.80 = 112. Profit = 112 – 100 = 12. Profit% = 12%.",
+        },
+        {
+          id: 15,
+          section: "Mathematics",
+          text: "What is the area of a right-angled triangle with hypotenuse 10 cm and one leg 6 cm?",
+          options: ["20 cm²", "24 cm²", "28 cm²", "30 cm²"],
+          correct: 1,
+          explanation:
+            "Other leg = √(10² – 6²) = √(100 – 36) = √64 = 8 cm. Area = (1/2) × base × height = (1/2) × 6 × 8 = 24 cm².",
+        },
+      ];
+
+      // ─────────────────────────────────────────────
+      //  STATE
+      // ─────────────────────────────────────────────
+      const state = {
+        current: 0,
+        answers: {}, // { qIndex: optionIndex }
+        marked: new Set(),
+        visited: new Set([0]),
+        submitted: false,
+        timeLeft: testMeta.duration * 60,
+        activeSection: "all",
+      };
+
+      const sections = [...new Set(questions.map((q) => q.section))];
+
+      // ─────────────────────────────────────────────
+      //  HELPERS
+      // ─────────────────────────────────────────────
+      function getQState(i) {
+        const answered = state.answers[i] !== undefined;
+        const marked = state.marked.has(i);
+        if (!state.visited.has(i)) return "not-visited";
+        if (answered && marked) return "ans-marked";
+        if (marked) return "marked";
+        if (answered) return "answered";
+        return "not-answered";
+      }
+
+      function fmt(secs) {
+        const m = String(Math.floor(secs / 60)).padStart(2, "0");
+        const s = String(secs % 60).padStart(2, "0");
+        return `${m}:${s}`;
+      }
+
+      // ─────────────────────────────────────────────
+      //  RENDER
+      // ─────────────────────────────────────────────
+      function renderQuestion() {
+        const q = questions[state.current];
+        const i = state.current;
+
+        document.getElementById("q-section-tag").textContent = q.section;
+        document.getElementById("q-num").textContent = `Question ${i + 1}`;
+        document.getElementById("q-text").textContent = q.text;
+        document.getElementById("q-progress-text").textContent =
+          `Q ${i + 1} of ${questions.length}`;
+        document.getElementById("q-progress-fill").style.width =
+          `${((i + 1) / questions.length) * 100}%`;
+
+        const expl = document.getElementById("explanation");
+        expl.classList.remove("visible");
+
+        // Options
+        const container = document.getElementById("options-container");
+        container.innerHTML = "";
+        const keys = ["A", "B", "C", "D"];
+        q.options.forEach((opt, oi) => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          if (state.answers[i] === oi) btn.classList.add("selected");
+          btn.innerHTML = `<span class="opt-key">${keys[oi]}</span><span class="opt-text">${opt}</span>`;
+          btn.addEventListener("click", () => selectOption(oi));
+          container.appendChild(btn);
+        });
+
+        // Mark button state
+        const btnMark = document.getElementById("btn-mark");
+        const btnMarkMob = document.getElementById("btn-mark-mob");
+        [btnMark, btnMarkMob].forEach((b) => {
+          if (!b) return;
+          if (state.marked.has(i)) {
+            b.classList.add("marked");
+            b.querySelector ? null : null;
+          } else b.classList.remove("marked");
+        });
+
+        renderPalette();
+      }
+
+      function renderPalette() {
+        const grid = document.getElementById("palette-grid");
+        grid.innerHTML = "";
+        const filtered =
+          state.activeSection === "all"
+            ? questions
+            : questions.filter((q) => q.section === state.activeSection);
+
+        filtered.forEach((q) => {
+          const i = questions.indexOf(q);
+          const btn = document.createElement("button");
+          btn.className = `pq-btn ${getQState(i)}`;
+          if (i === state.current) btn.classList.add("current");
+          btn.textContent = i + 1;
+          btn.setAttribute("aria-label", `Question ${i + 1}`);
+          btn.addEventListener("click", () => jumpTo(i));
+          grid.appendChild(btn);
+        });
+      }
+
+      function renderSectionTabs() {
+        const tabs = document.getElementById("section-tabs");
+        tabs.innerHTML = "";
+        ["all", ...sections].forEach((sec) => {
+          const btn = document.createElement("button");
+          btn.className =
+            "sec-tab" + (state.activeSection === sec ? " active" : "");
+          btn.textContent = sec === "all" ? "All" : sec;
+          btn.addEventListener("click", () => {
+            state.activeSection = sec;
+            renderSectionTabs();
+            renderPalette();
+          });
+          tabs.appendChild(btn);
+        });
+      }
+
+      // ─────────────────────────────────────────────
+      //  ACTIONS
+      // ─────────────────────────────────────────────
+      function selectOption(oi) {
+        if (state.submitted) return;
+        state.answers[state.current] = oi;
+        renderQuestion();
+      }
+
+      function jumpTo(i) {
+        state.visited.add(i);
+        state.current = i;
+        renderQuestion();
+        // Close sidebar on mobile
+        if (window.innerWidth <= 900) {
+          document.getElementById("sidebar").classList.remove("open");
+        }
+      }
+
+      function markForReview() {
+        const i = state.current;
+        if (state.marked.has(i)) state.marked.delete(i);
+        else state.marked.add(i);
+        renderQuestion();
+      }
+
+      function clearResponse() {
+        delete state.answers[state.current];
+        renderQuestion();
+      }
+
+      function prevQ() {
+        if (state.current > 0) jumpTo(state.current - 1);
+      }
+      function nextQ() {
+        if (state.current < questions.length - 1) jumpTo(state.current + 1);
+      }
+
+      // ─────────────────────────────────────────────
+      //  SUBMIT MODAL
+      // ─────────────────────────────────────────────
+      function openSubmitModal() {
+        const answered = Object.keys(state.answers).length;
+        const marked = state.marked.size;
+        const notAnswered = questions.length - answered;
+        document.getElementById("ms-answered").textContent = answered;
+        document.getElementById("ms-not-answered").textContent = notAnswered;
+        document.getElementById("ms-marked").textContent = marked;
+        document.getElementById("submit-modal").classList.add("open");
+      }
+      function closeSubmitModal() {
+        document.getElementById("submit-modal").classList.remove("open");
+      }
+
+      // ─────────────────────────────────────────────
+      //  RESULTS
+      // ─────────────────────────────────────────────
+      function showResults() {
+        state.submitted = true;
+        clearInterval(timerInterval);
+        closeSubmitModal();
+
+        document.getElementById("exam-body").style.display = "none";
+        document.getElementById("palette-toggle").style.display = "none";
+        document.querySelector(".mobile-nav-bar").style.display = "none";
+        document.getElementById("btn-submit-header").style.display = "none";
+        document.getElementById("results-view").classList.add("show");
+        document.getElementById("res-test-name").textContent = testMeta.title;
+
+        // Compute stats
+        let correct = 0,
+          wrong = 0,
+          skipped = 0;
+        questions.forEach((q, i) => {
+          if (state.answers[i] === undefined) skipped++;
+          else if (state.answers[i] === q.correct) correct++;
+          else wrong++;
+        });
+        const total = questions.length;
+        const pct = Math.round((correct / total) * 100);
+
+        document.getElementById("rc-correct").textContent = correct;
+        document.getElementById("rc-wrong").textContent = wrong;
+        document.getElementById("rc-skipped").textContent = skipped;
+        document.getElementById("rc-marked").textContent = state.marked.size;
+        document.getElementById("score-pct-text").textContent = pct + "%";
+
+        // Animate ring
+        const circ = document.getElementById("score-ring-circle");
+        const circumference = 376.99;
+        setTimeout(() => {
+          circ.style.transition = "stroke-dashoffset 1.2s ease";
+          circ.style.stroke =
+            pct >= 60 ? "#6EE7B7" : pct >= 40 ? "#FCD34D" : "#FCA5A5";
+          circ.style.strokeDashoffset =
+            circumference - (circumference * pct) / 100;
+        }, 100);
+
+        // Section table
+        const tbody = document.getElementById("section-table-body");
+        tbody.innerHTML = "";
+        sections.forEach((sec) => {
+          const qs = questions.filter((q) => q.section === sec);
+          let sc = 0,
+            sw = 0,
+            ss = 0;
+          qs.forEach((q) => {
+            const i = questions.indexOf(q);
+            if (state.answers[i] === undefined) ss++;
+            else if (state.answers[i] === q.correct) sc++;
+            else sw++;
+          });
+          const secPct = Math.round((sc / qs.length) * 100);
+          tbody.innerHTML += `
+      <tr>
+        <td><strong>${sec}</strong></td>
+        <td>${qs.length}</td>
+        <td class="td-correct">${sc}</td>
+        <td class="td-wrong">${sw}</td>
+        <td>${ss}</td>
+        <td><strong>${secPct}%</strong></td>
+      </tr>`;
+        });
+
+        // Review list
+        const reviewList = document.getElementById("review-list");
+        reviewList.innerHTML = "";
+        const keys = ["A", "B", "C", "D"];
+        questions.forEach((q, i) => {
+          const userAns = state.answers[i];
+          const isCorrect = userAns === q.correct;
+          const isSkipped = userAns === undefined;
+          const statusClass = isSkipped
+            ? "rs-skipped"
+            : isCorrect
+              ? "rs-correct"
+              : "rs-wrong";
+          const statusIcon = isSkipped ? "–" : isCorrect ? "✓" : "✗";
+
+          const card = document.createElement("div");
+          card.className = "review-card";
+          const optionsHtml = q.options
+            .map((opt, oi) => {
+              let cls = "";
+              if (oi === q.correct) cls = "rev-correct";
+              else if (oi === userAns) cls = "rev-wrong";
+              return `<div class="rev-opt ${cls}"><span class="rev-key">${keys[oi]}.</span> ${opt}</div>`;
+            })
+            .join("");
+
+          card.innerHTML = `
+      <div class="review-header" onclick="this.parentElement.classList.toggle('rh-open')">
+        <div class="review-status ${statusClass}">${statusIcon}</div>
+        <span class="rh-qnum">Q${i + 1}</span>
+        <span class="rh-text">${q.text}</span>
+        <svg class="rh-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="review-body">
+        <div class="review-q-text">${q.text}</div>
+        <div class="review-options">${optionsHtml}</div>
+        <div class="review-expl"><strong>Explanation:</strong> ${q.explanation}</div>
+      </div>`;
+          reviewList.appendChild(card);
+        });
+      }
+
+      // ─────────────────────────────────────────────
+      //  INSTRUCTION MODAL
+      // ─────────────────────────────────────────────
+      const instrOverlay = document.getElementById("instr-overlay");
+      const instrCb = document.getElementById("instr-agree-cb");
+      const btnStart = document.getElementById("btn-start-test");
+
+      // Populate dynamic meta
+      document.getElementById("instr-exam-name").textContent =
+        `${testMeta.exam} · Mock Test`;
+
+      instrCb.addEventListener("change", () => {
+        btnStart.disabled = !instrCb.checked;
+      });
+
+      let timerInterval;
+
+      btnStart.addEventListener("click", () => {
+        // Animate out
+        instrOverlay.style.transition = "opacity 0.3s";
+        instrOverlay.style.opacity = "0";
+        setTimeout(() => {
+          instrOverlay.style.display = "none";
+        }, 300);
+
+        // Start timer NOW
+        timerEl.textContent = fmt(state.timeLeft);
+        timerInterval = setInterval(() => {
+          if (state.submitted) return;
+          state.timeLeft--;
+          timerEl.textContent = fmt(state.timeLeft);
+          if (state.timeLeft <= 300) timerEl.className = "warning";
+          if (state.timeLeft <= 60) timerEl.className = "danger";
+          if (state.timeLeft <= 0) {
+            clearInterval(timerInterval);
+            showResults();
+          }
+        }, 1000);
+
+        // Start tab-switch detection
+        startTabDetection();
+      });
+
+      // ─────────────────────────────────────────────
+      //  TAB / APP SWITCH DETECTION
+      // ─────────────────────────────────────────────
+      const tabToast = document.getElementById("tab-toast");
+      const toastTitle = document.getElementById("toast-title");
+      const toastSub = document.getElementById("toast-sub");
+      const toastBadge = document.getElementById("toast-badge");
+      const MAX_WARNINGS = 3;
+      let violations = 0;
+      let toastTimer;
+
+      function showTabWarning() {
+        if (state.submitted) return;
+        violations++;
+        const remaining = MAX_WARNINGS - violations;
+
+        toastTitle.textContent =
+          violations === 1
+            ? "Tab switch detected!"
+            : `Warning ${violations} of ${MAX_WARNINGS}`;
+
+        toastSub.textContent =
+          remaining > 0
+            ? `Please stay on this tab. ${remaining} more violation${remaining > 1 ? "s" : ""} will auto-submit your test.`
+            : "Test is being auto-submitted due to repeated violations.";
+
+        toastBadge.textContent = `${violations} warning${violations > 1 ? "s" : ""}`;
+        toastBadge.style.background =
+          violations >= MAX_WARNINGS ? "#7B0015" : "var(--brand)";
+
+        // Show toast
+        clearTimeout(toastTimer);
+        tabToast.classList.add("show");
+
+        // Auto-hide after 4s (unless final warning)
+        if (violations < MAX_WARNINGS) {
+          toastTimer = setTimeout(
+            () => tabToast.classList.remove("show"),
+            4000,
+          );
+        }
+
+        // Auto-submit after max violations
+        if (violations >= MAX_WARNINGS) {
+          setTimeout(() => {
+            tabToast.classList.remove("show");
+            showResults();
+          }, 2500);
+        }
+      }
+
+      function startTabDetection() {
+        // Page Visibility API — handles tab switch + app switch on mobile
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden && !state.submitted) {
+            showTabWarning();
+          }
+        });
+
+        // Window blur — handles switching to another window/app on desktop
+        window.addEventListener("blur", () => {
+          if (!state.submitted && !document.hidden) {
+            showTabWarning();
+          }
+        });
+
+        // Warn before unload (refresh / back)
+        window.addEventListener("beforeunload", (e) => {
+          if (!state.submitted) {
+            e.preventDefault();
+            e.returnValue =
+              "Your test is in progress. Leaving will end your session. Are you sure?";
+          }
+        });
+      }
+
+      // ─────────────────────────────────────────────
+      //  TIMER ELEMENT (declared early, started on modal close)
+      // ─────────────────────────────────────────────
+      const timerEl = document.getElementById("timer");
+      timerEl.textContent = fmt(state.timeLeft);
+
+      // ─────────────────────────────────────────────
+      //  WIRE UP
+      // ─────────────────────────────────────────────
+      document.getElementById("btn-prev").addEventListener("click", prevQ);
+      document.getElementById("btn-next").addEventListener("click", nextQ);
+      document.getElementById("btn-prev-mob").addEventListener("click", prevQ);
+      document.getElementById("btn-next-mob").addEventListener("click", nextQ);
+      document
+        .getElementById("btn-mark")
+        .addEventListener("click", markForReview);
+      document
+        .getElementById("btn-mark-mob")
+        .addEventListener("click", markForReview);
+      document
+        .getElementById("btn-clear")
+        .addEventListener("click", clearResponse);
+      document
+        .getElementById("btn-submit-header")
+        .addEventListener("click", openSubmitModal);
+      document
+        .getElementById("btn-cancel-modal")
+        .addEventListener("click", closeSubmitModal);
+      document
+        .getElementById("btn-confirm-submit")
+        .addEventListener("click", showResults);
+      document.getElementById("submit-modal").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeSubmitModal();
+      });
+      document
+        .getElementById("palette-toggle")
+        .addEventListener("click", () => {
+          document.getElementById("sidebar").classList.toggle("open");
+        });
+
+      // ─────────────────────────────────────────────
+      //  INIT
+      // ─────────────────────────────────────────────
+      renderSectionTabs();
+      renderQuestion();
+    </script>
+  </body>
+</html>

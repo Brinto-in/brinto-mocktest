@@ -1,0 +1,116 @@
+---
+const year = new Date().getFullYear();
+const links = {
+  'Tests': [
+    { href: '/tests/osssc', label: 'OSSSC' },
+    { href: '/tests/opsc', label: 'OPSC' },
+    { href: '/tests/ssc', label: 'SSC CGL' },
+    { href: '/tests/railway', label: 'Railway RRB' },
+    { href: '/tests/banking', label: 'Banking' },
+  ],
+  'Platform': [
+    { href: '/leaderboard', label: 'Leaderboard' },
+    { href: '/results', label: 'My Results' },
+    { href: '/analysis', label: 'Test Analysis' },
+  ],
+  'Brinto': [
+    { href: 'https://brinto.in', label: 'Main Site' },
+    { href: 'https://blogs.brinto.in', label: 'Blog' },
+    { href: '/contact', label: 'Contact' },
+  ],
+};
+---
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <div class="logo-row">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#B00020"/>
+          <path d="M8 9h10a5 5 0 0 1 0 10H8V9Z" fill="#fff" opacity=".9"/>
+          <path d="M8 19h12a5 5 0 0 1 0 10H8V19Z" fill="#fff"/>
+        </svg>
+        <span class="footer-brand-name">Brinto MockTest</span>
+      </div>
+      <p>Free mock tests for Odisha government job aspirants. Prepare smarter with timed tests, instant analysis, and rank tracking.</p>
+    </div>
+
+    {Object.entries(links).map(([group, items]) => (
+      <div class="footer-col">
+        <h3>{group}</h3>
+        <ul>
+          {items.map(item => <li><a href={item.href}>{item.label}</a></li>)}
+        </ul>
+      </div>
+    ))}
+  </div>
+
+  <div class="footer-bottom wrap">
+    <span>© {year} Novagenix Lab. All rights reserved.</span>
+    <span class="footer-bottom-links">
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+    </span>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.7);
+    margin-top: 80px;
+  }
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 48px;
+    padding: 56px 24px 40px;
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .footer-brand-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #fff;
+  }
+  .footer-brand p {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    max-width: 28ch;
+    color: rgba(255,255,255,0.55);
+  }
+  .footer-col h3 {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 14px;
+  }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  a { font-size: 0.9rem; color: rgba(255,255,255,0.65); transition: color 0.15s; }
+  a:hover { color: #fff; }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+  }
+  .footer-bottom-links { display: flex; gap: 20px; }
+  @media (max-width: 900px) {
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 480px) {
+    .footer-inner { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+  }
+</style>

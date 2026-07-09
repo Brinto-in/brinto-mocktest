@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Brand - same DNA as Brinto */
+  --brand:        #B00020;
+  --brand-dark:   #7B0015;
+  --brand-light:  #FFF0F2;
+  --brand-mid:    #F5C6CE;
+
+  /* Gold accent for scores/badges */
+  --gold:         #D4830F;
+  --gold-light:   #FEF3E2;
+
+  /* Success */
+  --green:        #1B6B3A;
+  --green-light:  #E8F5EE;
+
+  /* Neutrals */
+  --bg:           #FAF8F4;
+  --surface:      #FFFFFF;
+  --surface-2:    #F5F2ED;
+  --ink:          #1A1410;
+  --ink-soft:     #5C5248;
+  --ink-muted:    #9C9189;
+  --rule:         #E4DDD0;
+
+  /* Type */
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Spacing */
+  --maxw:         1180px;
+  --radius-sm:    8px;
+  --radius-md:    14px;
+  --radius-lg:    20px;
+  --radius-pill:  999px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+h1,h2,h3,h4 { margin: 0; font-family: var(--font-display); line-height: 1.15; }
+p { margin: 0; }
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
