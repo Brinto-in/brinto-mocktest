@@ -1,0 +1,42 @@
+---
+import type { Step } from '../lib/types';
+
+interface Props {
+  step: Step;
+}
+
+const { step } = Astro.props;
+---
+
+<div class="step-card">
+  <div class="step-icon" set:html={step.icon} />
+  <div class="step-num">{step.n}</div>
+  <h3>{step.title}</h3>
+  <p>{step.body}</p>
+</div>
+
+<style>
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 28px 24px;
+    position: relative;
+  }
+  .step-icon {
+    color: var(--brand);
+    margin-bottom: 14px;
+  }
+  .step-num {
+    font-family: var(--font-display);
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--rule);
+    line-height: 1;
+    position: absolute;
+    top: 20px;
+    right: 22px;
+  }
+  h3 { font-size: 1.1rem; color: var(--ink); margin-bottom: 10px; font-family: var(--font-body); font-weight: 700; }
+  p { font-size: 0.9rem; color: var(--ink-soft); }
+</style>

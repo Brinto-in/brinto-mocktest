@@ -1,0 +1,49 @@
+---
+import type { Category } from '../lib/types';
+
+interface Props {
+  category: Category;
+}
+
+const { category } = Astro.props;
+---
+
+<a href={category.href} class="cat-card">
+  <span class="cat-icon">{category.icon}</span>
+  <span class="cat-label">{category.label}</span>
+  <span class="cat-count">{category.count} tests</span>
+  <span class="cat-arrow">→</span>
+</a>
+
+<style>
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 20px 18px;
+    display: grid;
+    grid-template-areas:
+      'icon arrow'
+      'label label'
+      'count count';
+    grid-template-columns: 1fr auto;
+    gap: 6px 0;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .cat-card:hover {
+    border-color: var(--brand);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(176, 0, 32, 0.1);
+  }
+  .cat-icon { grid-area: icon; font-size: 1.5rem; }
+  .cat-arrow {
+    grid-area: arrow;
+    align-self: start;
+    font-size: 1rem;
+    color: var(--ink-muted);
+    transition: transform 0.15s;
+  }
+  .cat-card:hover .cat-arrow { transform: translateX(3px); color: var(--brand); }
+  .cat-label { grid-area: label; font-weight: 700; font-size: 1rem; color: var(--ink); margin-top: 8px; }
+  .cat-count { grid-area: count; font-size: 0.78rem; color: var(--ink-muted); }
+</style>

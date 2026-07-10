@@ -1,123 +1,33 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import TestCard from '../components/TestCard.astro';
+import StepCard from '../components/StepCard.astro';
+import Hero from '../components/Hero.astro';
+import StatsStrip from '../components/StatsStrip.astro';
 
-const categories = [
-  { label: 'OSSSC', icon: '🏛️', count: 48, href: '/tests/osssc', color: '#B00020' },
-  { label: 'OPSC', icon: '⚖️', count: 32, href: '/tests/opsc', color: '#7B0015' },
-  { label: 'OSSC', icon: '🗂️', count: 26, href: '/tests/ossc', color: '#C0392B' },
-  { label: 'SSC CGL', icon: '📋', count: 60, href: '/tests/ssc', color: '#D4830F' },
-  { label: 'Railway RRB', icon: '🚂', count: 44, href: '/tests/railway', color: '#1B6B3A' },
-  { label: 'Banking', icon: '🏦', count: 38, href: '/tests/banking', color: '#0D47A1' },
-  { label: 'Odisha Police', icon: '🛡️', count: 22, href: '/tests/police', color: '#4A148C' },
-  { label: 'Teaching', icon: '📚', count: 30, href: '/tests/teaching', color: '#006064' },
-];
+import { db } from '../lib/db';
+import type { Test } from '../lib/types';
+import { categories } from '../data/categories';
+import { steps } from '../data/steps';
 
-const tests = [
-  {
-    title: 'OSSSC RI/ARI Full Mock Test 1',
-    exam: 'OSSSC',
-    questions: 100,
-    duration: 90,
-    difficulty: 'Medium',
-    attempts: 12480,
-    rating: 4.8,
-    href: '/test/osssc-ri-ari-1',
-    isNew: false,
-    isFree: true,
-  },
-  {
-    title: 'OPSC OAS Prelims GS Paper I',
-    exam: 'OPSC',
-    questions: 200,
-    duration: 120,
-    difficulty: 'Hard',
-    attempts: 8930,
-    rating: 4.9,
-    href: '/test/opsc-oas-prelims-gs1',
-    isNew: false,
-    isFree: true,
-  },
-  {
-    title: 'SSC CGL Tier 1 – Reasoning Set 4',
-    exam: 'SSC',
-    questions: 25,
-    duration: 20,
-    difficulty: 'Easy',
-    attempts: 21060,
-    rating: 4.7,
-    href: '/test/ssc-cgl-reasoning-4',
-    isNew: true,
-    isFree: true,
-  },
-  {
-    title: 'RRB NTPC CBT 1 Full Test',
-    exam: 'Railway',
-    questions: 100,
-    duration: 90,
-    difficulty: 'Medium',
-    attempts: 15700,
-    rating: 4.6,
-    href: '/test/rrb-ntpc-cbt1',
-    isNew: false,
-    isFree: true,
-  },
-  {
-    title: 'OSSC CGL 2026 GK + Current Affairs',
-    exam: 'OSSC',
-    questions: 50,
-    duration: 40,
-    difficulty: 'Medium',
-    attempts: 6320,
-    rating: 4.5,
-    href: '/test/ossc-cgl-gk-2026',
-    isNew: true,
-    isFree: true,
-  },
-  {
-    title: 'Odisha GK – District & History',
-    exam: 'General',
-    questions: 75,
-    duration: 60,
-    difficulty: 'Easy',
-    attempts: 9850,
-    rating: 4.8,
-    href: '/test/odisha-gk-district',
-    isNew: false,
-    isFree: true,
-  },
-];
+const result = await db.execute({
+  sql: "SELECT * FROM tests ORDER BY attempts DESC LIMIT 6",
+  args: [],
+});
 
-const diffColor: Record<string, string> = {
-  Easy: 'var(--green)',
-  Medium: 'var(--gold)',
-  Hard: 'var(--brand)',
-};
-const diffBg: Record<string, string> = {
-  Easy: 'var(--green-light)',
-  Medium: 'var(--gold-light)',
-  Hard: 'var(--brand-light)',
-};
-
-const steps = [
-  {
-    n: '01',
-    title: 'Pick your exam',
-    body: 'Browse tests by exam category — OSSSC, OPSC, Railways, Banking and more, all in one place.',
-    icon: `<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>`,
-  },
-  {
-    n: '02',
-    title: 'Attempt the test',
-    body: 'Take timed tests in an interface that mirrors actual exam conditions, with auto-submit at time-up.',
-    icon: `<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-  },
-  {
-    n: '03',
-    title: 'Review & improve',
-    body: 'Get a detailed section-wise analysis, correct answers with explanations, and your all-India rank.',
-    icon: `<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>`,
-  },
-];
+const tests: Test[] = result.rows.map((row: any) => ({
+  title: row.title,
+  exam: row.exam,
+  questions: row.questions,
+  duration: row.duration,
+  difficulty: row.difficulty,
+  attempts: row.attempts,
+  rating: row.rating,
+  href: row.href,
+  isNew: !!row.is_new,
+  isFree: !!row.is_free,
+}));
 ---
 
 <BaseLayout
@@ -125,107 +35,8 @@ const steps = [
   description="Practice free mock tests for OSSSC, OPSC, OSSC, SSC, Railway, Banking and more. Get instant results, section analysis, and rank on the leaderboard."
 >
 
-  <!-- ── HERO ────────────────────────────────────── -->
-  <section class="hero">
-    <div class="wrap hero-inner">
-      <div class="hero-text">
-        <div class="live-badge" aria-live="polite">
-          <span class="pulse-dot"></span>
-          <span id="live-count">3,241</span> students practising now
-        </div>
-        <h1>
-          Crack your govt exam<br/>
-          <em>one mock test at a time.</em>
-        </h1>
-        <p class="hero-sub">
-          Free, timed mock tests for OSSSC, OPSC, SSC, Railway and more —
-          with instant analysis and leaderboard ranking. Built for Odisha aspirants.
-        </p>
-        <div class="hero-actions">
-          <a href="/tests" class="btn-hero-primary">Browse all tests →</a>
-          <a href="/tests/osssc" class="btn-hero-ghost">OSSSC Tests</a>
-        </div>
-        <div class="hero-trust">
-          <span>✓ 100% Free</span>
-          <span>✓ 280+ Tests</span>
-          <span>✓ Instant analysis</span>
-          <span>✓ Odia + English</span>
-        </div>
-      </div>
-
-      <div class="hero-card-col">
-        <div class="score-card" aria-hidden="true">
-          <div class="sc-header">
-            <span class="sc-exam">OSSSC RI Mock Test 3</span>
-            <span class="sc-badge">Completed</span>
-          </div>
-          <div class="sc-score">
-            <div class="sc-ring">
-              <svg viewBox="0 0 80 80" width="80" height="80">
-                <circle cx="40" cy="40" r="34" fill="none" stroke="var(--rule)" stroke-width="8"/>
-                <circle cx="40" cy="40" r="34" fill="none" stroke="var(--brand)" stroke-width="8"
-                  stroke-dasharray="213.6" stroke-dashoffset="53.4"
-                  stroke-linecap="round" transform="rotate(-90 40 40)"/>
-              </svg>
-              <span class="sc-pct">75%</span>
-            </div>
-            <div class="sc-breakdown">
-              <div class="sc-row">
-                <span class="sc-label">Correct</span>
-                <span class="sc-val correct">75</span>
-              </div>
-              <div class="sc-row">
-                <span class="sc-label">Wrong</span>
-                <span class="sc-val wrong">15</span>
-              </div>
-              <div class="sc-row">
-                <span class="sc-label">Skipped</span>
-                <span class="sc-val">10</span>
-              </div>
-            </div>
-          </div>
-          <div class="sc-rank">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-            Your rank <strong>#347</strong> out of 12,480 students
-          </div>
-          <div class="sc-sections">
-            <div class="ss-item">
-              <span>GK</span>
-              <div class="ss-bar"><div class="ss-fill" style="width:82%"></div></div>
-              <span class="ss-pct">82%</span>
-            </div>
-            <div class="ss-item">
-              <span>Reasoning</span>
-              <div class="ss-bar"><div class="ss-fill" style="width:68%"></div></div>
-              <span class="ss-pct">68%</span>
-            </div>
-            <div class="ss-item">
-              <span>Maths</span>
-              <div class="ss-bar"><div class="ss-fill" style="width:71%"></div></div>
-              <span class="ss-pct">71%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── STATS STRIP ────────────────────────────── -->
-  <section class="stats-strip">
-    <div class="wrap stats-row">
-      {[
-        { n: '2,80,000+', l: 'Registered Students' },
-        { n: '280+', l: 'Mock Tests' },
-        { n: '1.4L+', l: 'Questions' },
-        { n: '99%', l: 'Free — Always' },
-      ].map(s => (
-        <div class="stat-item">
-          <span class="stat-n">{s.n}</span>
-          <span class="stat-l">{s.l}</span>
-        </div>
-      ))}
-    </div>
-  </section>
+  <Hero />
+  <StatsStrip />
 
   <!-- ── CATEGORIES ─────────────────────────────── -->
   <section class="section">
@@ -235,14 +46,7 @@ const steps = [
         <a href="/tests" class="see-all">See all →</a>
       </div>
       <div class="cat-grid">
-        {categories.map(cat => (
-          <a href={cat.href} class="cat-card">
-            <span class="cat-icon">{cat.icon}</span>
-            <span class="cat-label">{cat.label}</span>
-            <span class="cat-count">{cat.count} tests</span>
-            <span class="cat-arrow">→</span>
-          </a>
-        ))}
+        {categories.map(cat => <CategoryCard category={cat} />)}
       </div>
     </div>
   </section>
@@ -255,39 +59,7 @@ const steps = [
         <a href="/tests" class="see-all">View all →</a>
       </div>
       <div class="tests-grid">
-        {tests.map(t => (
-          <a href={t.href} class="test-card">
-            <div class="tc-top">
-              <span class="tc-exam-tag">{t.exam}</span>
-              <div class="tc-badges">
-                {t.isNew && <span class="badge-new">New</span>}
-                {t.isFree && <span class="badge-free">Free</span>}
-              </div>
-            </div>
-            <h3 class="tc-title">{t.title}</h3>
-            <div class="tc-meta">
-              <span>
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                {t.questions} Qs
-              </span>
-              <span>
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                {t.duration} min
-              </span>
-              <span class="tc-diff" style={`color:${diffColor[t.difficulty]};background:${diffBg[t.difficulty]}`}>
-                {t.difficulty}
-              </span>
-            </div>
-            <div class="tc-footer">
-              <span class="tc-attempts">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                {t.attempts.toLocaleString('en-IN')}
-              </span>
-              <span class="tc-rating">★ {t.rating}</span>
-              <span class="tc-cta">Attempt →</span>
-            </div>
-          </a>
-        ))}
+        {tests.map((t) => <TestCard test={t} />)}
       </div>
     </div>
   </section>
@@ -300,14 +72,7 @@ const steps = [
         <p class="section-sub">Three steps from zero to your exam rank.</p>
       </div>
       <div class="steps-row">
-        {steps.map(step => (
-          <div class="step-card">
-            <div class="step-icon" set:html={step.icon} />
-            <div class="step-num">{step.n}</div>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
-          </div>
-        ))}
+        {steps.map(step => <StepCard step={step} />)}
       </div>
     </div>
   </section>
@@ -328,221 +93,7 @@ const steps = [
 
 </BaseLayout>
 
-<script>
-  // Animate live student count slightly to feel real-time
-  const el = document.getElementById('live-count');
-  if (el) {
-    setInterval(() => {
-      const base = 3241;
-      const delta = Math.floor(Math.random() * 20) - 9;
-      const curr = parseInt(el.textContent?.replace(',', '') ?? '3241');
-      const next = Math.max(3000, curr + delta);
-      el.textContent = next.toLocaleString('en-IN');
-    }, 4000);
-  }
-</script>
-
 <style>
-  /* ── HERO ── */
-  .hero {
-    background: var(--surface);
-    border-bottom: 1px solid var(--rule);
-    padding: 72px 0 64px;
-  }
-  .hero-inner {
-    display: grid;
-    grid-template-columns: 1fr 420px;
-    gap: 56px;
-    align-items: center;
-  }
-  .live-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--brand-light);
-    color: var(--brand-dark);
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
-    margin-bottom: 20px;
-    border: 1px solid var(--brand-mid);
-  }
-  .pulse-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--brand);
-    flex-shrink: 0;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.3); }
-  }
-  h1 {
-    font-size: clamp(2.2rem, 4.5vw, 3.2rem);
-    color: var(--ink);
-    margin-bottom: 18px;
-  }
-  h1 em {
-    font-style: italic;
-    color: var(--brand);
-  }
-  .hero-sub {
-    font-size: 1.06rem;
-    color: var(--ink-soft);
-    max-width: 50ch;
-    line-height: 1.7;
-    margin-bottom: 28px;
-  }
-  .hero-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-  }
-  .btn-hero-primary {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-    background: var(--brand);
-    padding: 14px 28px;
-    border-radius: var(--radius-pill);
-    transition: background 0.15s, transform 0.1s;
-  }
-  .btn-hero-primary:hover { background: var(--brand-dark); transform: translateY(-1px); }
-  .btn-hero-ghost {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--ink);
-    background: var(--surface-2);
-    padding: 14px 28px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--rule);
-    transition: border-color 0.15s;
-  }
-  .btn-hero-ghost:hover { border-color: var(--ink-soft); }
-  .hero-trust {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--ink-soft);
-  }
-
-  /* ── SCORE CARD (hero visual) ── */
-  .hero-card-col { display: flex; justify-content: center; }
-  .score-card {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-lg);
-    padding: 24px;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: 0 20px 48px rgba(26,20,16,0.1);
-  }
-  .sc-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  .sc-exam { font-weight: 600; font-size: 0.9rem; color: var(--ink); }
-  .sc-badge {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--green);
-    background: var(--green-light);
-    padding: 3px 10px;
-    border-radius: var(--radius-pill);
-  }
-  .sc-score {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 16px;
-  }
-  .sc-ring { position: relative; flex-shrink: 0; }
-  .sc-pct {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--brand);
-  }
-  .sc-breakdown { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-  .sc-row { display: flex; justify-content: space-between; font-size: 0.85rem; }
-  .sc-label { color: var(--ink-soft); }
-  .sc-val { font-weight: 700; }
-  .sc-val.correct { color: var(--green); }
-  .sc-val.wrong { color: var(--brand); }
-  .sc-rank {
-    background: var(--brand-light);
-    color: var(--brand-dark);
-    font-size: 0.82rem;
-    padding: 10px 14px;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 16px;
-  }
-  .sc-sections { display: flex; flex-direction: column; gap: 10px; }
-  .ss-item {
-    display: grid;
-    grid-template-columns: 76px 1fr 36px;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.8rem;
-    color: var(--ink-soft);
-  }
-  .ss-bar {
-    height: 6px;
-    background: var(--rule);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .ss-fill {
-    height: 100%;
-    background: var(--brand);
-    border-radius: 3px;
-  }
-  .ss-pct { font-weight: 600; color: var(--ink); text-align: right; }
-
-  /* ── STATS STRIP ── */
-  .stats-strip {
-    background: var(--ink);
-    color: #fff;
-  }
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 32px 24px;
-    gap: 0;
-  }
-  .stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 16px;
-    border-right: 1px solid rgba(255,255,255,0.1);
-  }
-  .stat-item:last-child { border-right: none; }
-  .stat-n {
-    font-family: var(--font-display);
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
-    font-weight: 700;
-    color: #fff;
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-  .stat-l { font-size: 0.82rem; color: rgba(255,255,255,0.55); }
-
   /* ── SECTIONS ── */
   .section { padding: 72px 0; }
   .section-alt { background: var(--surface-2); }
@@ -573,139 +124,12 @@ const steps = [
     grid-template-columns: repeat(4, 1fr);
     gap: 14px;
   }
-  .cat-card {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-md);
-    padding: 20px 18px;
-    display: grid;
-    grid-template-areas:
-      "icon arrow"
-      "label label"
-      "count count";
-    grid-template-columns: 1fr auto;
-    gap: 6px 0;
-    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-  }
-  .cat-card:hover {
-    border-color: var(--brand);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(176,0,32,0.1);
-  }
-  .cat-icon { grid-area: icon; font-size: 1.5rem; }
-  .cat-arrow {
-    grid-area: arrow;
-    align-self: start;
-    font-size: 1rem;
-    color: var(--ink-muted);
-    transition: transform 0.15s;
-  }
-  .cat-card:hover .cat-arrow { transform: translateX(3px); color: var(--brand); }
-  .cat-label {
-    grid-area: label;
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--ink);
-    margin-top: 8px;
-  }
-  .cat-count {
-    grid-area: count;
-    font-size: 0.78rem;
-    color: var(--ink-muted);
-  }
 
   /* ── TEST CARDS ── */
   .tests-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-  }
-  .test-card {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-md);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-  }
-  .test-card:hover {
-    border-color: var(--brand);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(176,0,32,0.08);
-  }
-  .tc-top { display: flex; justify-content: space-between; align-items: center; }
-  .tc-exam-tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--brand);
-    background: var(--brand-light);
-    padding: 3px 10px;
-    border-radius: var(--radius-pill);
-  }
-  .tc-badges { display: flex; gap: 6px; }
-  .badge-new {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--green);
-    background: var(--green-light);
-    padding: 2px 8px;
-    border-radius: var(--radius-pill);
-  }
-  .badge-free {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--gold);
-    background: var(--gold-light);
-    padding: 2px 8px;
-    border-radius: var(--radius-pill);
-  }
-  .tc-title {
-    font-size: 0.98rem;
-    color: var(--ink);
-    font-family: var(--font-body);
-    font-weight: 600;
-    line-height: 1.4;
-  }
-  .tc-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.8rem;
-    color: var(--ink-soft);
-  }
-  .tc-meta span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .tc-diff {
-    padding: 2px 9px;
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    font-size: 0.76rem !important;
-  }
-  .tc-footer {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid var(--rule);
-    font-size: 0.8rem;
-    color: var(--ink-muted);
-  }
-  .tc-attempts { display: flex; align-items: center; gap: 4px; }
-  .tc-rating { color: var(--gold); font-weight: 600; margin-right: auto; }
-  .tc-cta {
-    font-weight: 700;
-    color: var(--brand);
-    font-size: 0.84rem;
-    margin-left: auto;
-    transition: gap 0.15s;
   }
 
   /* ── STEPS ── */
@@ -793,8 +217,6 @@ const steps = [
   }
   @media (max-width: 768px) {
     .hero { padding: 48px 0 40px; }
-    .stats-row { grid-template-columns: repeat(2, 1fr); }
-    .stat-item:nth-child(2) { border-right: none; }
     .cat-grid { grid-template-columns: repeat(2, 1fr); }
     .steps-row { grid-template-columns: 1fr; }
     .cta-inner { flex-direction: column; text-align: center; }
@@ -802,7 +224,6 @@ const steps = [
   }
   @media (max-width: 600px) {
     .tests-grid { grid-template-columns: 1fr; }
-    .stats-row { grid-template-columns: repeat(2, 1fr); }
     .section { padding: 48px 0; }
   }
   @media (max-width: 400px) {
