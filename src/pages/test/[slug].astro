@@ -1,80 +1,88 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { db } from '../../lib/db';
+import type { Test } from '../../lib/types';
 
 export async function getStaticPaths() {
-  const slugs = [
-    "osssc-ri-ari-mock-1",
-    "osssc-ri-ari-mock-2",
-    "osssc-si-mock-1",
-    "opsc-oas-prelims-gs1",
-    "opsc-oas-prelims-gs2",
-    "ssc-cgl-tier1-mock-1",
-    "ssc-cgl-reasoning-4",
-    "ssc-chsl-mock-1",
-    "rrb-ntpc-cbt1",
-    "rrb-group-d-mock-1",
-    "ibps-po-prelims-mock-1",
-    "sbi-clerk-prelims-mock-1",
-    "ossc-cgl-gk-2026",
-    "odisha-police-constable-mock-1",
-    "odisha-gk-district",
-    "current-affairs-june-2026",
-  ];
-  return slugs.map((slug) => ({ params: { slug } }));
+  const { rows } = await db.execute("SELECT href FROM tests");
+
+  return rows.map((row: any) => {
+    // Extract the slug from the href, e.g., "osssc-ri-ari-1" from "/test/osssc-ri-ari-1"
+    const slug = row.href.split('/').pop();
+    return {
+      params: { slug },
+    };
+  });
 }
 
 const { slug } = Astro.params;
+const href = `/test/${slug}`;
 
-const metaMap: Record<
-  string,
-  { title: string; exam: string; duration: number; questions: number }
-> = {
-  "osssc-ri-ari-mock-1": {
-    title: "OSSSC RI/ARI Full Mock Test 1",
-    exam: "OSSSC",
-    duration: 90,
-    questions: 15,
-  },
-  "opsc-oas-prelims-gs1": {
-    title: "OPSC OAS Prelims GS Paper I",
-    exam: "OPSC",
-    duration: 120,
-    questions: 15,
-  },
-  "ssc-cgl-tier1-mock-1": {
-    title: "SSC CGL Tier 1 Full Mock Test 1",
-    exam: "SSC",
-    duration: 60,
-    questions: 15,
-  },
-  "rrb-ntpc-cbt1": {
-    title: "RRB NTPC CBT 1 Full Mock Test",
-    exam: "Railway",
-    duration: 90,
-    questions: 15,
-  },
+const result = await db.execute({
+  sql: "SELECT * FROM tests WHERE href = ? LIMIT 1",
+  args: [href],
+});
+
+// If no test is found for the slug, redirect to the 404 page.
+if (result.rows.length === 0) {
+  return Astro.redirect('/404');
+}
+
+const test: Test = {
+    id: result.rows[0].id as number,
+    title: result.rows[0].title as string,
+    exam: result.rows[0].exam as string,
+    questions: result.rows[0].questions as number,
+    duration: result.rows[0].duration as number,
+    difficulty: result.rows[0].difficulty as 'Easy' | 'Medium' | 'Hard',
+    attempts: result.rows[0].attempts as number,
+    rating: result.rows[0].rating as number,
+    href: result.rows[0].href as string,
+    isNew: !!result.rows[0].is_new,
+    isFree: !!result.rows[0].is_free,
 };
 
-const meta = metaMap[slug as string] ?? {
-  title: slug!.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-  exam: "General",
-  duration: 60,
-  questions: 15,
-};
+// Fetch questions and options directly
+const questionsAndOptionsResult = await db.execute({
+  sql: `
+    SELECT
+      q.id as question_id,
+      q.section,
+      q.text as question_text,
+      q.explanation,
+      o.id as option_id,
+      o.text as option_text,
+      o.is_correct
+    FROM questions q
+    JOIN options o ON q.id = o.question_id
+    WHERE q.test_id = ?
+    ORDER BY q.id, o.id;
+  `,
+  args: [test.id!],
+});
+
+const questionsMap = new Map();
+for (const row of questionsAndOptionsResult.rows) {
+  if (!questionsMap.has(row.question_id)) {
+    questionsMap.set(row.question_id, {
+      id: row.question_id,
+      section: row.section,
+      text: row.question_text,
+      explanation: row.explanation,
+      options: [],
+      correct: -1,
+    });
+  }
+  const question = questionsMap.get(row.question_id);
+  question.options.push(row.option_text);
+  if (row.is_correct) {
+    question.correct = question.options.length - 1;
+  }
+}
+const questionsData = Array.from(questionsMap.values());
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{meta.title} | Brinto MockTest</title>
-    <meta name="robots" content="noindex" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,700&family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+<BaseLayout title={test.title} description={`Attempt the ${test.title} mock test. ${test.questions} questions in ${test.duration} minutes.`}>
     <style>
       :root {
         --brand: #b00020;
@@ -122,7 +130,7 @@ const meta = metaMap[slug as string] ?? {
         flex-direction: column;
       }
       img,
-      svg {
+      svg, .eh-brand svg {
         display: block;
       }
       a {
@@ -1286,19 +1294,17 @@ const meta = metaMap[slug as string] ?? {
         }
       }
     </style>
-  </head>
-  <body>
     <!-- ── EXAM HEADER ── -->
     <header class="exam-header" id="exam-header">
       <a href="/" class="eh-brand">
         <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
           <rect width="32" height="32" rx="8" fill="#B00020"></rect>
-          <path d="M8 9h10a5 5 0 0 1 0 10H8V9Z" fill="#fff" opacity=".9"></path>
+          <path d="M8 9h10a5 5 0 0 1 0 10H8V9Z" fill="#fff" opacity=".9"></path> 
           <path d="M8 19h12a5 5 0 0 1 0 10H8V19Z" fill="#fff"></path>
         </svg>
         <span>Brinto</span>
       </a>
-      <div class="eh-title" id="eh-title">{meta.title}</div>
+      <div class="eh-title" id="eh-title">{test.title}</div>
       <div class="timer-box">
         <svg
           width="16"
@@ -1337,6 +1343,13 @@ const meta = metaMap[slug as string] ?? {
 
         <div class="options" id="options-container"></div>
 
+        <!-- This template will be cloned by the script to create styled option buttons -->
+        <template id="option-template">
+          <button class="option-btn">
+            <span class="opt-key"></span><span class="opt-text"></span>
+          </button>
+        </template>
+
         <div class="explanation" id="explanation"></div>
 
         <div class="action-row">
@@ -1367,9 +1380,15 @@ const meta = metaMap[slug as string] ?? {
         <div class="sidebar-header">
           <h3>Question Palette</h3>
           <div class="section-tabs" id="section-tabs"></div>
+          <template id="section-tab-template">
+            <button class="sec-tab"></button>
+          </template>
         </div>
         <div class="palette-scroll">
           <div class="palette-grid" id="palette-grid"></div>
+          <template id="palette-button-template">
+            <button class="pq-btn"></button>
+          </template>
         </div>
         <div class="legend">
           <div class="legend-title">Legend</div>
@@ -1513,7 +1532,7 @@ const meta = metaMap[slug as string] ?? {
           <div class="instr-exam-name" id="instr-exam-name">
             OSSSC · Mock Test
           </div>
-          <div class="instr-test-title" id="instr-title">{meta.title}</div>
+          <div class="instr-test-title" id="instr-title">{test.title}</div>
           <div class="instr-meta-pills">
             <span class="instr-pill">
               <svg
@@ -1526,7 +1545,7 @@ const meta = metaMap[slug as string] ?? {
                 ><circle cx="12" cy="12" r="10"></circle><polyline
                   points="12 6 12 12 16 14"></polyline></svg
               >
-              {meta.duration} Minutes
+              {test.duration} Minutes
             </span>
             <span class="instr-pill">
               <svg
@@ -1540,7 +1559,7 @@ const meta = metaMap[slug as string] ?? {
                   d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
                 ></path></svg
               >
-              15 Questions
+              {test.questions} Questions
             </span>
             <span class="instr-pill">
               <svg
@@ -1553,8 +1572,7 @@ const meta = metaMap[slug as string] ?? {
                 ><path
                   d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                 ></path></svg
-              >
-              15 Marks Total
+              > {test.questions} Marks Total
             </span>
             <span class="instr-pill" style="background:rgba(176,0,32,0.3)">
               <svg
@@ -1726,168 +1744,12 @@ const meta = metaMap[slug as string] ?? {
       >
       <button class="btn-next" id="btn-next-mob" style="flex:1">Next →</button>
     </div>
-
-    <script define:vars={{ testMeta: meta }}>
+    <script define:vars={{ testMeta: test, questionsData: questionsData }}>
       // ─────────────────────────────────────────────
       //  QUESTION BANK  (15 questions × 3 sections)
       // ─────────────────────────────────────────────
-      const questions = [
-        // ── GENERAL KNOWLEDGE (5 Qs) ──
-        {
-          id: 1,
-          section: "General Knowledge",
-          text: 'Which river is known as the "Mahanadi" (Great River) and is the largest river in Odisha?',
-          options: ["Brahmani", "Mahanadi", "Subarnarekha", "Baitarani"],
-          correct: 1,
-          explanation:
-            'Mahanadi literally means "Great River." It is the largest river in Odisha and the third largest in the Indian subcontinent, draining an area of about 141,589 km².',
-        },
-        {
-          id: 2,
-          section: "General Knowledge",
-          text: "The famous Lingaraj Temple in Bhubaneswar is dedicated to which deity?",
-          options: [
-            "Lord Vishnu",
-            "Lord Brahma",
-            "Lord Shiva",
-            "Goddess Durga",
-          ],
-          correct: 2,
-          explanation:
-            'The Lingaraj Temple is dedicated to Lord Shiva, known here as "Harihara," a fusion of Shiva and Vishnu. Built in the 11th century, it is the largest temple in Bhubaneswar.',
-        },
-        {
-          id: 3,
-          section: "General Knowledge",
-          text: 'Which Article of the Indian Constitution deals with "Right to Education" (RTE)?',
-          options: ["Article 21", "Article 21A", "Article 22", "Article 25"],
-          correct: 1,
-          explanation:
-            "Article 21A was inserted by the 86th Constitutional Amendment Act, 2002. It makes free and compulsory education a fundamental right for children aged 6–14 years.",
-        },
-        {
-          id: 4,
-          section: "General Knowledge",
-          text: 'The "Rath Yatra" festival of Lord Jagannath is celebrated in which city of Odisha?',
-          options: ["Bhubaneswar", "Cuttack", "Puri", "Konark"],
-          correct: 2,
-          explanation:
-            "The Rath Yatra (Chariot Festival) of Lord Jagannath is held annually in Puri, Odisha. It is one of the largest public processions in the world and typically draws millions of devotees.",
-        },
-        {
-          id: 5,
-          section: "General Knowledge",
-          text: "As per Census 2011, what is the approximate population of Odisha?",
-          options: ["3.2 Crore", "4.2 Crore", "5.2 Crore", "6.2 Crore"],
-          correct: 1,
-          explanation:
-            "According to the 2011 Census, the population of Odisha is approximately 4.19 crore (41.97 million), making it the 11th most populous state in India.",
-        },
-
-        // ── REASONING (5 Qs) ──
-        {
-          id: 6,
-          section: "Reasoning",
-          text: 'If "BOOK" is coded as "CPPL", what is the code for "PENCIL"?',
-          options: ["QFODKM", "QFODJM", "RFODKM", "QFODIM"],
-          correct: 0,
-          explanation:
-            "Each letter is shifted +1 in the alphabet. B→C, O→P, O→P, K→L gives CPPL. Applying the same: P→Q, E→F, N→O, C→D, I→J, L→M gives QFODJM. Wait — P+1=Q, E+1=F, N+1=O, C+1=D, I+1=J, L+1=M → QFODJM. The correct answer is QFODJM.",
-        },
-        {
-          id: 7,
-          section: "Reasoning",
-          text: "In a row of 40 students, Ravi is 15th from the left. What is his position from the right?",
-          options: ["24th", "25th", "26th", "27th"],
-          correct: 2,
-          explanation:
-            "Position from right = Total students – Position from left + 1 = 40 – 15 + 1 = 26. So Ravi is 26th from the right.",
-        },
-        {
-          id: 8,
-          section: "Reasoning",
-          text: "Find the odd one out: 2, 5, 10, 17, 26, 37, 50, 64",
-          options: ["37", "50", "64", "26"],
-          correct: 2,
-          explanation:
-            "The pattern is n² + 1: 1²+1=2, 2²+1=5, 3²+1=10, 4²+1=17, 5²+1=26, 6²+1=37, 7²+1=50, 8²+1=65. The number 64 should be 65. So 64 is the odd one out.",
-        },
-        {
-          id: 9,
-          section: "Reasoning",
-          text: "A is B's sister. C is B's mother. D is C's father. E is D's mother. How is A related to D?",
-          options: [
-            "Granddaughter",
-            "Daughter",
-            "Great-granddaughter",
-            "Niece",
-          ],
-          correct: 0,
-          explanation:
-            "A is B's sister → A is C's daughter. C is D's daughter. So A is D's granddaughter.",
-        },
-        {
-          id: 10,
-          section: "Reasoning",
-          text: "Which of the following Venn diagrams correctly represents the relationship: Teachers, Doctors, Humans?",
-          options: [
-            "Two separate circles inside a larger circle",
-            "Three completely overlapping circles",
-            "Three separate circles",
-            "Two overlapping circles inside a larger circle",
-          ],
-          correct: 3,
-          explanation:
-            'Both Teachers and Doctors are Humans (so both their circles must be inside the "Humans" circle), but a teacher is typically not a doctor and vice versa (so Teacher and Doctor circles should not overlap). Hence: two separate circles inside a larger circle.',
-        },
-
-        // ── MATHEMATICS (5 Qs) ──
-        {
-          id: 11,
-          section: "Mathematics",
-          text: "A train travels 360 km in 4 hours. What is its speed in m/s?",
-          options: ["20 m/s", "25 m/s", "30 m/s", "35 m/s"],
-          correct: 1,
-          explanation:
-            "Speed = 360 km / 4 h = 90 km/h. Converting: 90 × (1000/3600) = 90 × (5/18) = 25 m/s.",
-        },
-        {
-          id: 12,
-          section: "Mathematics",
-          text: "The simple interest on ₹5,000 at 8% per annum for 3 years is:",
-          options: ["₹1,000", "₹1,200", "₹1,400", "₹1,600"],
-          correct: 1,
-          explanation:
-            "SI = (P × R × T) / 100 = (5000 × 8 × 3) / 100 = 120000 / 100 = ₹1,200.",
-        },
-        {
-          id: 13,
-          section: "Mathematics",
-          text: "If the ratio of two numbers is 3:5 and their LCM is 120, what is the HCF?",
-          options: ["6", "8", "10", "12"],
-          correct: 1,
-          explanation:
-            "Let HCF = h. Then numbers are 3h and 5h. LCM = (3h × 5h) / HCF = 15h. Given LCM = 120: 15h = 120, h = 8. HCF = 8.",
-        },
-        {
-          id: 14,
-          section: "Mathematics",
-          text: "A shopkeeper marks a product 40% above the cost price and gives a 20% discount. What is the profit percentage?",
-          options: ["8%", "10%", "12%", "16%"],
-          correct: 2,
-          explanation:
-            "Let CP = 100. MP = 140. Selling Price = 140 × 0.80 = 112. Profit = 112 – 100 = 12. Profit% = 12%.",
-        },
-        {
-          id: 15,
-          section: "Mathematics",
-          text: "What is the area of a right-angled triangle with hypotenuse 10 cm and one leg 6 cm?",
-          options: ["20 cm²", "24 cm²", "28 cm²", "30 cm²"],
-          correct: 1,
-          explanation:
-            "Other leg = √(10² – 6²) = √(100 – 36) = √64 = 8 cm. Area = (1/2) × base × height = (1/2) × 6 × 8 = 24 cm².",
-        },
-      ];
+      let questions = [];
+      let sections = [];
 
       // ─────────────────────────────────────────────
       //  STATE
@@ -1896,13 +1758,11 @@ const meta = metaMap[slug as string] ?? {
         current: 0,
         answers: {}, // { qIndex: optionIndex }
         marked: new Set(),
-        visited: new Set([0]),
+        visited: new Set(),
         submitted: false,
         timeLeft: testMeta.duration * 60,
         activeSection: "all",
       };
-
-      const sections = [...new Set(questions.map((q) => q.section))];
 
       // ─────────────────────────────────────────────
       //  HELPERS
@@ -1944,12 +1804,14 @@ const meta = metaMap[slug as string] ?? {
         // Options
         const container = document.getElementById("options-container");
         container.innerHTML = "";
+        const template = document.getElementById("option-template");
         const keys = ["A", "B", "C", "D"];
         q.options.forEach((opt, oi) => {
-          const btn = document.createElement("button");
-          btn.className = "option-btn";
+          const clone = template.content.cloneNode(true);
+          const btn = clone.querySelector('.option-btn');
+          btn.querySelector('.opt-key').textContent = keys[oi];
+          btn.querySelector('.opt-text').textContent = opt;
           if (state.answers[i] === oi) btn.classList.add("selected");
-          btn.innerHTML = `<span class="opt-key">${keys[oi]}</span><span class="opt-text">${opt}</span>`;
           btn.addEventListener("click", () => selectOption(oi));
           container.appendChild(btn);
         });
@@ -1970,6 +1832,7 @@ const meta = metaMap[slug as string] ?? {
 
       function renderPalette() {
         const grid = document.getElementById("palette-grid");
+        const template = document.getElementById("palette-button-template");
         grid.innerHTML = "";
         const filtered =
           state.activeSection === "all"
@@ -1978,7 +1841,8 @@ const meta = metaMap[slug as string] ?? {
 
         filtered.forEach((q) => {
           const i = questions.indexOf(q);
-          const btn = document.createElement("button");
+          const clone = template.content.cloneNode(true);
+          const btn = clone.querySelector('.pq-btn');
           btn.className = `pq-btn ${getQState(i)}`;
           if (i === state.current) btn.classList.add("current");
           btn.textContent = i + 1;
@@ -1990,9 +1854,11 @@ const meta = metaMap[slug as string] ?? {
 
       function renderSectionTabs() {
         const tabs = document.getElementById("section-tabs");
+        const template = document.getElementById("section-tab-template");
         tabs.innerHTML = "";
         ["all", ...sections].forEach((sec) => {
-          const btn = document.createElement("button");
+          const clone = template.content.cloneNode(true);
+          const btn = clone.querySelector('.sec-tab');
           btn.className =
             "sec-tab" + (state.activeSection === sec ? " active" : "");
           btn.textContent = sec === "all" ? "All" : sec;
@@ -2333,8 +2199,13 @@ const meta = metaMap[slug as string] ?? {
       // ─────────────────────────────────────────────
       //  INIT
       // ─────────────────────────────────────────────
+      questions = questionsData;
+      console.log("✅ Questions loaded from DB:", questions);
+      sections = [...new Set(questions.map((q) => q.section))];
+      state.visited.add(0);
+
+      // Now that we have questions, render the UI
       renderSectionTabs();
       renderQuestion();
     </script>
-  </body>
-</html>
+</BaseLayout>

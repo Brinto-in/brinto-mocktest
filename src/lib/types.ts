@@ -1,4 +1,5 @@
 export interface Test {
+  id?: number;
   title: string;
   exam: string;
   questions: number;
