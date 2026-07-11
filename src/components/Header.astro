@@ -19,7 +19,7 @@ const nav = [
     </nav>
 
     <div class="header-cta">
-      <a href="/login" class="btn-ghost">Log in</a>
+      <button type="button" class="btn-ghost" data-open-login>Log in</button>
       <a href="/signup" class="btn-primary">Start Free</a>
     </div>
 
@@ -31,11 +31,59 @@ const nav = [
   <nav class="nav-mobile" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true">
     <ul>
       {nav.map(n => <li><a href={n.href}>{n.label}</a></li>)}
-      <li><a href="/login" class="mobile-login">Log in</a></li>
+      <li><button type="button" class="mobile-login" data-open-login>Log in</button></li>
       <li><a href="/signup" class="mobile-signup">Start Free →</a></li>
     </ul>
   </nav>
 </header>
+
+<div class="login-overlay" id="login-overlay" aria-hidden="true">
+  <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <button type="button" class="login-close" aria-label="Close login" data-close-login>&times;</button>
+    <h2 id="login-title" class="login-title">Log in</h2>
+    <p class="login-sub">Sign in with your mobile number</p>
+
+    <div class="login-step" data-step="phone">
+      <label class="login-label" for="login-phone">Mobile number</label>
+      <div class="phone-row">
+        <span class="phone-cc">+91</span>
+        <input
+          id="login-phone"
+          type="tel"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="98765 43210"
+          class="login-input"
+          autocomplete="tel"
+        />
+      </div>
+      <button type="button" class="login-submit" id="send-otp-btn">Send OTP</button>
+    </div>
+
+    <div class="login-step" data-step="otp" hidden>
+      <label class="login-label" for="login-otp">Enter OTP</label>
+      <p class="otp-hint">We sent a 6-digit code to <span id="otp-target"></span></p>
+      <input
+        id="login-otp"
+        type="text"
+        inputmode="numeric"
+        maxlength="6"
+        placeholder="______"
+        class="login-input otp-input"
+        autocomplete="one-time-code"
+      />
+      <button type="button" class="login-submit" id="verify-otp-btn">Verify &amp; Continue</button>
+      <button type="button" class="login-link" id="change-number-btn">Change number</button>
+    </div>
+
+    <div class="login-step" data-step="done" hidden>
+      <p class="login-success">You&apos;re logged in.</p>
+    </div>
+
+    <p class="login-error" id="login-error" role="alert" hidden></p>
+    <div id="recaptcha-container"></div>
+  </div>
+</div>
 
 <script is:inline>
   function toggleMenu(btn) {
@@ -45,6 +93,131 @@ const nav = [
     nav.setAttribute('aria-hidden', !open);
     btn.classList.toggle('active', open);
   }
+</script>
+
+<script>
+  import { getFirebaseAuth } from '../lib/firebase';
+  import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from 'firebase/auth';
+
+  const overlay = document.getElementById('login-overlay');
+  const errorEl = document.getElementById('login-error');
+  const phoneInput = document.getElementById('login-phone') as HTMLInputElement | null;
+  const otpInput = document.getElementById('login-otp') as HTMLInputElement | null;
+  const otpTarget = document.getElementById('otp-target');
+  const sendBtn = document.getElementById('send-otp-btn') as HTMLButtonElement | null;
+  const verifyBtn = document.getElementById('verify-otp-btn') as HTMLButtonElement | null;
+  const changeBtn = document.getElementById('change-number-btn');
+
+  let recaptcha: RecaptchaVerifier | null = null;
+  let confirmation: ConfirmationResult | null = null;
+
+  function showError(msg: string) {
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.hidden = false;
+  }
+  function clearError() {
+    if (errorEl) errorEl.hidden = true;
+  }
+  function showStep(step: 'phone' | 'otp' | 'done') {
+    document.querySelectorAll<HTMLElement>('.login-step').forEach((el) => {
+      el.hidden = el.dataset.step !== step;
+    });
+  }
+  function openModal() {
+    if (!overlay) return;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    clearError();
+    showStep('phone');
+    phoneInput?.focus();
+  }
+  function closeModal() {
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function ensureRecaptcha() {
+    if (recaptcha) return recaptcha;
+    const auth = getFirebaseAuth();
+    recaptcha = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+    return recaptcha;
+  }
+
+  document.querySelectorAll('[data-open-login]').forEach((btn) => {
+    btn.addEventListener('click', openModal);
+  });
+  document.querySelectorAll('[data-close-login]').forEach((btn) => {
+    btn.addEventListener('click', closeModal);
+  });
+  overlay?.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  sendBtn?.addEventListener('click', async () => {
+    clearError();
+    const digits = (phoneInput?.value || '').replace(/\D/g, '');
+    if (digits.length !== 10) {
+      showError('Enter a valid 10-digit mobile number.');
+      return;
+    }
+    const phoneNumber = '+91' + digits;
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Sending...';
+    try {
+      const auth = getFirebaseAuth();
+      confirmation = await signInWithPhoneNumber(auth, phoneNumber, ensureRecaptcha());
+      if (otpTarget) otpTarget.textContent = phoneNumber;
+      showStep('otp');
+      otpInput?.focus();
+    } catch (err) {
+      console.log('[v0] send OTP error:', err);
+      showError('Could not send OTP. Please try again.');
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = 'Send OTP';
+    }
+  });
+
+  verifyBtn?.addEventListener('click', async () => {
+    clearError();
+    const code = (otpInput?.value || '').replace(/\D/g, '');
+    if (code.length !== 6) {
+      showError('Enter the 6-digit code.');
+      return;
+    }
+    if (!confirmation) {
+      showError('Session expired. Please resend the OTP.');
+      return;
+    }
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = 'Verifying...';
+    try {
+      const result = await confirmation.confirm(code);
+      const token = await result.user.getIdToken();
+      console.log('[v0] logged in uid:', result.user.uid);
+      showStep('done');
+      // Reload so the server/session can pick up the auth state.
+      setTimeout(() => window.location.reload(), 800);
+    } catch (err) {
+      console.log('[v0] verify OTP error:', err);
+      showError('Invalid code. Please try again.');
+    } finally {
+      verifyBtn.disabled = false;
+      verifyBtn.textContent = 'Verify & Continue';
+    }
+  });
+
+  changeBtn?.addEventListener('click', () => {
+    clearError();
+    if (otpInput) otpInput.value = '';
+    showStep('phone');
+    phoneInput?.focus();
+  });
 </script>
 
 <style>
@@ -159,7 +332,19 @@ const nav = [
     border-bottom: 1px solid var(--rule);
   }
   .nav-mobile li:last-child a { border-bottom: none; }
-  .mobile-login { color: var(--ink-soft) !important; }
+  .mobile-login {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--ink-soft) !important;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    cursor: pointer;
+  }
   .mobile-signup {
     color: var(--brand) !important;
     font-weight: 700 !important;
@@ -170,5 +355,143 @@ const nav = [
     .header-cta { display: none; }
     .hamburger { display: flex; }
     .nav-mobile.open { display: block; }
+  }
+
+  /* Login modal */
+  button.btn-ghost { font-family: inherit; cursor: pointer; }
+  .login-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .login-overlay.open { display: flex; }
+  .login-modal {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    background: var(--surface, #fff);
+    border-radius: var(--radius, 16px);
+    border: 1px solid var(--rule);
+    padding: 32px 28px 28px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  }
+  .login-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .login-title {
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .login-sub {
+    margin: 0 0 20px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .login-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .phone-row {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm, 10px);
+    overflow: hidden;
+  }
+  .phone-cc {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: var(--surface-2, #f1f5f9);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-right: 1px solid var(--rule);
+  }
+  .login-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    outline: none;
+  }
+  .otp-input {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm, 10px);
+    letter-spacing: 0.4em;
+    text-align: center;
+    font-weight: 600;
+  }
+  .login-input:focus-visible,
+  .phone-row:focus-within {
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+  }
+  .otp-hint {
+    margin: 0 0 10px;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .otp-hint span { font-weight: 600; color: var(--ink); }
+  .login-submit {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    color: #fff;
+    background: var(--brand);
+    border: none;
+    border-radius: var(--radius-pill, 999px);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .login-submit:hover { background: var(--brand-dark); }
+  .login-submit:disabled { opacity: 0.7; cursor: default; }
+  .login-link {
+    width: 100%;
+    margin-top: 10px;
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brand);
+    cursor: pointer;
+  }
+  .login-success {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+    padding: 16px 0;
+  }
+  .login-error {
+    margin: 14px 0 0;
+    font-size: 0.85rem;
+    color: #dc2626;
   }
 </style>
