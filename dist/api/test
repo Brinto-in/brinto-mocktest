@@ -1,9 +1,0 @@
-{
-  "success": true,
-  "message": "Connected to Turso successfully!",
-  "data": [
-    {
-      "version": "3.47.0"
-    }
-  ]
-}
