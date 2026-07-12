@@ -1,0 +1,469 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import {
+    getTestById,
+    getQuestionsForTest,
+    createQuestion,
+    deleteQuestion,
+} from "../../../lib/queries";
+
+const { id } = Astro.params;
+const testId = parseInt(id!);
+
+let successMsg = "";
+let errorMsg = "";
+
+// ── Handle POST ──
+if (Astro.request.method === "POST") {
+    try {
+        const form = await Astro.request.formData();
+        const action = form.get("_action") as string;
+
+        if (action === "add_question") {
+            const section = (form.get("section") as string).trim();
+            const text = (form.get("text") as string).trim();
+            const explanation =
+                (form.get("explanation") as string | null)?.trim() || undefined;
+            const correctIdx = parseInt(form.get("correct") as string);
+
+            const optTexts = [0, 1, 2, 3].map((i) =>
+                (form.get(`option_${i}`) as string).trim(),
+            );
+
+            if (!section || !text || optTexts.some((o) => !o)) {
+                errorMsg =
+                    "Section, question text, and all 4 options are required.";
+            } else if (isNaN(correctIdx) || correctIdx < 0 || correctIdx > 3) {
+                errorMsg = "Please mark one option as the correct answer.";
+            } else {
+                await createQuestion({
+                    test_id: testId,
+                    section,
+                    text,
+                    explanation,
+                    options: optTexts.map((t, i) => ({
+                        text: t,
+                        is_correct: i === correctIdx,
+                    })),
+                });
+                successMsg = "Question added successfully.";
+            }
+        }
+
+        if (action === "delete_question") {
+            const qId = parseInt(form.get("question_id") as string);
+            await deleteQuestion(qId, testId);
+            successMsg = "Question deleted.";
+        }
+    } catch (e: any) {
+        errorMsg = `Error: ${e?.message}`;
+    }
+}
+
+const test = await getTestById(testId);
+if (!test) return Astro.redirect("/admin");
+
+const questions = await getQuestionsForTest(testId);
+const sections = [...new Set(questions.map((q) => q.section))];
+const created = Astro.url.searchParams.get("created") === "1";
+
+const OPTION_KEYS = ["A", "B", "C", "D"];
+const SECTION_OPTIONS = [
+    "General Knowledge",
+    "Reasoning",
+    "Mathematics",
+    "English",
+    "Current Affairs",
+    "Odisha GK",
+    "Science",
+    "Computer",
+    "History",
+    "Geography",
+    "Polity",
+];
+---
+
+<AdminLayout title={test.title} section="tests">
+    <div slot="topbar-actions" style="display:flex;gap:8px">
+        <a
+            href={`/test/${test.slug}`}
+            target="_blank"
+            class="btn btn-ghost btn-sm">↗ Preview</a
+        >
+        <a href="/admin" class="btn btn-secondary btn-sm">← All Tests</a>
+    </div>
+
+    <!-- Created success banner -->
+    {
+        created && (
+            <div class="alert alert-success">
+                ✓ Test created! Now add questions below.
+            </div>
+        )
+    }
+    {successMsg && <div class="alert alert-success">✓ {successMsg}</div>}
+    {errorMsg && <div class="alert alert-error">✗ {errorMsg}</div>}
+
+    <!-- Test meta card -->
+    <div class="card" style="margin-bottom:24px">
+        <div
+            style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap"
+        >
+            <div>
+                <div
+                    style="display:flex;align-items:center;gap:8px;margin-bottom:6px"
+                >
+                    <span class="badge badge-exam">{test.exam}</span>
+                    <span class={`badge badge-${test.difficulty.toLowerCase()}`}
+                        >{test.difficulty}</span
+                    >
+                    {
+                        test.is_free ? (
+                            <span class="badge badge-free">Free</span>
+                        ) : null
+                    }
+                    {
+                        test.is_new ? (
+                            <span class="badge badge-new">New</span>
+                        ) : null
+                    }
+                </div>
+                <h2
+                    style="font-size:1.15rem;color:var(--ink);margin-bottom:4px"
+                >
+                    {test.title}
+                </h2>
+                <div
+                    style="font-size:0.8rem;color:var(--ink-muted);font-family:monospace"
+                >
+                    /test/{test.slug}
+                </div>
+            </div>
+            <div style="display:flex;gap:20px;text-align:center">
+                <div>
+                    <div
+                        style="font-size:1.5rem;font-weight:800;color:var(--brand)"
+                    >
+                        {questions.length}
+                    </div>
+                    <div
+                        style="font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em"
+                    >
+                        Questions
+                    </div>
+                </div>
+                <div>
+                    <div
+                        style="font-size:1.5rem;font-weight:800;color:var(--ink)"
+                    >
+                        {test.duration}m
+                    </div>
+                    <div
+                        style="font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em"
+                    >
+                        Duration
+                    </div>
+                </div>
+                <div>
+                    <div
+                        style="font-size:1.5rem;font-weight:800;color:var(--gold)"
+                    >
+                        {sections.length}
+                    </div>
+                    <div
+                        style="font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em"
+                    >
+                        Sections
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-layout">
+        <!-- ── LEFT: Questions list ── -->
+        <div>
+            <div
+                style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"
+            >
+                <h3
+                    style="font-size:0.9rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted)"
+                >
+                    Questions ({questions.length})
+                </h3>
+                {
+                    sections.length > 0 && (
+                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                            {sections.map((s) => (
+                                <span
+                                    class="badge"
+                                    style="background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--rule)"
+                                >
+                                    {s}
+                                </span>
+                            ))}
+                        </div>
+                    )
+                }
+            </div>
+
+            {
+                questions.length === 0 ? (
+                    <div class="card">
+                        <div class="empty-state">
+                            <div class="empty-icon">💬</div>
+                            <p>
+                                No questions yet. Use the form to add your first
+                                question.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div>
+                        {questions.map((q, idx) => (
+                            <div class="q-card">
+                                <div class="q-card-header">
+                                    <div class="q-num">{idx + 1}</div>
+                                    <div class="q-card-text">{q.text}</div>
+                                    <span class="q-section-tag">
+                                        {q.section}
+                                    </span>
+                                    <svg
+                                        class="q-chevron"
+                                        width="16"
+                                        height="16"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <polyline points="6 9 12 15 18 9" />
+                                    </svg>
+                                </div>
+                                <div class="q-card-body">
+                                    <div class="q-options">
+                                        {(q.options ?? []).map((opt, oi) => (
+                                            <div
+                                                class={`q-opt${opt.is_correct ? " correct" : ""}`}
+                                            >
+                                                <span class="q-opt-key">
+                                                    {OPTION_KEYS[oi]}.
+                                                </span>
+                                                {opt.text}
+                                                {opt.is_correct && (
+                                                    <span style="margin-left:auto;font-size:0.72rem">
+                                                        ✓ Correct
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {q.explanation && (
+                                        <div class="q-explanation">
+                                            <strong>Explanation:</strong>{" "}
+                                            {q.explanation}
+                                        </div>
+                                    )}
+                                    <div class="q-actions">
+                                        <form
+                                            method="POST"
+                                            onsubmit="return confirm('Delete this question?')"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="_action"
+                                                value="delete_question"
+                                            />
+                                            <input
+                                                type="hidden"
+                                                name="question_id"
+                                                value={q.id}
+                                            />
+                                            <button
+                                                type="submit"
+                                                class="btn btn-danger btn-sm"
+                                            >
+                                                Delete Question
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )
+            }
+        </div>
+
+        <!-- ── RIGHT: Add Question Form ── -->
+        <div class="card sticky-form">
+            <div class="card-header" style="margin-bottom:18px">
+                <div>
+                    <div class="card-title">Add Question</div>
+                    <div class="card-sub">
+                        Fill all fields, mark correct answer
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" id="add-q-form">
+                <input type="hidden" name="_action" value="add_question" />
+
+                <div class="form-grid" style="gap:14px">
+                    <!-- Section -->
+                    <div class="form-group">
+                        <label class="form-label" for="section"
+                            >Section <span class="required">*</span></label
+                        >
+                        <select id="section" name="section" required>
+                            <option value="">Select section…</option>
+                            {
+                                SECTION_OPTIONS.map((s) => (
+                                    <option value={s}>{s}</option>
+                                ))
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Question text -->
+                    <div class="form-group">
+                        <label class="form-label" for="q-text"
+                            >Question <span class="required">*</span></label
+                        >
+                        <textarea
+                            id="q-text"
+                            name="text"
+                            rows={3}
+                            required
+                            placeholder="Enter the question text…"></textarea>
+                    </div>
+
+                    <!-- Options A-D -->
+                    <div class="form-group">
+                        <label class="form-label"
+                            >Options <span class="required">*</span> — mark the correct
+                            one</label
+                        >
+                        <div
+                            style="display:flex;flex-direction:column;gap:8px;margin-top:4px"
+                        >
+                            {
+                                [0, 1, 2, 3].map((i) => (
+                                    <div class="option-row">
+                                        <div class="opt-letter">
+                                            {OPTION_KEYS[i]}
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name={`option_${i}`}
+                                            required
+                                            placeholder={`Option ${OPTION_KEYS[i]}`}
+                                        />
+                                        <div class="correct-radio">
+                                            <input
+                                                type="radio"
+                                                name="correct"
+                                                value={i}
+                                                id={`correct_${i}`}
+                                                required
+                                            />
+                                            <label for={`correct_${i}`}>
+                                                ✓
+                                            </label>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                        <div class="form-hint">
+                            Click ✓ next to the correct option
+                        </div>
+                    </div>
+
+                    <!-- Explanation -->
+                    <div class="form-group">
+                        <label class="form-label" for="explanation"
+                            >Explanation (optional)</label
+                        >
+                        <textarea
+                            id="explanation"
+                            name="explanation"
+                            rows={2}
+                            placeholder="Brief explanation shown after answer…"
+                        ></textarea>
+                    </div>
+
+                    <!-- Submit -->
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        style="width:100%"
+                    >
+                        + Add Question
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</AdminLayout>
+
+<script is:inline>
+    // Highlight selected correct option
+    document.querySelectorAll('input[name="correct"]').forEach((radio) => {
+        radio.addEventListener("change", function () {
+            document.querySelectorAll(".option-row").forEach((row, i) => {
+                const letter = row.querySelector(".opt-letter");
+                const input = row.querySelector('input[type="text"]');
+                if (i === parseInt(this.value)) {
+                    letter.style.background = "#B00020";
+                    letter.style.color = "#fff";
+                    letter.style.borderColor = "#B00020";
+                    input.style.borderColor = "#B00020";
+                    input.style.background = "#FFF8F9";
+                } else {
+                    letter.style.background = "";
+                    letter.style.color = "";
+                    letter.style.borderColor = "";
+                    input.style.borderColor = "";
+                    input.style.background = "";
+                }
+            });
+        });
+    });
+
+    // Reset form styles on submit
+    document
+        .getElementById("add-q-form")
+        .addEventListener("submit", function () {
+            document.querySelectorAll(".opt-letter").forEach((el) => {
+                el.style.background = "";
+                el.style.color = "";
+                el.style.borderColor = "";
+            });
+        });
+</script>
+
+<style>
+    .page-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 24px;
+        align-items: start;
+    }
+    .sticky-form {
+        position: sticky;
+        top: 76px;
+    }
+
+    @media (max-width: 1024px) {
+        .page-layout {
+            grid-template-columns: 1fr;
+        }
+        .sticky-form {
+            position: static;
+            order: -1;
+        }
+    }
+</style>

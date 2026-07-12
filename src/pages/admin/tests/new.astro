@@ -1,0 +1,222 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { createTest } from "../../../lib/queries";
+
+let errorMsg = "";
+
+if (Astro.request.method === "POST") {
+    try {
+        const form = await Astro.request.formData();
+        const title = (form.get("title") as string).trim();
+        const exam = (form.get("exam") as string).trim();
+        const slug = (form.get("slug") as string)
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "-");
+        const duration = parseInt(form.get("duration") as string);
+        const difficulty = form.get("difficulty") as string;
+        const is_free = form.get("is_free") === "1" ? 1 : 0;
+        const is_new = form.get("is_new") === "1" ? 1 : 0;
+
+        if (!title || !exam || !slug || !duration) {
+            errorMsg = "Title, exam, slug and duration are required.";
+        } else {
+            const id = await createTest({
+                title,
+                exam,
+                slug,
+                duration,
+                difficulty,
+                is_free,
+                is_new,
+            });
+            return Astro.redirect(`/admin/tests/${id}?created=1`);
+        }
+    } catch (e: any) {
+        errorMsg = e?.message?.includes("UNIQUE")
+            ? "That slug already exists. Choose a different one."
+            : `Error: ${e?.message}`;
+    }
+}
+
+const EXAMS = [
+    "OSSSC",
+    "OPSC",
+    "OSSC",
+    "SSC CGL",
+    "SSC CHSL",
+    "Railway RRB",
+    "Banking",
+    "Police",
+    "Teaching",
+    "General",
+];
+const DIFFICULTIES = ["Easy", "Medium", "Hard"];
+---
+
+<AdminLayout title="Create New Test" section="tests">
+    <a slot="topbar-actions" href="/admin" class="btn btn-secondary btn-sm"
+        >← Back</a
+    >
+
+    <div class="card form-card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">New Test</div>
+                <div class="card-sub">
+                    Fill in the test metadata. You can add questions next.
+                </div>
+            </div>
+        </div>
+
+        {errorMsg && <div class="alert alert-error">✗ {errorMsg}</div>}
+
+        <form method="POST">
+            <div class="form-grid new-test-form">
+                <!-- Title -->
+                <div class="form-group">
+                    <label class="form-label" for="title"
+                        >Test Title <span class="required">*</span></label
+                    >
+                    <input
+                        id="title"
+                        name="title"
+                        type="text"
+                        required
+                        placeholder="e.g. Odisha Police Constable Mock Test 1"
+                        maxlength="255"
+                    />
+                </div>
+
+                <!-- Exam + Difficulty row -->
+                <div class="form-grid form-grid-2 form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="exam"
+                            >Exam <span class="required">*</span></label
+                        >
+                        <select id="exam" name="exam" required>
+                            <option value="">Select exam…</option>
+                            {EXAMS.map((e) => <option value={e}>{e}</option>)}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="difficulty"
+                            >Difficulty</label
+                        >
+                        <select id="difficulty" name="difficulty">
+                            {
+                                DIFFICULTIES.map((d) => (
+                                    <option value={d} selected={d === "Medium"}>
+                                        {d}
+                                    </option>
+                                ))
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Slug + Duration row -->
+                <div class="form-grid form-grid-2 form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="slug"
+                            >URL Slug <span class="required">*</span></label
+                        >
+                        <input
+                            id="slug"
+                            name="slug"
+                            type="text"
+                            required
+                            placeholder="odisha-police-mock-1"
+                            pattern="[a-z0-9\-]+"
+                            title="Lowercase letters, numbers and hyphens only"
+                        />
+                        <span class="form-hint"
+                            >Used in URL: /test/<strong>your-slug</strong></span
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="duration"
+                            >Duration (minutes) <span class="required">*</span
+                            ></label
+                        >
+                        <input
+                            id="duration"
+                            name="duration"
+                            type="number"
+                            required
+                            min="1"
+                            max="300"
+                            placeholder="90"
+                        />
+                    </div>
+                </div>
+
+                <hr class="form-divider" />
+
+                <!-- Flags -->
+                <div class="form-grid form-grid-2 form-row">
+                    <div class="form-group">
+                        <label class="form-label">Availability</label>
+                        <select name="is_free">
+                            <option value="1">Free for all</option>
+                            <option value="0">Premium only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mark as New?</label>
+                        <select name="is_new">
+                            <option value="1">Yes — show "New" badge</option>
+                            <option value="0" selected>No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        Create Test → Add Questions
+                    </button>
+                    <a href="/admin" class="btn btn-ghost">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</AdminLayout>
+
+<script is:inline>
+    // Auto-generate slug from title
+    const titleInput = document.getElementById("title");
+    const slugInput = document.getElementById("slug");
+    let slugEdited = false;
+
+    slugInput.addEventListener("input", () => (slugEdited = true));
+
+    titleInput.addEventListener("input", () => {
+        if (slugEdited) return;
+        slugInput.value = titleInput.value
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .slice(0, 80);
+    });
+</script>
+
+<style>
+    .form-card {
+        max-width: 680px;
+    }
+    .new-test-form {
+        gap: 20px;
+    }
+    .form-row {
+        gap: 14px;
+    }
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        padding-top: 4px;
+    }
+</style>

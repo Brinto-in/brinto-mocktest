@@ -1,0 +1,249 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { getAllTests, createTest, deleteTest } from "../../lib/queries";
+
+let successMsg = "";
+let errorMsg = "";
+
+// ── Handle POST ──
+if (Astro.request.method === "POST") {
+    try {
+        const form = await Astro.request.formData();
+        const action = form.get("_action") as string;
+
+        if (action === "create_test") {
+            const title = (form.get("title") as string).trim();
+            const exam = (form.get("exam") as string).trim();
+            const slug = (form.get("slug") as string)
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, "-");
+            const duration = parseInt(form.get("duration") as string);
+            const difficulty = form.get("difficulty") as string;
+            const is_free = form.get("is_free") === "1" ? 1 : 0;
+            const is_new = form.get("is_new") === "1" ? 1 : 0;
+
+            if (!title || !exam || !slug || !duration) {
+                errorMsg = "Title, exam, slug, and duration are required.";
+            } else {
+                await createTest({
+                    title,
+                    exam,
+                    slug,
+                    duration,
+                    difficulty,
+                    is_free,
+                    is_new,
+                });
+                successMsg = `Test "${title}" created successfully.`;
+            }
+        }
+
+        if (action === "delete_test") {
+            const id = parseInt(form.get("test_id") as string);
+            await deleteTest(id);
+            successMsg = "Test deleted.";
+        }
+    } catch (e: any) {
+        errorMsg = e?.message?.includes("UNIQUE")
+            ? "Slug already exists — choose a different one."
+            : `Error: ${e?.message}`;
+    }
+}
+
+const tests = await getAllTests();
+const EXAMS = [
+    "OSSSC",
+    "OPSC",
+    "OSSC",
+    "SSC",
+    "Railway",
+    "Banking",
+    "Police",
+    "Teaching",
+    "General",
+];
+---
+
+<AdminLayout title="Tests" section="tests">
+    <a
+        slot="topbar-actions"
+        href="/admin/tests/new"
+        class="btn btn-primary btn-sm"
+    >
+        + New Test
+    </a>
+
+    {successMsg && <div class="alert alert-success">✓ {successMsg}</div>}
+    {errorMsg && <div class="alert alert-error">✗ {errorMsg}</div>}
+
+    <!-- Stats -->
+    <div class="stats-strip">
+        <div class="stat-box">
+            <div class="sn" style="color:var(--brand)">{tests.length}</div>
+            <div class="sl">Total Tests</div>
+        </div>
+        <div class="stat-box">
+            <div class="sn" style="color:var(--green)">
+                {tests.filter((t) => t.is_free).length}
+            </div>
+            <div class="sl">Free Tests</div>
+        </div>
+        <div class="stat-box">
+            <div class="sn" style="color:var(--gold)">
+                {tests.reduce((s, t) => s + Number(t.questions), 0)}
+            </div>
+            <div class="sl">Total Questions</div>
+        </div>
+        <div class="stat-box">
+            <div class="sn" style="color:var(--ink)">
+                {
+                    tests
+                        .reduce((s, t) => s + Number(t.attempts), 0)
+                        .toLocaleString("en-IN")
+                }
+            </div>
+            <div class="sl">Total Attempts</div>
+        </div>
+    </div>
+
+    <!-- Tests Table -->
+    <div class="card" style="padding:0;overflow:hidden">
+        <div
+            class="card-header"
+            style="padding:18px 20px;border-bottom:1px solid var(--rule);margin:0"
+        >
+            <div>
+                <div class="card-title">All Tests</div>
+                <div class="card-sub">
+                    {tests.length} test{tests.length !== 1 ? "s" : ""} in database
+                </div>
+            </div>
+        </div>
+
+        {
+            tests.length === 0 ? (
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <p>
+                        No tests yet. Create your first test using the button
+                        above.
+                    </p>
+                </div>
+            ) : (
+                <div style="overflow-x:auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Exam</th>
+                                <th>Qs</th>
+                                <th>Duration</th>
+                                <th>Difficulty</th>
+                                <th>Attempts</th>
+                                <th>Flags</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {tests.map((t, i) => (
+                                <tr>
+                                    <td style="color:var(--ink-muted);font-weight:600">
+                                        {i + 1}
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600;color:var(--ink);margin-bottom:2px">
+                                            {t.title}
+                                        </div>
+                                        <div style="font-size:0.74rem;color:var(--ink-muted);font-family:monospace">
+                                            {t.slug}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-exam">
+                                            {t.exam}
+                                        </span>
+                                    </td>
+                                    <td style="font-weight:700;text-align:center">
+                                        {t.questions}
+                                    </td>
+                                    <td style="color:var(--ink-soft)">
+                                        {t.duration}m
+                                    </td>
+                                    <td>
+                                        <span
+                                            class={`badge badge-${t.difficulty.toLowerCase()}`}
+                                        >
+                                            {t.difficulty}
+                                        </span>
+                                    </td>
+                                    <td style="text-align:center">
+                                        {Number(t.attempts).toLocaleString(
+                                            "en-IN",
+                                        )}
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;gap:4px;flex-wrap:wrap">
+                                            {t.is_free ? (
+                                                <span class="badge badge-free">
+                                                    Free
+                                                </span>
+                                            ) : null}
+                                            {t.is_new ? (
+                                                <span class="badge badge-new">
+                                                    New
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;gap:6px;align-items:center">
+                                            <a
+                                                href={`/admin/tests/${t.id}`}
+                                                class="btn btn-secondary btn-sm"
+                                            >
+                                                + Questions
+                                            </a>
+                                            <a
+                                                href={`/test/${t.slug}`}
+                                                target="_blank"
+                                                class="btn btn-ghost btn-sm"
+                                                title="Preview"
+                                            >
+                                                ↗
+                                            </a>
+                                            <form
+                                                method="POST"
+                                                onsubmit="return confirm('Delete this test and all its questions?')"
+                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="_action"
+                                                    value="delete_test"
+                                                />
+                                                <input
+                                                    type="hidden"
+                                                    name="test_id"
+                                                    value={t.id}
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-danger btn-sm"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )
+        }
+    </div>
+</AdminLayout>
