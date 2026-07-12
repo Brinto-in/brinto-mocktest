@@ -7,7 +7,7 @@ const { slug } = Astro.params;
 
 const result = await db.execute({
   sql: "SELECT * FROM tests WHERE slug = ? LIMIT 1",
-  args: [slug],
+  args: [slug!],
 });
 
 // If no test is found for the slug, redirect to the 404 page.

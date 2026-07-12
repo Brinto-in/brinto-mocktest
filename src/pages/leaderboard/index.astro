@@ -1,0 +1,1068 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+// Static leaderboard data — replace with DB queries once Turso is wired
+const LEADERBOARD = [
+    // All Exams
+    {
+        id: 1,
+        name: "Rakesh Kumar Panda",
+        avatar: "RK",
+        exam: "OSSSC",
+        score: 94,
+        tests: 18,
+        accuracy: 91,
+        streak: 12,
+        badge: "gold",
+    },
+    {
+        id: 2,
+        name: "Priyanka Mohapatra",
+        avatar: "PM",
+        exam: "OPSC",
+        score: 91,
+        tests: 22,
+        accuracy: 89,
+        streak: 8,
+        badge: "gold",
+    },
+    {
+        id: 3,
+        name: "Sushant Dash",
+        avatar: "SD",
+        exam: "SSC",
+        score: 89,
+        tests: 15,
+        accuracy: 87,
+        streak: 6,
+        badge: "gold",
+    },
+    {
+        id: 4,
+        name: "Ananya Mishra",
+        avatar: "AM",
+        exam: "Police",
+        score: 86,
+        tests: 11,
+        accuracy: 85,
+        streak: 9,
+        badge: "silver",
+    },
+    {
+        id: 5,
+        name: "Bijay Nayak",
+        avatar: "BN",
+        exam: "Railway",
+        score: 84,
+        tests: 19,
+        accuracy: 83,
+        streak: 5,
+        badge: "silver",
+    },
+    {
+        id: 6,
+        name: "Susmita Jena",
+        avatar: "SJ",
+        exam: "OSSSC",
+        score: 82,
+        tests: 14,
+        accuracy: 81,
+        streak: 4,
+        badge: "silver",
+    },
+    {
+        id: 7,
+        name: "Tapas Rout",
+        avatar: "TR",
+        exam: "OPSC",
+        score: 80,
+        tests: 9,
+        accuracy: 79,
+        streak: 7,
+        badge: "bronze",
+    },
+    {
+        id: 8,
+        name: "Lipsa Pattnaik",
+        avatar: "LP",
+        exam: "SSC",
+        score: 78,
+        tests: 16,
+        accuracy: 77,
+        streak: 3,
+        badge: "bronze",
+    },
+    {
+        id: 9,
+        name: "Manoranjan Pradhan",
+        avatar: "MP",
+        exam: "OSSSC",
+        score: 76,
+        tests: 12,
+        accuracy: 75,
+        streak: 2,
+        badge: "bronze",
+    },
+    {
+        id: 10,
+        name: "Deepika Sahoo",
+        avatar: "DS",
+        exam: "Railway",
+        score: 74,
+        tests: 8,
+        accuracy: 73,
+        streak: 5,
+        badge: null,
+    },
+    {
+        id: 11,
+        name: "Santosh Behera",
+        avatar: "SB",
+        exam: "Police",
+        score: 72,
+        tests: 13,
+        accuracy: 71,
+        streak: 1,
+        badge: null,
+    },
+    {
+        id: 12,
+        name: "Rashmita Tripathy",
+        avatar: "RT",
+        exam: "OPSC",
+        score: 70,
+        tests: 10,
+        accuracy: 69,
+        streak: 4,
+        badge: null,
+    },
+    {
+        id: 13,
+        name: "Chinmay Senapati",
+        avatar: "CS",
+        exam: "SSC",
+        score: 68,
+        tests: 7,
+        accuracy: 67,
+        streak: 2,
+        badge: null,
+    },
+    {
+        id: 14,
+        name: "Pallabi Das",
+        avatar: "PD",
+        exam: "OSSSC",
+        score: 66,
+        tests: 11,
+        accuracy: 65,
+        streak: 3,
+        badge: null,
+    },
+    {
+        id: 15,
+        name: "Nirmal Sahu",
+        avatar: "NS",
+        exam: "Railway",
+        score: 64,
+        tests: 9,
+        accuracy: 63,
+        streak: 1,
+        badge: null,
+    },
+    {
+        id: 16,
+        name: "Saswati Biswal",
+        avatar: "SB",
+        exam: "Police",
+        score: 62,
+        tests: 6,
+        accuracy: 61,
+        streak: 0,
+        badge: null,
+    },
+    {
+        id: 17,
+        name: "Amlan Kar",
+        avatar: "AK",
+        exam: "OPSC",
+        score: 60,
+        tests: 14,
+        accuracy: 59,
+        streak: 2,
+        badge: null,
+    },
+    {
+        id: 18,
+        name: "Monalisa Panda",
+        avatar: "MP",
+        exam: "SSC",
+        score: 58,
+        tests: 5,
+        accuracy: 57,
+        streak: 0,
+        badge: null,
+    },
+    {
+        id: 19,
+        name: "Soumya Ranjan Barik",
+        avatar: "SR",
+        exam: "OSSSC",
+        score: 56,
+        tests: 8,
+        accuracy: 55,
+        streak: 1,
+        badge: null,
+    },
+    {
+        id: 20,
+        name: "Itishree Mohanta",
+        avatar: "IM",
+        exam: "Railway",
+        score: 54,
+        tests: 7,
+        accuracy: 53,
+        streak: 0,
+        badge: null,
+    },
+];
+
+const exams = ["All", "OSSSC", "OPSC", "SSC", "Railway", "Police"];
+---
+
+<BaseLayout
+    title="Leaderboard"
+    description="See how you rank against thousands of Odisha govt exam aspirants on Brinto MockTest."
+>
+    <!-- ── HERO ── -->
+    <section class="lb-hero">
+        <div class="wrap lh-inner">
+            <div class="lh-text">
+                <p class="lh-eyebrow">Rankings</p>
+                <h1>Leaderboard</h1>
+                <p class="lh-sub">
+                    Top performers across OSSSC, OPSC, SSC, Railway, and Police
+                    mock tests.
+                </p>
+            </div>
+            <div class="lh-meta">
+                <div class="lm-item">
+                    <span class="lm-n">2,80,000+</span>
+                    <span class="lm-l">Students Ranked</span>
+                </div>
+                <div class="lm-divider"></div>
+                <div class="lm-item">
+                    <span class="lm-n">Live</span>
+                    <span class="lm-l">Updated in real-time</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── YOUR RANK CARD (injected by JS if localStorage has data) ── -->
+    <div class="wrap" id="your-rank-wrap" style="display:none">
+        <div class="your-rank-card" id="your-rank-card">
+            <div class="yr-badge">YOU</div>
+            <div class="yr-info">
+                <div class="yr-name">Your Position</div>
+                <div class="yr-sub" id="yr-sub">
+                    Based on your best test score
+                </div>
+            </div>
+            <div class="yr-stats">
+                <div class="yr-stat">
+                    <span class="yr-n" id="yr-rank">#—</span>
+                    <span class="yr-l">Rank</span>
+                </div>
+                <div class="yr-stat">
+                    <span class="yr-n" id="yr-score">—%</span>
+                    <span class="yr-l">Best Score</span>
+                </div>
+                <div class="yr-stat">
+                    <span class="yr-n" id="yr-tests">—</span>
+                    <span class="yr-l">Tests Done</span>
+                </div>
+            </div>
+            <a href="/results" class="yr-cta">My Results →</a>
+        </div>
+    </div>
+
+    <!-- ── PODIUM (top 3) ── -->
+    <section class="wrap podium-section">
+        <div class="podium" id="podium">
+            <!-- Injected by JS -->
+        </div>
+    </section>
+
+    <!-- ── FILTERS ── -->
+    <div class="wrap lb-toolbar">
+        <div class="exam-filters" id="exam-filters">
+            {
+                exams.map((e, i) => (
+                    <button
+                        class={`ef-btn ${i === 0 ? "active" : ""}`}
+                        data-exam={e}
+                    >
+                        {e}
+                    </button>
+                ))
+            }
+        </div>
+        <div class="period-filters" id="period-filters">
+            <button class="pf-btn active" data-period="all">All Time</button>
+            <button class="pf-btn" data-period="month">This Month</button>
+            <button class="pf-btn" data-period="week">This Week</button>
+        </div>
+    </div>
+
+    <!-- ── TABLE ── -->
+    <div class="wrap lb-table-wrap">
+        <table class="lb-table" id="lb-table">
+            <thead>
+                <tr>
+                    <th class="th-rank">Rank</th>
+                    <th class="th-name">Student</th>
+                    <th class="th-exam">Top Exam</th>
+                    <th class="th-score">Best Score</th>
+                    <th class="th-tests">Tests</th>
+                    <th class="th-acc">Accuracy</th>
+                    <th class="th-streak">Streak</th>
+                </tr>
+            </thead>
+            <tbody id="lb-body"></tbody>
+        </table>
+    </div>
+</BaseLayout>
+
+<script define:vars={{ LEADERBOARD, exams }}>
+    // ─────────────────────────────────────────────
+    //  STATE
+    // ─────────────────────────────────────────────
+    let activeExam = "All";
+    let activePeriod = "all";
+
+    // Period multipliers — simulate different time windows with same data
+    const periodFactor = { all: 1, month: 0.7, week: 0.4 };
+
+    // ─────────────────────────────────────────────
+    //  USER FROM LOCALSTORAGE
+    // ─────────────────────────────────────────────
+    let userResults = [];
+    try {
+        userResults = JSON.parse(
+            localStorage.getItem("brinto_test_results") || "[]",
+        );
+    } catch (e) {}
+
+    if (userResults.length > 0) {
+        const bestScore = Math.max(...userResults.map((r) => r.score));
+        const totalTests = userResults.length;
+        const avgAcc = Math.round(
+            userResults.reduce((s, r) => s + r.score, 0) / totalTests,
+        );
+
+        // Compute rank: how many in full leaderboard beat user's best score
+        const rank = LEADERBOARD.filter((p) => p.score > bestScore).length + 1;
+
+        document.getElementById("your-rank-wrap").style.display = "block";
+        document.getElementById("yr-rank").textContent = `#${rank}`;
+        document.getElementById("yr-score").textContent = `${bestScore}%`;
+        document.getElementById("yr-tests").textContent = totalTests;
+        document.getElementById("yr-sub").textContent =
+            `Based on ${totalTests} test${totalTests > 1 ? "s" : ""} · avg accuracy ${avgAcc}%`;
+    }
+
+    // ─────────────────────────────────────────────
+    //  PODIUM
+    // ─────────────────────────────────────────────
+    function renderPodium(data) {
+        const top3 = data.slice(0, 3);
+        const podium = document.getElementById("podium");
+        if (top3.length < 3) {
+            podium.innerHTML = "";
+            return;
+        }
+
+        const [first, second, third] = top3;
+        const medals = ["🥇", "🥈", "🥉"];
+        const heights = ["120px", "96px", "80px"];
+        // Reorder for display: 2nd, 1st, 3rd
+        const order = [second, first, third];
+        const displayMedals = ["🥈", "🥇", "🥉"];
+        const displayHeights = ["96px", "120px", "80px"];
+        const displayRanks = [2, 1, 3];
+        const displayClasses = ["pod-silver", "pod-gold", "pod-bronze"];
+
+        podium.innerHTML = order
+            .map(
+                (p, i) => `
+    <div class="pod-card ${displayClasses[i]}">
+      <div class="pod-medal">${displayMedals[i]}</div>
+      <div class="pod-avatar">${p.avatar}</div>
+      <div class="pod-name">${p.name.split(" ")[0]} ${p.name.split(" ").pop()}</div>
+      <div class="pod-exam-tag">${p.exam}</div>
+      <div class="pod-score">${p.score}%</div>
+      <div class="pod-platform" style="height:${displayHeights[i]}">
+        <span class="pod-rank">#${displayRanks[i]}</span>
+      </div>
+    </div>
+  `,
+            )
+            .join("");
+    }
+
+    // ─────────────────────────────────────────────
+    //  TABLE
+    // ─────────────────────────────────────────────
+    const RANK_ICONS = { gold: "🥇", silver: "🥈", bronze: "🥉" };
+    const STREAK_LABELS = (n) =>
+        n >= 10 ? "🔥 " + n : n >= 5 ? "⚡ " + n : n > 0 ? "" + n : "—";
+
+    function renderTable(data) {
+        const tbody = document.getElementById("lb-body");
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--ink-muted);">No results for this filter.</td></tr>`;
+            return;
+        }
+
+        // Check if user is in this filtered list (by score proximity)
+        const userBest = userResults.length
+            ? Math.max(...userResults.map((r) => r.score))
+            : null;
+
+        tbody.innerHTML = data
+            .map((p, idx) => {
+                const rank = idx + 1;
+                const isYou = false; // no auth yet
+                const badgeHtml = p.badge
+                    ? `<span class="medal-icon">${RANK_ICONS[p.badge]}</span>`
+                    : "";
+                const rankCell =
+                    rank <= 3
+                        ? `<td class="td-rank rank-${p.badge}">${badgeHtml}${rank}</td>`
+                        : `<td class="td-rank">${rank}</td>`;
+
+                const scoreBar = `
+      <div class="score-bar-wrap">
+        <div class="score-bar-track">
+          <div class="score-bar-fill ${p.score >= 80 ? "bar-green" : p.score >= 60 ? "bar-gold" : "bar-red"}"
+               style="width:${p.score}%"></div>
+        </div>
+        <span class="score-bar-pct">${p.score}%</span>
+      </div>`;
+
+                return `
+      <tr class="lb-row ${rank <= 3 ? "top-row" : ""}">
+        ${rankCell}
+        <td class="td-name">
+          <div class="student-cell">
+            <div class="student-avatar">${p.avatar}</div>
+            <div class="student-info">
+              <span class="student-name">${p.name}</span>
+            </div>
+          </div>
+        </td>
+        <td class="td-exam"><span class="exam-chip">${p.exam}</span></td>
+        <td class="td-score">${scoreBar}</td>
+        <td class="td-tests">${p.tests}</td>
+        <td class="td-acc">
+          <span class="acc-badge ${p.accuracy >= 80 ? "acc-green" : p.accuracy >= 60 ? "acc-gold" : "acc-red"}">
+            ${p.accuracy}%
+          </span>
+        </td>
+        <td class="td-streak">${STREAK_LABELS(p.streak)}</td>
+      </tr>`;
+            })
+            .join("");
+    }
+
+    // ─────────────────────────────────────────────
+    //  FILTER + RENDER
+    // ─────────────────────────────────────────────
+    function applyFilters() {
+        let data =
+            activeExam === "All"
+                ? [...LEADERBOARD]
+                : LEADERBOARD.filter((p) => p.exam === activeExam);
+
+        // Period: trim list size to simulate fewer participants in shorter windows
+        const factor = periodFactor[activePeriod];
+        data = data.slice(0, Math.max(3, Math.round(data.length * factor)));
+
+        // Re-rank after filter
+        data = data.map((p, i) => ({ ...p, displayRank: i + 1 }));
+
+        renderPodium(data);
+        renderTable(data);
+    }
+
+    // ─────────────────────────────────────────────
+    //  FILTER BUTTON SETUP
+    // ─────────────────────────────────────────────
+    document.getElementById("exam-filters").addEventListener("click", (e) => {
+        const btn = e.target.closest(".ef-btn");
+        if (!btn) return;
+        document
+            .querySelectorAll(".ef-btn")
+            .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeExam = btn.dataset.exam;
+        applyFilters();
+    });
+
+    document.getElementById("period-filters").addEventListener("click", (e) => {
+        const btn = e.target.closest(".pf-btn");
+        if (!btn) return;
+        document
+            .querySelectorAll(".pf-btn")
+            .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activePeriod = btn.dataset.period;
+        applyFilters();
+    });
+
+    // ─────────────────────────────────────────────
+    //  INIT
+    // ─────────────────────────────────────────────
+    applyFilters();
+
+    // Animate score bars after render
+    setTimeout(() => {
+        document.querySelectorAll(".score-bar-fill").forEach((el) => {
+            const w = el.style.width;
+            el.style.width = "0%";
+            requestAnimationFrame(() => {
+                el.style.transition = "width 0.7s ease";
+                el.style.width = w;
+            });
+        });
+    }, 100);
+</script>
+
+<style is:global>
+    /* ── HERO ── */
+    .lb-hero {
+        background: var(--surface);
+        border-bottom: 1px solid var(--rule);
+        padding: 48px 0 40px;
+    }
+    .lh-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+    .lh-eyebrow {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--brand);
+        margin: 0 0 10px;
+    }
+    .lh-inner h1 {
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    .lh-sub {
+        color: var(--ink-soft);
+        margin: 0;
+    }
+    .lh-meta {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        padding: 20px 28px;
+    }
+    .lm-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+    .lm-n {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--ink);
+    }
+    .lm-l {
+        font-size: 0.72rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+    }
+    .lm-divider {
+        width: 1px;
+        height: 40px;
+        background: var(--rule);
+    }
+
+    /* ── YOUR RANK CARD ── */
+    .your-rank-card {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        background: linear-gradient(135deg, #1a1410 0%, #2d1f14 100%);
+        border-radius: var(--radius-md);
+        padding: 20px 24px;
+        margin: 24px 0 0;
+        color: #fff;
+    }
+    .yr-badge {
+        background: var(--brand);
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        flex-shrink: 0;
+    }
+    .yr-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .yr-name {
+        font-weight: 700;
+        font-size: 0.96rem;
+    }
+    .yr-sub {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.55);
+        margin-top: 2px;
+    }
+    .yr-stats {
+        display: flex;
+        gap: 24px;
+    }
+    .yr-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+    }
+    .yr-n {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    .yr-l {
+        font-size: 0.65rem;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .yr-cta {
+        background: var(--brand);
+        color: #fff;
+        font-size: 0.86rem;
+        font-weight: 700;
+        padding: 9px 20px;
+        border-radius: var(--radius-pill);
+        flex-shrink: 0;
+        transition:
+            background 0.15s,
+            transform 0.1s;
+    }
+    .yr-cta:hover {
+        background: var(--brand-dark);
+        transform: translateY(-1px);
+    }
+
+    /* ── PODIUM ── */
+    .podium-section {
+        padding: 40px 24px 0;
+    }
+    .podium {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 12px;
+    }
+    .pod-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        max-width: 220px;
+    }
+    .pod-medal {
+        font-size: 1.8rem;
+    }
+    .pod-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #fff;
+        border: 3px solid transparent;
+    }
+    .pod-gold .pod-avatar {
+        background: #92400e;
+        border-color: #f59e0b;
+    }
+    .pod-silver .pod-avatar {
+        background: #374151;
+        border-color: #9ca3af;
+    }
+    .pod-bronze .pod-avatar {
+        background: #7c2d12;
+        border-color: #f97316;
+    }
+    .pod-name {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--ink);
+        text-align: center;
+        line-height: 1.2;
+    }
+    .pod-exam-tag {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--brand);
+        background: var(--brand-light);
+        padding: 2px 8px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--brand-mid);
+    }
+    .pod-score {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--ink);
+    }
+    .pod-platform {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px 12px 0 0;
+        margin-top: 8px;
+    }
+    .pod-gold .pod-platform {
+        background: linear-gradient(180deg, #fef3c7, #fde68a);
+    }
+    .pod-silver .pod-platform {
+        background: linear-gradient(180deg, #f3f4f6, #e5e7eb);
+    }
+    .pod-bronze .pod-platform {
+        background: linear-gradient(180deg, #ffedd5, #fed7aa);
+    }
+    .pod-rank {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: rgba(0, 0, 0, 0.25);
+    }
+
+    /* ── TOOLBAR ── */
+    .lb-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 24px 24px 0;
+    }
+    .exam-filters,
+    .period-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+    .ef-btn {
+        font-size: 0.84rem;
+        font-weight: 600;
+        padding: 7px 16px;
+        border-radius: var(--radius-pill);
+        border: 1.5px solid var(--rule);
+        background: var(--surface);
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition:
+            border-color 0.14s,
+            color 0.14s,
+            background 0.14s;
+    }
+    .ef-btn:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+    }
+    .ef-btn.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+    }
+
+    .pf-btn {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: var(--radius-pill);
+        border: 1.5px solid var(--rule);
+        background: var(--surface);
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition:
+            border-color 0.14s,
+            color 0.14s,
+            background 0.14s;
+    }
+    .pf-btn:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+    }
+    .pf-btn.active {
+        background: var(--brand-light);
+        color: var(--brand);
+        border-color: var(--brand-mid);
+    }
+
+    /* ── TABLE ── */
+    .lb-table-wrap {
+        padding: 20px 24px 72px;
+        overflow-x: auto;
+    }
+    .lb-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        font-size: 0.88rem;
+        min-width: 680px;
+    }
+    .lb-table thead tr {
+        background: var(--surface-2);
+        border-bottom: 2px solid var(--rule);
+    }
+    .lb-table th {
+        padding: 12px 14px;
+        text-align: left;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ink-muted);
+        white-space: nowrap;
+    }
+    .th-rank {
+        width: 72px;
+        text-align: center;
+    }
+    .th-score {
+        min-width: 160px;
+    }
+    .th-tests,
+    .th-acc,
+    .th-streak {
+        width: 90px;
+        text-align: center;
+    }
+    .th-exam {
+        width: 110px;
+    }
+
+    .lb-row {
+        border-bottom: 1px solid var(--rule);
+        transition: background 0.12s;
+    }
+    .lb-row:last-child {
+        border-bottom: none;
+    }
+    .lb-row:hover {
+        background: var(--surface-2);
+    }
+    .lb-row.top-row {
+        background: #fffbf0;
+    }
+    .lb-row.top-row:hover {
+        background: #fef9e1;
+    }
+
+    .lb-table td {
+        padding: 13px 14px;
+        vertical-align: middle;
+    }
+
+    /* Rank cell */
+    .td-rank {
+        text-align: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: var(--ink-muted);
+        white-space: nowrap;
+    }
+    .rank-gold {
+        color: #92400e;
+        font-size: 1rem;
+    }
+    .rank-silver {
+        color: #374151;
+        font-size: 1rem;
+    }
+    .rank-bronze {
+        color: #7c2d12;
+        font-size: 1rem;
+    }
+    .medal-icon {
+        margin-right: 4px;
+    }
+
+    /* Student cell */
+    .student-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .student-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+    .student-name {
+        font-weight: 600;
+        color: var(--ink);
+        font-size: 0.9rem;
+    }
+
+    /* Exam chip */
+    .exam-chip {
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--brand);
+        background: var(--brand-light);
+        padding: 3px 9px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--brand-mid);
+        white-space: nowrap;
+    }
+
+    /* Score bar */
+    .score-bar-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .score-bar-track {
+        flex: 1;
+        height: 7px;
+        background: var(--rule);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .score-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+    }
+    .bar-green {
+        background: #16a34a;
+    }
+    .bar-gold {
+        background: var(--gold);
+    }
+    .bar-red {
+        background: var(--brand);
+    }
+    .score-bar-pct {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: var(--ink);
+        min-width: 36px;
+        text-align: right;
+    }
+
+    /* Accuracy badge */
+    .acc-badge {
+        display: inline-block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: var(--radius-pill);
+    }
+    .acc-green {
+        background: #dcfce7;
+        color: #166534;
+    }
+    .acc-gold {
+        background: var(--gold-light);
+        color: var(--gold);
+    }
+    .acc-red {
+        background: var(--brand-light);
+        color: var(--brand);
+    }
+
+    .td-tests,
+    .td-streak {
+        text-align: center;
+        color: var(--ink-soft);
+        font-weight: 600;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+        .lh-inner {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .lb-toolbar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .podium {
+            gap: 8px;
+        }
+        .pod-card {
+            max-width: 160px;
+        }
+        .yr-stats {
+            gap: 16px;
+        }
+    }
+    @media (max-width: 600px) {
+        .your-rank-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .yr-stats {
+            width: 100%;
+            justify-content: space-around;
+        }
+        .lh-meta {
+            width: 100%;
+            justify-content: center;
+        }
+        .podium {
+            gap: 6px;
+        }
+        .pod-name {
+            font-size: 0.78rem;
+        }
+        .pod-score {
+            font-size: 1rem;
+        }
+    }
+</style>

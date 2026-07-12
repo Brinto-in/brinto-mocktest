@@ -1,15 +1,15 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import CategoryCard from '../components/CategoryCard.astro';
-import TestCard from '../components/TestCard.astro';
-import StepCard from '../components/StepCard.astro';
-import Hero from '../components/Hero.astro';
-import StatsStrip from '../components/StatsStrip.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import CategoryCard from "../components/CategoryCard.astro";
+import TestCard from "../components/TestCard.astro";
+import StepCard from "../components/StepCard.astro";
+import Hero from "../components/Hero.astro";
+import StatsStrip from "../components/StatsStrip.astro";
 
-import { db } from '../lib/db';
-import type { Test } from '../lib/types';
-import { categories } from '../data/categories';
-import { steps } from '../data/steps';
+import { db } from "../lib/db";
+import type { Test } from "../lib/types";
+import { categories } from "../data/categories";
+import { steps } from "../data/steps";
 
 const result = await db.execute({
   sql: "SELECT * FROM tests ORDER BY attempts DESC LIMIT 6",
@@ -34,22 +34,8 @@ const tests: Test[] = result.rows.map((row: any) => ({
   title="Free Mock Tests for Odisha Govt Jobs"
   description="Practice free mock tests for OSSSC, OPSC, OSSC, SSC, Railway, Banking and more. Get instant results, section analysis, and rank on the leaderboard."
 >
-
   <Hero />
   <StatsStrip />
-
-  <!-- ── CATEGORIES ─────────────────────────────── -->
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Browse by exam</h2>
-        <a href="/tests" class="see-all">See all →</a>
-      </div>
-      <div class="cat-grid">
-        {categories.map(cat => <CategoryCard category={cat} />)}
-      </div>
-    </div>
-  </section>
 
   <!-- ── TRENDING TESTS ─────────────────────────── -->
   <section class="section section-alt">
@@ -64,6 +50,19 @@ const tests: Test[] = result.rows.map((row: any) => ({
     </div>
   </section>
 
+  <!-- ── CATEGORIES ─────────────────────────────── -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Browse by exam</h2>
+        <a href="/tests" class="see-all">See all →</a>
+      </div>
+      <div class="cat-grid">
+        {categories.map((cat) => <CategoryCard category={cat} />)}
+      </div>
+    </div>
+  </section>
+
   <!-- ── HOW IT WORKS ───────────────────────────── -->
   <section class="section">
     <div class="wrap">
@@ -72,7 +71,7 @@ const tests: Test[] = result.rows.map((row: any) => ({
         <p class="section-sub">Three steps from zero to your exam rank.</p>
       </div>
       <div class="steps-row">
-        {steps.map(step => <StepCard step={step} />)}
+        {steps.map((step) => <StepCard step={step} />)}
       </div>
     </div>
   </section>
@@ -82,7 +81,9 @@ const tests: Test[] = result.rows.map((row: any) => ({
     <div class="wrap cta-inner">
       <div>
         <h2>Your exam is closer than you think.</h2>
-        <p>Start with one free mock test today — no signup required to attempt.</p>
+        <p>
+          Start with one free mock test today — no signup required to attempt.
+        </p>
       </div>
       <div class="cta-btns">
         <a href="/tests" class="cta-btn-primary">Start a free test</a>
@@ -90,21 +91,32 @@ const tests: Test[] = result.rows.map((row: any) => ({
       </div>
     </div>
   </section>
-
 </BaseLayout>
 
 <style>
   /* ── SECTIONS ── */
-  .section { padding: 72px 0; }
-  .section-alt { background: var(--surface-2); }
+  .section {
+    padding: 72px 0;
+  }
+  .section-alt {
+    background: var(--surface-2);
+  }
   .section-head {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
     margin-bottom: 32px;
   }
-  .section-head.centered { flex-direction: column; align-items: center; text-align: center; gap: 10px; }
-  .section-head h2 { font-size: clamp(1.5rem, 2.6vw, 2rem); color: var(--ink); }
+  .section-head.centered {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+  }
+  .section-head h2 {
+    font-size: clamp(1.5rem, 2.6vw, 2rem);
+    color: var(--ink);
+  }
   .see-all {
     font-size: 0.9rem;
     font-weight: 700;
@@ -115,8 +127,13 @@ const tests: Test[] = result.rows.map((row: any) => ({
     background: var(--brand-light);
     transition: background 0.15s;
   }
-  .see-all:hover { background: var(--brand-mid); }
-  .section-sub { color: var(--ink-soft); max-width: 48ch; }
+  .see-all:hover {
+    background: var(--brand-mid);
+  }
+  .section-sub {
+    color: var(--ink-soft);
+    max-width: 48ch;
+  }
 
   /* ── CATEGORIES ── */
   .cat-grid {
@@ -166,7 +183,10 @@ const tests: Test[] = result.rows.map((row: any) => ({
     font-family: var(--font-body);
     font-weight: 700;
   }
-  .step-card p { font-size: 0.9rem; color: var(--ink-soft); }
+  .step-card p {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
 
   /* ── CTA BAND ── */
   .cta-band {
@@ -185,8 +205,14 @@ const tests: Test[] = result.rows.map((row: any) => ({
     color: #fff;
     margin-bottom: 8px;
   }
-  .cta-band p { color: rgba(255,255,255,0.8); }
-  .cta-btns { display: flex; gap: 14px; flex-shrink: 0; }
+  .cta-band p {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .cta-btns {
+    display: flex;
+    gap: 14px;
+    flex-shrink: 0;
+  }
   .cta-btn-primary {
     font-weight: 700;
     color: var(--brand);
@@ -196,37 +222,67 @@ const tests: Test[] = result.rows.map((row: any) => ({
     font-size: 0.98rem;
     transition: transform 0.1s;
   }
-  .cta-btn-primary:hover { transform: translateY(-1px); }
+  .cta-btn-primary:hover {
+    transform: translateY(-1px);
+  }
   .cta-btn-ghost {
     font-weight: 600;
     color: #fff;
-    border: 2px solid rgba(255,255,255,0.5);
+    border: 2px solid rgba(255, 255, 255, 0.5);
     padding: 14px 28px;
     border-radius: var(--radius-pill);
     font-size: 0.98rem;
     transition: border-color 0.15s;
   }
-  .cta-btn-ghost:hover { border-color: #fff; }
+  .cta-btn-ghost:hover {
+    border-color: #fff;
+  }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 1024px) {
-    .hero-inner { grid-template-columns: 1fr; }
-    .hero-card-col { display: none; }
-    .cat-grid { grid-template-columns: repeat(4, 1fr); }
-    .tests-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-inner {
+      grid-template-columns: 1fr;
+    }
+    .hero-card-col {
+      display: none;
+    }
+    .cat-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .tests-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
   @media (max-width: 768px) {
-    .hero { padding: 48px 0 40px; }
-    .cat-grid { grid-template-columns: repeat(2, 1fr); }
-    .steps-row { grid-template-columns: 1fr; }
-    .cta-inner { flex-direction: column; text-align: center; }
-    .cta-btns { justify-content: center; flex-wrap: wrap; }
+    .hero {
+      padding: 48px 0 40px;
+    }
+    .cat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .steps-row {
+      grid-template-columns: 1fr;
+    }
+    .cta-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+    .cta-btns {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
   }
   @media (max-width: 600px) {
-    .tests-grid { grid-template-columns: 1fr; }
-    .section { padding: 48px 0; }
+    .tests-grid {
+      grid-template-columns: 1fr;
+    }
+    .section {
+      padding: 48px 0;
+    }
   }
   @media (max-width: 400px) {
-    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    .cat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 </style>

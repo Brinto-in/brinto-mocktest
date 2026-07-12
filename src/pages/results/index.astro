@@ -1,0 +1,669 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+    title="My Results"
+    description="Track your mock test performance, scores, and progress across all exams."
+>
+    <!-- ── HERO ── -->
+    <section class="results-hero">
+        <div class="wrap rh-inner">
+            <div class="rh-text">
+                <p class="rh-eyebrow">Your Performance</p>
+                <h1>My Results</h1>
+                <p class="rh-sub">
+                    All your past test attempts and scores in one place.
+                </p>
+            </div>
+            <div class="rh-stats" id="rh-stats" style="display:none">
+                <div class="stat-card">
+                    <span class="stat-n" id="st-total">0</span>
+                    <span class="stat-l">Tests Taken</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-n" id="st-avg">0%</span>
+                    <span class="stat-l">Avg Score</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-n" id="st-best">0%</span>
+                    <span class="stat-l">Best Score</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-n" id="st-time">0h</span>
+                    <span class="stat-l">Time Spent</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FILTERS ── -->
+    <div class="wrap filter-bar" id="filter-bar" style="display:none">
+        <div class="filter-tabs" id="filter-tabs">
+            <button class="ft active" data-exam="All">All</button>
+        </div>
+        <div class="sort-wrap">
+            <label for="sort-sel">Sort:</label>
+            <select id="sort-sel">
+                <option value="newest">Newest First</option>
+                <option value="best">Best Score</option>
+                <option value="worst">Lowest Score</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ── RESULTS LIST ── -->
+    <div class="wrap results-body">
+        <!-- Empty state -->
+        <div class="empty-state" id="empty-state">
+            <div class="empty-icon">📋</div>
+            <h2>No tests attempted yet</h2>
+            <p>Your results will appear here after you complete a mock test.</p>
+            <a href="/tests" class="btn-browse">Browse Tests →</a>
+        </div>
+
+        <!-- Results grid (populated by JS) -->
+        <div class="results-grid" id="results-grid" style="display:none"></div>
+    </div>
+</BaseLayout>
+
+<script is:inline>
+    // ── STORAGE KEY ──
+    const STORAGE_KEY = "brinto_test_results";
+
+    // ── LOAD ──
+    let allResults = [];
+    try {
+        allResults = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    } catch (e) {
+        allResults = [];
+    }
+
+    const emptyEl = document.getElementById("empty-state");
+    const gridEl = document.getElementById("results-grid");
+    const statsEl = document.getElementById("rh-stats");
+    const filterBar = document.getElementById("filter-bar");
+
+    if (allResults.length === 0) {
+        emptyEl.style.display = "flex";
+    } else {
+        emptyEl.style.display = "none";
+        gridEl.style.display = "grid";
+        statsEl.style.display = "grid";
+        filterBar.style.display = "flex";
+        renderStats(allResults);
+        renderFilterTabs(allResults);
+        renderResults(allResults);
+    }
+
+    // ── STATS ──
+    function renderStats(results) {
+        const total = results.length;
+        const avg = Math.round(
+            results.reduce((s, r) => s + r.score, 0) / total,
+        );
+        const best = Math.max(...results.map((r) => r.score));
+        const totalSecs = results.reduce((s, r) => s + (r.timeTaken || 0), 0);
+        const hrs = Math.floor(totalSecs / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+
+        document.getElementById("st-total").textContent = total;
+        document.getElementById("st-avg").textContent = avg + "%";
+        document.getElementById("st-best").textContent = best + "%";
+        document.getElementById("st-time").textContent =
+            hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+    }
+
+    // ── FILTER TABS ──
+    let activeExam = "All";
+    function renderFilterTabs(results) {
+        const exams = ["All", ...new Set(results.map((r) => r.exam))];
+        const container = document.getElementById("filter-tabs");
+        container.innerHTML = "";
+        exams.forEach((ex) => {
+            const btn = document.createElement("button");
+            btn.className = "ft" + (ex === activeExam ? " active" : "");
+            btn.dataset.exam = ex;
+            btn.textContent = ex;
+            if (ex !== "All") {
+                const count = results.filter((r) => r.exam === ex).length;
+                btn.textContent += ` (${count})`;
+            }
+            btn.addEventListener("click", () => {
+                activeExam = ex;
+                document
+                    .querySelectorAll(".ft")
+                    .forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                applyFilters();
+            });
+            container.appendChild(btn);
+        });
+    }
+
+    // ── SORT + FILTER ──
+    function applyFilters() {
+        const sort = document.getElementById("sort-sel").value;
+        let filtered =
+            activeExam === "All"
+                ? [...allResults]
+                : allResults.filter((r) => r.exam === activeExam);
+        if (sort === "best") filtered.sort((a, b) => b.score - a.score);
+        if (sort === "worst") filtered.sort((a, b) => a.score - b.score);
+        // newest is default order (already newest first from storage)
+        renderResults(filtered);
+    }
+
+    document
+        .getElementById("sort-sel")
+        .addEventListener("change", applyFilters);
+
+    // ── SCORE COLOUR ──
+    function scoreColor(pct) {
+        if (pct >= 70)
+            return { stroke: "#166534", bg: "#DCFCE7", text: "#166534" };
+        if (pct >= 40)
+            return { stroke: "#D4830F", bg: "#FEF3E2", text: "#D4830F" };
+        return { stroke: "#B00020", bg: "#FFF0F2", text: "#B00020" };
+    }
+
+    // ── RENDER RESULTS ──
+    function renderResults(results) {
+        const grid = document.getElementById("results-grid");
+        grid.innerHTML = "";
+
+        results.forEach((r, idx) => {
+            const col = scoreColor(r.score);
+            const circ = 2 * Math.PI * 28; // r=28
+            const offset = circ - (circ * r.score) / 100;
+            const date = new Date(r.submittedAt).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+            });
+            const timeTakenStr = r.timeTaken
+                ? `${Math.floor(r.timeTaken / 60)}m ${r.timeTaken % 60}s`
+                : "—";
+
+            // Section bars
+            const sectionBars = (r.sections || [])
+                .map((sec) => {
+                    const pct = Math.round((sec.correct / sec.total) * 100);
+                    const c = scoreColor(pct);
+                    return `
+        <div class="sec-bar-row">
+          <span class="sec-bar-label">${sec.name}</span>
+          <div class="sec-bar-track">
+            <div class="sec-bar-fill" style="width:${pct}%;background:${c.stroke}"></div>
+          </div>
+          <span class="sec-bar-pct" style="color:${c.text}">${pct}%</span>
+        </div>`;
+                })
+                .join("");
+
+            const card = document.createElement("div");
+            card.className = "result-card";
+            card.innerHTML = `
+      <div class="rc-top">
+        <div class="rc-left">
+          <span class="rc-exam-tag">${r.exam}</span>
+          <h3 class="rc-title">${r.title}</h3>
+          <div class="rc-meta">
+            <span class="rc-date">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${date}
+            </span>
+            <span class="rc-time">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${timeTakenStr}
+            </span>
+          </div>
+        </div>
+        <div class="rc-score-ring">
+          <svg width="72" height="72" viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r="28" fill="none" stroke="#E4DDD0" stroke-width="6"/>
+            <circle cx="36" cy="36" r="28" fill="none"
+              stroke="${col.stroke}" stroke-width="6"
+              stroke-dasharray="${circ.toFixed(2)}"
+              stroke-dashoffset="${offset.toFixed(2)}"
+              stroke-linecap="round"
+              transform="rotate(-90 36 36)"/>
+          </svg>
+          <span class="rc-score-pct" style="color:${col.text}">${r.score}%</span>
+        </div>
+      </div>
+
+      <div class="rc-breakdown">
+        <div class="bd-item bd-correct">
+          <span class="bd-n">${r.correct}</span>
+          <span class="bd-l">Correct</span>
+        </div>
+        <div class="bd-item bd-wrong">
+          <span class="bd-n">${r.wrong}</span>
+          <span class="bd-l">Wrong</span>
+        </div>
+        <div class="bd-item bd-skip">
+          <span class="bd-n">${r.skipped}</span>
+          <span class="bd-l">Skipped</span>
+        </div>
+        <div class="bd-item bd-total">
+          <span class="bd-n">${r.totalQuestions}</span>
+          <span class="bd-l">Total Qs</span>
+        </div>
+      </div>
+
+      ${sectionBars ? `<div class="rc-sections">${sectionBars}</div>` : ""}
+
+      <div class="rc-footer">
+        <span class="rc-rank ${r.score >= 70 ? "rank-good" : r.score >= 40 ? "rank-avg" : "rank-low"}">
+          ${r.score >= 70 ? "🏆 Excellent" : r.score >= 40 ? "📈 Average" : "📉 Needs Practice"}
+        </span>
+        <a href="/test/${r.slug}" class="rc-retake">Retake →</a>
+      </div>
+    `;
+            grid.appendChild(card);
+        });
+    }
+</script>
+
+<style>
+    /* ── HERO ── */
+    .results-hero {
+        background: var(--surface);
+        border-bottom: 1px solid var(--rule);
+        padding: 48px 0 40px;
+    }
+    .rh-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+        flex-wrap: wrap;
+    }
+    .rh-eyebrow {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--brand);
+        margin: 0 0 10px;
+    }
+    .rh-inner h1 {
+        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    .rh-sub {
+        color: var(--ink-soft);
+        margin: 0;
+    }
+
+    /* Stats strip */
+    .rh-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+    .stat-card {
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-width: 100px;
+    }
+    .stat-n {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+        margin-bottom: 6px;
+    }
+    .stat-l {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-muted);
+    }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 24px 24px 0;
+    }
+    .filter-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .ft {
+        font-size: 0.84rem;
+        font-weight: 600;
+        padding: 7px 16px;
+        border-radius: var(--radius-pill);
+        border: 1.5px solid var(--rule);
+        background: var(--surface);
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition:
+            border-color 0.15s,
+            color 0.15s,
+            background 0.15s;
+    }
+    .ft:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+    }
+    .ft.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+    }
+    .sort-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.86rem;
+        color: var(--ink-soft);
+    }
+    select {
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 0.86rem;
+        padding: 7px 12px;
+        cursor: pointer;
+    }
+
+    /* ── BODY ── */
+    .results-body {
+        padding: 28px 24px 72px;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 80px 24px;
+        gap: 16px;
+    }
+    .empty-icon {
+        font-size: 3rem;
+    }
+    .empty-state h2 {
+        font-size: 1.4rem;
+        color: var(--ink);
+        margin: 0;
+    }
+    .empty-state p {
+        color: var(--ink-soft);
+        max-width: 34ch;
+    }
+    .btn-browse {
+        display: inline-block;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.96rem;
+        padding: 12px 28px;
+        border-radius: var(--radius-pill);
+        transition:
+            background 0.15s,
+            transform 0.1s;
+    }
+    .btn-browse:hover {
+        background: var(--brand-dark);
+        transform: translateY(-1px);
+    }
+
+    /* ── RESULT CARDS GRID ── */
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    .result-card {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        transition:
+            border-color 0.15s,
+            box-shadow 0.15s,
+            transform 0.15s;
+    }
+    .result-card:hover {
+        border-color: var(--brand);
+        box-shadow: 0 6px 20px rgba(176, 0, 32, 0.08);
+        transform: translateY(-2px);
+    }
+
+    /* Card top */
+    .rc-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .rc-left {
+        flex: 1;
+        min-width: 0;
+    }
+    .rc-exam-tag {
+        display: inline-block;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--brand);
+        background: var(--brand-light);
+        padding: 3px 10px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--brand-mid);
+        margin-bottom: 8px;
+    }
+    .rc-title {
+        font-size: 0.96rem;
+        font-family: var(--font-body);
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.35;
+        margin: 0 0 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .rc-meta {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-size: 0.78rem;
+        color: var(--ink-muted);
+    }
+    .rc-date,
+    .rc-time {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Score ring */
+    .rc-score-ring {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        flex-shrink: 0;
+    }
+    .rc-score-ring svg {
+        position: absolute;
+        inset: 0;
+    }
+    .rc-score-pct {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.88rem;
+        font-weight: 800;
+        font-family: var(--font-display);
+    }
+
+    /* Breakdown strip */
+    .rc-breakdown {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+        padding: 12px 10px;
+        border: 1px solid var(--rule);
+    }
+    .bd-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 3px;
+    }
+    .bd-n {
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+    .bd-l {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-muted);
+    }
+    .bd-correct .bd-n {
+        color: #166534;
+    }
+    .bd-wrong .bd-n {
+        color: #991b1b;
+    }
+    .bd-skip .bd-n {
+        color: var(--ink-muted);
+    }
+    .bd-total .bd-n {
+        color: var(--ink);
+    }
+
+    /* Section bars */
+    .rc-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .sec-bar-row {
+        display: grid;
+        grid-template-columns: 90px 1fr 36px;
+        align-items: center;
+        gap: 10px;
+    }
+    .sec-bar-label {
+        font-size: 0.78rem;
+        color: var(--ink-soft);
+        font-weight: 500;
+    }
+    .sec-bar-track {
+        height: 6px;
+        background: var(--rule);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .sec-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.6s ease;
+    }
+    .sec-bar-pct {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-align: right;
+    }
+
+    /* Card footer */
+    .rc-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 12px;
+        border-top: 1px solid var(--rule);
+        margin-top: auto;
+    }
+    .rc-rank {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: var(--radius-pill);
+    }
+    .rank-good {
+        background: #dcfce7;
+        color: #166534;
+    }
+    .rank-avg {
+        background: var(--gold-light);
+        color: var(--gold);
+    }
+    .rank-low {
+        background: var(--brand-light);
+        color: var(--brand);
+    }
+    .rc-retake {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--brand);
+        padding: 6px 16px;
+        border-radius: var(--radius-pill);
+        border: 1.5px solid var(--brand-mid);
+        background: var(--brand-light);
+        transition: background 0.15s;
+    }
+    .rc-retake:hover {
+        background: var(--brand-mid);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+        .rh-inner {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .rh-stats {
+            grid-template-columns: repeat(2, 1fr);
+            width: 100%;
+        }
+        .results-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    @media (max-width: 480px) {
+        .rh-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .rc-breakdown {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .sec-bar-row {
+            grid-template-columns: 70px 1fr 32px;
+        }
+    }
+</style>
