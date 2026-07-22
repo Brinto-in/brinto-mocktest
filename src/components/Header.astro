@@ -259,7 +259,14 @@ const nav = [
       saveAuth(auth);
       renderAuth();
       showStep('done');
-      setTimeout(closeModal, 900);
+      setTimeout(() => {
+        closeModal();
+        const params = new URLSearchParams(window.location.search);
+        const redirectUrl = params.get('redirect');
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        }
+      }, 900);
     } catch (err) {
       console.log('[v0] verify OTP error:', err);
       showError('Invalid code. Please try again.');
@@ -301,6 +308,15 @@ const nav = [
 
   // Initial render based on stored auth state
   renderAuth();
+
+  // Open modal if URL has ?login=true
+  if (new URLSearchParams(window.location.search).get('login') === 'true') {
+    openModal();
+    // Clean up the URL search param so refreshing doesn't keep opening it
+    const url = new URL(window.location.href);
+    url.searchParams.delete('login');
+    window.history.replaceState({}, '', url.pathname + url.search);
+  }
 </script>
 
 <style>

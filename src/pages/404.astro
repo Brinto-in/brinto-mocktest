@@ -1,0 +1,207 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Test Not Found"
+  description="The mock test you are looking for could not be found. Explore other free mock tests on Brinto MockTest."
+>
+  <div class="error-container">
+    <div class="error-visual">
+      <div class="glow-effect"></div>
+      <div class="illustration">
+        <span class="digit">4</span>
+        <div class="icon-sphere">
+          <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="search-icon">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <span class="digit">4</span>
+      </div>
+    </div>
+
+    <h1 class="error-title">Test Not Found</h1>
+    <p class="error-message">
+      The test you are looking for might have been moved, deleted, or is temporarily unavailable. Don't worry, you can still practice with our other free mock tests!
+    </p>
+
+    <div class="actions">
+      <a href="/tests" class="btn-primary-glow">Browse All Tests</a>
+      <a href="/" class="btn-secondary-flat">Go back Home</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 100px 24px;
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: calc(100vh - 350px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .error-visual {
+    position: relative;
+    margin-bottom: 32px;
+  }
+
+  .glow-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(176, 0, 32, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    filter: blur(10px);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .illustration {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    z-index: 2;
+  }
+
+  .digit {
+    font-family: var(--font-display);
+    font-size: 8rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink);
+    opacity: 0.15;
+    user-select: none;
+  }
+
+  .icon-sphere {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    box-shadow: 0 12px 32px rgba(26, 20, 16, 0.08);
+    animation: float 4s ease-in-out infinite;
+    color: var(--brand);
+  }
+
+  .search-icon {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(0.95);
+      opacity: 0.8;
+    }
+  }
+
+  .error-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+
+  .error-message {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-bottom: 40px;
+    max-width: 46ch;
+  }
+
+  .actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-primary-glow {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: var(--radius-pill);
+    background: var(--brand);
+    box-shadow: 0 4px 14px rgba(176, 0, 32, 0.25);
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  }
+
+  .btn-primary-glow:hover {
+    background: var(--brand-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(176, 0, 32, 0.35);
+  }
+
+  .btn-secondary-flat {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    padding: 12px 28px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--rule);
+    background: transparent;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+  }
+
+  .btn-secondary-flat:hover {
+    border-color: var(--ink-soft);
+    color: var(--ink);
+    background-color: var(--surface-2);
+  }
+
+  @media (max-width: 480px) {
+    .digit {
+      font-size: 6rem;
+    }
+    .icon-sphere {
+      width: 72px;
+      height: 72px;
+    }
+    .error-title {
+      font-size: 1.8rem;
+    }
+    .error-container {
+      padding: 60px 16px;
+    }
+    .actions {
+      flex-direction: column;
+      width: 100%;
+    }
+    .btn-primary-glow, .btn-secondary-flat {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>

@@ -7,12 +7,21 @@ interface Props {
 }
 
 const { test, questionsData } = Astro.props;
-const slug = test.href.split('/').pop();
+const slug = test.href.split("/").pop();
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
+    <script is:inline>
+      (function () {
+        const auth = localStorage.getItem("brinto_auth");
+        if (!auth) {
+          const currentUrl = encodeURIComponent(window.location.pathname);
+          window.location.replace("/?login=true&redirect=" + currentUrl);
+        }
+      })();
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{test.title} | Brinto MockTest</title>
@@ -69,7 +78,8 @@ const slug = test.href.split('/').pop();
         flex-direction: column;
       }
       img,
-      svg, .eh-brand svg {
+      svg,
+      .eh-brand svg {
         display: block;
       }
       a {
@@ -1239,7 +1249,10 @@ const slug = test.href.split('/').pop();
     <header class="exam-header" id="exam-header">
       <a href="/" class="eh-brand">
         <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="#B00020"></rect><path d="M8 9h10a5 5 0 0 1 0 10H8V9Z" fill="#fff" opacity=".9"></path>
+          <rect width="32" height="32" rx="8" fill="#B00020"></rect><path
+            d="M8 9h10a5 5 0 0 1 0 10H8V9Z"
+            fill="#fff"
+            opacity=".9"></path>
           <path d="M8 19h12a5 5 0 0 1 0 10H8V19Z" fill="#fff"></path>
         </svg>
         <span>Brinto</span>
@@ -1512,7 +1525,8 @@ const slug = test.href.split('/').pop();
                 ><path
                   d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                 ></path></svg
-              > {test.questions} Marks Total
+              >
+              {test.questions} Marks Total
             </span>
             <span class="instr-pill" style="background:rgba(176,0,32,0.3)">
               <svg
@@ -1684,7 +1698,9 @@ const slug = test.href.split('/').pop();
       >
       <button class="btn-next" id="btn-next-mob" style="flex:1">Next →</button>
     </div>
-    <script define:vars={{ testMeta: test, questionsData: questionsData, slug: slug }}>
+    <script
+      define:vars={{ testMeta: test, questionsData: questionsData, slug: slug }}
+    >
       // ─────────────────────────────────────────────
       //  QUESTION BANK  (15 questions × 3 sections)
       // ─────────────────────────────────────────────
@@ -1748,9 +1764,9 @@ const slug = test.href.split('/').pop();
         const keys = ["A", "B", "C", "D"];
         q.options.forEach((opt, oi) => {
           const clone = template.content.cloneNode(true);
-          const btn = clone.querySelector('.option-btn');
-          btn.querySelector('.opt-key').textContent = keys[oi];
-          btn.querySelector('.opt-text').textContent = opt;
+          const btn = clone.querySelector(".option-btn");
+          btn.querySelector(".opt-key").textContent = keys[oi];
+          btn.querySelector(".opt-text").textContent = opt;
           if (state.answers[i] === oi) btn.classList.add("selected");
           btn.addEventListener("click", () => selectOption(oi));
           container.appendChild(btn);
@@ -1782,7 +1798,7 @@ const slug = test.href.split('/').pop();
         filtered.forEach((q) => {
           const i = questions.indexOf(q);
           const clone = template.content.cloneNode(true);
-          const btn = clone.querySelector('.pq-btn');
+          const btn = clone.querySelector(".pq-btn");
           btn.className = `pq-btn ${getQState(i)}`;
           if (i === state.current) btn.classList.add("current");
           btn.textContent = i + 1;
@@ -1798,7 +1814,7 @@ const slug = test.href.split('/').pop();
         tabs.innerHTML = "";
         ["all", ...sections].forEach((sec) => {
           const clone = template.content.cloneNode(true);
-          const btn = clone.querySelector('.sec-tab');
+          const btn = clone.querySelector(".sec-tab");
           btn.className =
             "sec-tab" + (state.activeSection === sec ? " active" : "");
           btn.textContent = sec === "all" ? "All" : sec;
