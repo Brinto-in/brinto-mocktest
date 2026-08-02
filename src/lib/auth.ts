@@ -16,23 +16,23 @@ export interface AuthState {
   token: string;
 }
 
-const AUTH_API = "https://api.brinto.in/user/auth-mobile";
+const AUTH_API = "/api/auth";
 
-/** Calls the Brinto auth-mobile API for a 10-digit mobile number. */
+/** Calls the local proxy API to fetch/authenticate a user. */
 export async function fetchBrintoUser(mobile: string): Promise<AuthState | null> {
   try {
     const res = await fetch(AUTH_API, {
       method: "POST",
       headers: { "content-type": "application/json", accept: "*/*" },
-      body: JSON.stringify({ mobile, isInputMobile: false }),
+      body: JSON.stringify({ mobile }),
     });
     const json = await res.json();
-    if (json?.success && json?.data?.user) {
-      return { user: json.data.user as BrintoUser, token: json.data.token ?? "" };
+    if (json?.success && json?.data) {
+      return { user: json.data as BrintoUser, token: json.token ?? "" };
     }
     return null;
   } catch (err) {
-    console.log("[v0] auth-mobile fetch error:", err);
+    console.log("[v0] local auth proxy fetch error:", err);
     return null;
   }
 }

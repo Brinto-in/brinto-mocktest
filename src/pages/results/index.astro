@@ -122,7 +122,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         container.innerHTML = "";
         exams.forEach((ex) => {
             const btn = document.createElement("button");
-            btn.className = "ft" + (ex === activeExam ? " active" : "");
+            btn.className = "ft"; // + (ex === activeExam ? " active" : "");
             btn.dataset.exam = ex;
             btn.textContent = ex;
             if (ex !== "All") {
@@ -266,7 +266,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 </script>
 
-<style>
+<style is:global>
     /* ── HERO ── */
     .results-hero {
         background: var(--surface);
