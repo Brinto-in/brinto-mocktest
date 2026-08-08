@@ -1,71 +1,28 @@
 ---
-import { db } from '../../lib/db';
-import ExamUI from '../../components/ExamUI.astro';
-import type { Test } from '../../lib/types';
+export const prerender = false;
+import ExamUI from "../../components/ExamUI.astro";
+import type { Test } from "../../lib/types";
 
 const { slug } = Astro.params;
 
-const result = await db.execute({
-  sql: "SELECT * FROM tests WHERE slug = ? LIMIT 1",
-  args: [slug!],
-});
+let test: Test | null = null;
+let questionsData: any[] = [];
 
-// If no test is found for the slug, redirect to the 404 page.
-if (result.rows.length === 0) {
-  return Astro.redirect('/404');
+try {
+  const res = await fetch(`https://outsource.brinto.in/api/test/${slug}`);
+  const json = await res.json();
+
+  if (json?.success && json?.data) {
+    test = json.data.test as Test;
+    questionsData = json.data.questions || [];
+  }
+} catch (err) {
+  console.error("Error fetching test from outsource API:", err);
 }
 
-const test: Test = {
-    id: result.rows[0].id as number,
-    title: result.rows[0].title as string,
-    exam: result.rows[0].exam as string,
-    questions: result.rows[0].questions as number,
-    duration: result.rows[0].duration as number,
-    difficulty: result.rows[0].difficulty as 'Easy' | 'Medium' | 'Hard',
-    attempts: result.rows[0].attempts as number,
-    rating: result.rows[0].rating as number,
-    href: result.rows[0].href as string,
-    isNew: !!result.rows[0].is_new,
-    isFree: !!result.rows[0].is_free,
-};
-
-// Fetch questions and options directly
-const questionsAndOptionsResult = await db.execute({
-  sql: `
-    SELECT
-      q.id as question_id,
-      q.section,
-      q.text as question_text,
-      q.explanation,
-      o.id as option_id,
-      o.text as option_text,
-      o.is_correct
-    FROM questions q
-    JOIN options o ON q.id = o.question_id
-    WHERE q.test_id = ?
-    ORDER BY q.id, o.id;
-  `,
-  args: [test.id!],
-});
-
-const questionsMap = new Map();
-for (const row of questionsAndOptionsResult.rows) {
-  if (!questionsMap.has(row.question_id)) {
-    questionsMap.set(row.question_id, {
-      id: row.question_id,
-      section: row.section,
-      text: row.question_text,
-      explanation: row.explanation,
-      options: [],
-      correct: -1,
-    });
-  }
-  const question = questionsMap.get(row.question_id);
-  question.options.push(row.option_text);
-  if (row.is_correct) {
-    question.correct = question.options.length - 1;
-  }
+if (!test) {
+  return Astro.redirect("/404");
 }
-const questionsData = Array.from(questionsMap.values());
 ---
+
 <ExamUI test={test} questionsData={questionsData} />

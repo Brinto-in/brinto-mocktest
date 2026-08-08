@@ -31,7 +31,7 @@ const slug = test.href.split("/").pop();
       href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,700&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <style>
+    <style is:global>
       :root {
         --brand: #b00020;
         --brand-dark: #7b0015;
@@ -572,7 +572,7 @@ const slug = test.href.split("/").pop();
         width: 100%;
         max-width: 620px;
         max-height: 90vh;
-        overflow-y: auto;
+        overflow-y: hidden;
         box-shadow: 0 32px 80px rgba(26, 20, 16, 0.28);
         display: flex;
         flex-direction: column;
@@ -617,6 +617,8 @@ const slug = test.href.split("/").pop();
       }
       .instr-body {
         padding: 24px 28px;
+        overflow-y: auto;
+        flex: 1;
       }
       .instr-section-label {
         font-size: 0.72rem;
@@ -713,6 +715,9 @@ const slug = test.href.split("/").pop();
       .instr-footer {
         padding: 18px 28px 24px;
         border-top: 1px solid var(--rule);
+        background: var(--surface);
+        flex-shrink: 0;
+        z-index: 10;
       }
       .instr-agree {
         display: flex;
