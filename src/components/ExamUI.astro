@@ -146,6 +146,22 @@ const slug = test.href.split("/").pop();
         padding: 6px 14px;
         flex-shrink: 0;
       }
+      .btn-fullscreen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 8px;
+        color: var(--ink-soft);
+        transition: all 0.15s ease;
+      }
+      .btn-fullscreen:hover {
+        background: var(--surface);
+        border-color: var(--brand);
+        color: var(--brand);
+      }
       .timer-box svg {
         color: var(--ink-muted);
       }
@@ -198,6 +214,10 @@ const slug = test.href.split("/").pop();
         display: flex;
         flex-direction: column;
         gap: 24px;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
       }
       .q-header {
         display: flex;
@@ -1253,16 +1273,12 @@ const slug = test.href.split("/").pop();
     <!-- ── EXAM HEADER ── -->
     <header class="exam-header" id="exam-header">
       <a href="/" class="eh-brand">
-        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="#B00020"></rect><path
-            d="M8 9h10a5 5 0 0 1 0 10H8V9Z"
-            fill="#fff"
-            opacity=".9"></path>
-          <path d="M8 19h12a5 5 0 0 1 0 10H8V19Z" fill="#fff"></path>
-        </svg>
-        <span>Brinto</span>
+        <img src="/logo.png" alt="Brinto logo" height="28" style="height:28px; width:auto; object-fit:contain;" />
       </a>
       <div class="eh-title" id="eh-title">{test.title}</div>
+      <button class="btn-fullscreen" id="btn-fullscreen" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+      </button>
       <div class="timer-box">
         <svg
           width="16"
@@ -1999,6 +2015,34 @@ const slug = test.href.split("/").pop();
       }
 
       // ─────────────────────────────────────────────
+      //  FULLSCREEN HANDLERS
+      // ─────────────────────────────────────────────
+      function enterFullscreen() {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen().catch(() => {});
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      }
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement && !(document).webkitFullscreenElement) {
+          enterFullscreen();
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          }
+        }
+      }
+
+      document.getElementById("btn-fullscreen")?.addEventListener("click", toggleFullscreen);
+
+      // ─────────────────────────────────────────────
       //  INSTRUCTION MODAL
       // ─────────────────────────────────────────────
       const instrOverlay = document.getElementById("instr-overlay");
@@ -2016,6 +2060,9 @@ const slug = test.href.split("/").pop();
       let timerInterval;
 
       btnStart.addEventListener("click", () => {
+        // Request Fullscreen Mode
+        enterFullscreen();
+
         // Animate out
         instrOverlay.style.transition = "opacity 0.3s";
         instrOverlay.style.opacity = "0";
@@ -2116,6 +2163,62 @@ const slug = test.href.split("/").pop();
           }
         });
       }
+
+      // ─────────────────────────────────────────────
+      //  ANTI-INSPECT & ANTI-COPY SECURITY
+      // ─────────────────────────────────────────────
+      // Block right click (context menu)
+      document.addEventListener("contextmenu", (e) => {
+        if (!state.submitted) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // Block Developer Tools & Inspect Keyboard Shortcuts
+      document.addEventListener("keydown", (e) => {
+        if (state.submitted) return;
+
+        // F12
+        if (e.key === "F12" || e.keyCode === 123) {
+          e.preventDefault();
+          return false;
+        }
+
+        // Ctrl+Shift+I / J / C (DevTools), Ctrl+U (View Source), Ctrl+S, Ctrl+P
+        const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+        if (isCmdOrCtrl) {
+          const key = e.key.toLowerCase();
+          if (
+            (e.shiftKey && (key === "i" || key === "j" || key === "c")) ||
+            (e.altKey && (key === "i" || key === "j" || key === "c" || key === "u")) ||
+            key === "u" ||
+            key === "s" ||
+            key === "p"
+          ) {
+            e.preventDefault();
+            return false;
+          }
+        }
+      });
+
+      // Block copying & text selection during test
+      document.addEventListener("copy", (e) => {
+        if (!state.submitted) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      document.addEventListener("selectstart", (e) => {
+        if (!state.submitted) {
+          const qPanel = document.getElementById("question-panel");
+          if (qPanel && qPanel.contains(e.target)) {
+            e.preventDefault();
+            return false;
+          }
+        }
+      });
 
       // ─────────────────────────────────────────────
       //  TIMER ELEMENT (declared early, started on modal close)
