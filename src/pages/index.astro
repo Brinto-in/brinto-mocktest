@@ -5,6 +5,7 @@ import TestCard from "../components/TestCard.astro";
 import StepCard from "../components/StepCard.astro";
 import Hero from "../components/Hero.astro";
 import StatsStrip from "../components/StatsStrip.astro";
+import Odisha10thSection from "../components/Odisha10thSection.astro";
 
 import { db } from "../lib/db";
 import type { Test } from "../lib/types";
@@ -36,6 +37,9 @@ const tests: Test[] = result.rows.map((row: any) => ({
 >
   <Hero />
   <StatsStrip />
+
+  <!-- ── ODISHA 10TH STUDENTS SECTION ───────────────────── -->
+  <Odisha10thSection />
 
   <!-- ── TRENDING TESTS ─────────────────────────── -->
   <section class="section section-alt">

@@ -1,0 +1,484 @@
+---
+// Simple static UI component for Odisha 10th Board Students
+const subjects = [
+  {
+    icon: '📐',
+    badge: 'BSE Class 10',
+    title: 'Mathematics (ଗଣିତ)',
+    subTitle: 'Quadratic Equations, Trigonometry, Circles, Statistics & Geometry MCQs.',
+    tags: ['Algebra', 'Geometry', 'Mensuration'],
+    questions: 50,
+    duration: 45,
+    attempts: '18.4k',
+    rating: '4.9',
+    href: '/tests',
+    isNew: true,
+  },
+  {
+    icon: '🔬',
+    badge: 'BSE Class 10',
+    title: 'Science (ବିଜ୍ଞାନ)',
+    subTitle: 'Physical Science (ଭୌତିକ) & Life Science (ଜୀବ ବିଜ୍ଞାନ) Objective MCQs.',
+    tags: ['Physics', 'Chemistry', 'Biology'],
+    questions: 50,
+    duration: 45,
+    attempts: '16.8k',
+    rating: '4.8',
+    href: '/tests',
+    isNew: false,
+  },
+  {
+    icon: '📜',
+    badge: 'BSE Class 10',
+    title: 'Social Science (ସାମାଜିକ ବିଜ୍ଞାନ)',
+    subTitle: 'Indian Freedom Movement, Geography, Constitution & Economics.',
+    tags: ['History', 'Geography', 'Civics'],
+    questions: 50,
+    duration: 40,
+    attempts: '14.2k',
+    rating: '4.8',
+    href: '/tests',
+    isNew: false,
+  },
+  {
+    icon: '📖',
+    badge: 'BSE Class 10',
+    title: 'Odia Sahitya (ସାହିତ୍ୟ)',
+    subTitle: 'Sahitya, Padya, Gadya & Vyakarana (ବ୍ୟାକରଣ) Objective MCQ Practice.',
+    tags: ['Sahitya', 'Vyakarana', 'Literature'],
+    questions: 50,
+    duration: 40,
+    attempts: '19.1k',
+    rating: '4.9',
+    href: '/tests',
+    isNew: true,
+  },
+  {
+    icon: '🇬🇧',
+    badge: 'BSE Class 10',
+    title: 'English (Second Language)',
+    subTitle: 'Grammar, Tenses, Voice Change, Prepositions & Prose Practice.',
+    tags: ['Grammar', 'Prose', 'Vocabulary'],
+    questions: 50,
+    duration: 40,
+    attempts: '15.6k',
+    rating: '4.7',
+    href: '/tests',
+    isNew: false,
+  },
+  {
+    icon: '🕉️',
+    badge: 'BSE Class 10',
+    title: 'Sanskrit / Hindi (Third Language)',
+    subTitle: 'Sanskrit & Hindi Grammar, Translation & Literature Objective Set.',
+    tags: ['Sanskrit', 'Hindi', 'Grammar'],
+    questions: 50,
+    duration: 40,
+    attempts: '11.3k',
+    rating: '4.8',
+    href: '/tests',
+    isNew: false,
+  },
+];
+---
+
+<section class="section odisha-10th-section">
+  <div class="wrap">
+    <!-- Header -->
+    <div class="o10-header">
+      <div class="o10-header-info">
+        <span class="o10-pill">
+          <span class="o10-pill-dot"></span>
+          🎓 BSE ODISHA CLASS 10TH (MATRIC)
+        </span>
+        <h2>Odisha 10th Board Exam Preparation</h2>
+        <p class="o10-sub">
+          Subject-wise objective practice sets, chapter MCQs & model papers tailored for BSE Odisha Class 10th Matriculation Board exams.
+        </p>
+      </div>
+      <a href="/tests" class="o10-see-all">
+        View all 10th tests →
+      </a>
+    </div>
+
+    <!-- Subject Grid -->
+    <div class="o10-grid">
+      {subjects.map((s) => (
+        <a href={s.href} class="o10-card">
+          <div class="o10-card-top">
+            <div class="o10-card-icon-title">
+              <span class="o10-icon">{s.icon}</span>
+              <div>
+                <span class="o10-badge">{s.badge}</span>
+                <h3 class="o10-card-title">{s.title}</h3>
+              </div>
+            </div>
+            {s.isNew && <span class="o10-tag-new">New</span>}
+          </div>
+
+          <p class="o10-card-desc">{s.subTitle}</p>
+
+          <div class="o10-tags">
+            {s.tags.map((tag) => (
+              <span class="o10-tag">{tag}</span>
+            ))}
+          </div>
+
+          <div class="o10-card-meta">
+            <span>
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              {s.questions} Qs
+            </span>
+            <span>
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              {s.duration} min
+            </span>
+            <span class="o10-attempts">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              {s.attempts}
+            </span>
+            <span class="o10-rating">★ {s.rating}</span>
+          </div>
+
+          <div class="o10-card-footer">
+            <span class="o10-free-badge">100% Free</span>
+            <span class="o10-cta">Start Practice →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <!-- Feature Highlight Banner -->
+    <div class="o10-feature-banner">
+      <div class="o10-feature-item">
+        <span class="o10-feat-icon">🎯</span>
+        <div>
+          <strong>50% MCQ Pattern</strong>
+          <p>Strictly based on latest BSE Odisha 50-mark objective exam format.</p>
+        </div>
+      </div>
+      <div class="o10-feature-divider"></div>
+      <div class="o10-feature-item">
+        <span class="o10-feat-icon">⚡</span>
+        <div>
+          <strong>Instant Score & Rank</strong>
+          <p>Get immediate answer key with complete explanations in Odia & English.</p>
+        </div>
+      </div>
+      <div class="o10-feature-divider"></div>
+      <div class="o10-feature-item">
+        <span class="o10-feat-icon">📚</span>
+        <div>
+          <strong>Complete Syllabus Covered</strong>
+          <p>All 6 compulsory subjects with chapter-wise objective sets.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .odisha-10th-section {
+    background: linear-gradient(180deg, #FAF8F4 0%, #FFF5F6 100%);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 64px 0;
+  }
+
+  /* Header */
+  .o10-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    gap: 24px;
+  }
+
+  .o10-header-info {
+    max-width: 680px;
+  }
+
+  .o10-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--brand);
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    margin-bottom: 12px;
+  }
+
+  .o10-pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+    display: inline-block;
+  }
+
+  .o10-header h2 {
+    font-size: clamp(1.6rem, 2.8vw, 2.1rem);
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .o10-sub {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .o10-see-all {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--brand);
+    padding: 10px 20px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--brand-mid);
+    background: var(--surface);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(176, 0, 32, 0.05);
+  }
+
+  .o10-see-all:hover {
+    background: var(--brand);
+    color: #ffffff;
+    border-color: var(--brand);
+  }
+
+  /* Grid */
+  .o10-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .o10-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .o10-card:hover {
+    border-color: var(--brand);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(176, 0, 32, 0.1);
+  }
+
+  .o10-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .o10-card-icon-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .o10-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+    background: var(--surface-2);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+
+  .o10-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--brand);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .o10-card-title {
+    font-size: 1.05rem;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .o10-tag-new {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--green);
+    background: var(--green-light);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+  }
+
+  .o10-card-desc {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  .o10-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .o10-tag {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    background: var(--surface-2);
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--rule);
+  }
+
+  .o10-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    padding-top: 8px;
+  }
+
+  .o10-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .o10-attempts {
+    color: var(--ink-muted);
+  }
+
+  .o10-rating {
+    color: var(--gold);
+    font-weight: 600;
+    margin-left: auto;
+  }
+
+  .o10-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .o10-free-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--gold);
+    background: var(--gold-light);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .o10-cta {
+    font-weight: 700;
+    color: var(--brand);
+    font-size: 0.88rem;
+    transition: transform 0.15s ease;
+  }
+
+  .o10-card:hover .o10-cta {
+    transform: translateX(3px);
+  }
+
+  /* Feature Banner */
+  .o10-feature-banner {
+    background: var(--surface);
+    border: 1px solid var(--brand-mid);
+    border-radius: var(--radius-md);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    box-shadow: 0 4px 16px rgba(176, 0, 32, 0.04);
+  }
+
+  .o10-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+  }
+
+  .o10-feat-icon {
+    font-size: 1.6rem;
+    background: var(--brand-light);
+    padding: 10px;
+    border-radius: 50%;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .o10-feature-item strong {
+    display: block;
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+
+  .o10-feature-item p {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .o10-feature-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--rule);
+    flex-shrink: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .o10-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .o10-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .o10-feature-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 20px;
+    }
+
+    .o10-feature-divider {
+      width: 100%;
+      height: 1px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .o10-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

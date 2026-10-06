@@ -24,14 +24,9 @@ const links = {
 <footer class="footer">
   <div class="wrap footer-inner">
     <div class="footer-brand">
-      <div class="logo-row">
-        <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
-          <rect width="32" height="32" rx="8" fill="#B00020"/>
-          <path d="M8 9h10a5 5 0 0 1 0 10H8V9Z" fill="#fff" opacity=".9"/>
-          <path d="M8 19h12a5 5 0 0 1 0 10H8V19Z" fill="#fff"/>
-        </svg>
-        <span class="footer-brand-name">Brinto MockTest</span>
-      </div>
+      <a href="/" class="brand" aria-label="Brinto MockTest home">
+        <img src="/logo.png" alt="Brinto MockTest logo" height="36" class="logo-mark" />
+      </a>
       <p>Free mock tests for Odisha government job aspirants. Prepare smarter with timed tests, instant analysis, and rank tracking.</p>
     </div>
 
@@ -66,17 +61,20 @@ const links = {
     gap: 48px;
     padding: 56px 24px 40px;
   }
-  .logo-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .brand {
+    display: inline-block;
     margin-bottom: 14px;
   }
-  .footer-brand-name {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1.05rem;
-    color: #fff;
+  .logo-mark {
+    height: 36px;
+    width: auto;
+    max-width: 180px;
+    object-fit: contain;
+    display: block;
+  }
+    width: auto;
+    height: 36px;
+    object-fit: contain;
   }
   .footer-brand p {
     font-size: 0.88rem;
