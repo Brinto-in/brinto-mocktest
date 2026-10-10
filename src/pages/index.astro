@@ -21,12 +21,12 @@ try {
   tests = items.map((row: any) => ({
     title: row.title || row.name,
     exam: row.exam || row.category || "General",
-    questions: row.questions || row.totalQuestions || 0,
+    questions: Array.isArray(row.questions) ? row.questions.length : (row.questions || 0),
     duration: row.duration || 30,
     difficulty: row.difficulty || "Medium",
     attempts: row.attempts || 0,
-    rating: row.rating || 4.5,
-    href: row.href || `/test/${row.slug || row.id}`,
+    rating: row.rating || 5,
+    href: `/test/${row.id}`,
     isNew: !!(row.isNew || row.is_new),
     isFree: !!(row.isFree || row.is_free),
   })).slice(0, 6);

@@ -4,7 +4,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || "https://brintoapi.brint
 
 export async function fetchMockTests(page = 1, limit = 10) {
   try {
-    const res = await fetch(`${API_BASE}/api/mocktests?page=${page}&limit=${limit}`);
+    const res = await fetch(`${API_BASE}/api/mocktests?page=${page}&limit=${limit}`, {
+      headers: { "Accept": "application/json" }
+    });
     const json = await res.json();
     return json?.data || json?.tests || json || [];
   } catch (err) {
@@ -13,18 +15,34 @@ export async function fetchMockTests(page = 1, limit = 10) {
   }
 }
 
-export async function fetchTestBySlug(slug: string) {
+export async function fetchTestBySlug(idOrSlug: string) {
   try {
-    // Falls back or uses API_BASE; if some endpoints are on outsource.brinto.in, we can handle or fallback
-    const baseUrl = API_BASE.includes("brintoapi") ? API_BASE : "https://outsource.brinto.in";
-    const res = await fetch(`${baseUrl}/api/test/${slug}`);
+    const res = await fetch(`${API_BASE}/api/mocktests/${idOrSlug}`, {
+      headers: { "Accept": "application/json" }
+    });
     const json = await res.json();
     if (json?.success && json?.data) {
-      return json.data;
+      const t = json.data;
+      return {
+        test: {
+          id: t.id,
+          title: t.title,
+          exam: t.exam,
+          questions: Array.isArray(t.questions) ? t.questions.length : (t.questions || 0),
+          duration: t.duration || 30,
+          difficulty: t.difficulty || "Medium",
+          attempts: t.attempts || 0,
+          rating: t.rating || 5,
+          href: `/test/${t.id}`,
+          isNew: !!t.is_new,
+          isFree: !!t.is_free,
+        },
+        questions: t.questions || []
+      };
     }
     return null;
   } catch (err) {
-    console.error(`Error fetching test ${slug}:`, err);
+    console.error(`Error fetching test ${idOrSlug}:`, err);
     return null;
   }
 }
