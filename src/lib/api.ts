@@ -4,12 +4,28 @@ const API_BASE = "https://brintoapi.brinto.in";
 
 export async function fetchMockTests(page = 1, limit = 10) {
   try {
-    const res = await fetch(`${API_BASE}/api/mocktests?page=${page}&limit=${limit}`, {
+    let url = `${API_BASE}/api/mocktests?page=${page}&limit=${limit}`;
+    let res = await fetch(url, {
+      redirect: "manual",
       headers: {
         "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
       }
     });
+
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location");
+      console.warn("fetchMockTests was redirected to:", loc);
+      if (loc) {
+        res = await fetch(loc, {
+          headers: {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
+          }
+        });
+      }
+    }
+
     if (!res.ok) {
       console.error(`API responded with status: ${res.status}`);
       return [];

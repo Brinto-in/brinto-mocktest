@@ -57,11 +57,78 @@ try {
         <h2>Trending tests</h2>
         <a href="/tests" class="see-all">View all →</a>
       </div>
-      <div class="tests-grid">
+      <div class="tests-grid" id="trending-tests-grid">
         {tests.map((t) => <TestCard test={t} />)}
       </div>
     </div>
   </section>
+
+  <script is:inline>
+    // Ensure trending tests load from API on client if edge subrequest returned empty
+    (async function() {
+      const grid = document.getElementById("trending-tests-grid");
+      if (!grid) return;
+      if (grid.children.length === 0) {
+        try {
+          const res = await fetch("https://brintoapi.brinto.in/api/mocktests?page=1&limit=10");
+          if (!res.ok) return;
+          const json = await res.json();
+          const items = json?.data || json?.tests || (Array.isArray(json) ? json : []);
+          if (Array.isArray(items) && items.length > 0) {
+            grid.innerHTML = items.map(function(t) {
+              const diff = t.difficulty || 'Medium';
+              const diffStyles = {
+                Easy: 'color:var(--green);background:var(--green-light)',
+                Medium: 'color:var(--gold);background:var(--gold-light)',
+                Hard: 'color:var(--brand);background:var(--brand-light)'
+              };
+              const diffStyle = diffStyles[diff] || diffStyles.Medium;
+              const qCount = Array.isArray(t.questions) ? t.questions.length : (t.questions || 0);
+              const duration = t.duration || 30;
+              const attempts = (t.attempts || 0).toLocaleString('en-IN');
+              const rating = t.rating || 5;
+              const isNewBadge = (t.is_new || t.isNew) ? '<span class="badge-new">New</span>' : '';
+              const isFreeBadge = (t.is_free || t.isFree) ? '<span class="badge-free">Free</span>' : '';
+
+              return `
+                <a href="/test/${t.id}" class="test-card">
+                  <div class="tc-top">
+                    <span class="tc-exam-tag">${t.exam || 'General'}</span>
+                    <div class="tc-badges">
+                      ${isNewBadge}
+                      ${isFreeBadge}
+                    </div>
+                  </div>
+                  <h3 class="tc-title">${t.title || t.name}</h3>
+                  <div class="tc-meta">
+                    <span>
+                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                      ${qCount} Qs
+                    </span>
+                    <span>
+                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      ${duration} min
+                    </span>
+                    <span class="tc-diff" style="${diffStyle}">${diff}</span>
+                  </div>
+                  <div class="tc-footer">
+                    <span class="tc-attempts">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                      ${attempts}
+                    </span>
+                    <span class="tc-rating">★ ${rating}</span>
+                    <span class="tc-cta">Attempt →</span>
+                  </div>
+                </a>
+              `;
+            }).join('');
+          }
+        } catch (e) {
+          console.error("Client fallback fetch failed:", e);
+        }
+      }
+    })();
+  </script>
 
   <!-- ── CATEGORIES ─────────────────────────────── -->
   <section class="section">
