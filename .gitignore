@@ -5,6 +5,7 @@ node_modules/
 dist/
 .astro/
 .vercel/
+.wrangler/
 
 # Environment & Secret files (Important for security)
 .env
