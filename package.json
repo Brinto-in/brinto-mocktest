@@ -8,7 +8,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:cf": "DEPLOY_TARGET=cloudflare astro build",
     "preview": "astro preview",
+    "preview:cf": "DEPLOY_TARGET=cloudflare astro build && wrangler dev",
+    "deploy:cf": "DEPLOY_TARGET=cloudflare astro build && wrangler deploy",
     "astro": "astro",
     "db:seed": "tsx scripts/seed.ts"
   },
@@ -20,6 +23,8 @@
     "firebase": "13.0.0"
   },
   "devDependencies": {
-    "tsx": "^4.23.15"
+    "@astrojs/cloudflare": "^14.3.4",
+    "tsx": "^4.23.15",
+    "wrangler": "^4.149.0"
   }
 }

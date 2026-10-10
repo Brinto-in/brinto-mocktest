@@ -1,9 +1,12 @@
 import { defineConfig } from 'astro/config';
-import vercel from "@astrojs/vercel";
+import vercel from '@astrojs/vercel';
+import cloudflare from '@astrojs/cloudflare';
+
+const target = process.env.DEPLOY_TARGET || process.env.ADAPTER || 'vercel';
 
 export default defineConfig({
   site: 'https://mocktest.brinto.in',
   compressHTML: true,
   output: 'server',
-  adapter: vercel(),
+  adapter: target === 'cloudflare' ? cloudflare() : vercel(),
 });
