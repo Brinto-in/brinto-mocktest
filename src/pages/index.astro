@@ -1,4 +1,5 @@
 ---
+export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import CategoryCard from "../components/CategoryCard.astro";
 import TestCard from "../components/TestCard.astro";
@@ -8,28 +9,30 @@ import StatsStrip from "../components/StatsStrip.astro";
 import InstitutesSection from "../components/InstitutesSection.astro";
 import Odisha10thSection from "../components/Odisha10thSection.astro";
 
-import { db } from "../lib/db";
+import { fetchMockTests } from "../lib/api";
 import type { Test } from "../lib/types";
 import { categories } from "../data/categories";
 import { steps } from "../data/steps";
 
-const result = await db.execute({
-  sql: "SELECT * FROM tests ORDER BY attempts DESC LIMIT 6",
-  args: [],
-});
+let tests: Test[] = [];
 
-const tests: Test[] = result.rows.map((row: any) => ({
-  title: row.title,
-  exam: row.exam,
-  questions: row.questions,
-  duration: row.duration,
-  difficulty: row.difficulty,
-  attempts: row.attempts,
-  rating: row.rating,
-  href: row.href,
-  isNew: !!row.is_new,
-  isFree: !!row.is_free,
-}));
+try {
+  const items = await fetchMockTests(1, 10);
+  tests = items.map((row: any) => ({
+    title: row.title || row.name,
+    exam: row.exam || row.category || "General",
+    questions: row.questions || row.totalQuestions || 0,
+    duration: row.duration || 30,
+    difficulty: row.difficulty || "Medium",
+    attempts: row.attempts || 0,
+    rating: row.rating || 4.5,
+    href: row.href || `/test/${row.slug || row.id}`,
+    isNew: !!(row.isNew || row.is_new),
+    isFree: !!(row.isFree || row.is_free),
+  })).slice(0, 6);
+} catch (err) {
+  console.error("Error fetching trending tests from API service:", err);
+}
 ---
 
 <BaseLayout

@@ -2,6 +2,7 @@
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ExamUI from "../../components/ExamUI.astro";
+import { fetchTestBySlug } from "../../lib/api";
 import type { Test } from "../../lib/types";
 
 const { slug } = Astro.params;
@@ -9,16 +10,10 @@ const { slug } = Astro.params;
 let test: Test | null = null;
 let questionsData: any[] = [];
 
-try {
-  const res = await fetch(`https://outsource.brinto.in/api/test/${slug}`);
-  const json = await res.json();
-
-  if (json?.success && json?.data) {
-    test = json.data.test as Test;
-    questionsData = json.data.questions || [];
-  }
-} catch (err) {
-  console.error("Error fetching test from outsource API:", err);
+const data = await fetchTestBySlug(slug!);
+if (data && data.test) {
+  test = data.test as Test;
+  questionsData = data.questions || [];
 }
 
 if (!test) {
