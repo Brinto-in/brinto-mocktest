@@ -9,6 +9,10 @@
     {
       "pattern": "www.brinto.in/mocktest*",
       "custom_domain": false
+    },
+    {
+      "pattern": "brinto.in/mocktest*",
+      "custom_domain": false
     }
   ],
   "assets": {
