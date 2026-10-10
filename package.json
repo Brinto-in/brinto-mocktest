@@ -16,6 +16,7 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "@astrojs/vercel": "^11.0.13",
     "@libsql/client": "^0.18.0",
     "astro": "7.3.8",

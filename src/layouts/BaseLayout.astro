@@ -6,10 +6,13 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description: string;
+  image?: string;
+  type?: string;
 }
-const { title, description } = Astro.props;
+const { title, description, image = '/logo.png', type = 'website' } = Astro.props;
 const fullTitle = `${title} | Brinto MockTest`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const fullImageUrl = new URL(image, Astro.site);
 ---
 <!doctype html>
 <html lang="en">
@@ -20,12 +23,37 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <meta name="generator" content={Astro.generator} />
   <title>{fullTitle}</title>
   <meta name="description" content={description} />
+  <meta name="keywords" content="free mock tests, online test series, government job exams, SSC mock test, banking exams, railway exams, UPSC mock test, competitive exam preparation, Brinto MockTest" />
   <meta name="theme-color" content="#B00020" />
+
+  <!-- Open Graph / Facebook -->
   <meta property="og:title" content={fullTitle} />
   <meta property="og:description" content={description} />
-  <meta property="og:type" content="website" />
+  <meta property="og:type" content={type} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={fullImageUrl} />
+  <meta property="og:site_name" content="Brinto MockTest" />
+
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={fullTitle} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={fullImageUrl} />
+
   <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Brinto MockTest",
+    "url": "https://www.brinto.in/mocktest",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.brinto.in/mocktest/tests?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  })} />
 </head>
 <body>
   <Header />

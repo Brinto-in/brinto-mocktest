@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.brinto.in/mocktest/sitemap-index.xml

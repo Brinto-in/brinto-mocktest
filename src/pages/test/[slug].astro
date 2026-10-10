@@ -1,5 +1,6 @@
 ---
 export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
 import ExamUI from "../../components/ExamUI.astro";
 import type { Test } from "../../lib/types";
 
@@ -23,6 +24,11 @@ try {
 if (!test) {
   return Astro.redirect("/404");
 }
+
+const title = `${test.title} - Free Online Mock Test & Practice Questions`;
+const description = `Take the free online mock test for ${test.title} (${test.exam}). Practice ${test.questions} questions in ${test.duration} mins with instant scoring, detailed solutions, and all-India rank analysis.`;
 ---
 
-<ExamUI test={test} questionsData={questionsData} />
+<BaseLayout title={title} description={description}>
+  <ExamUI test={test} questionsData={questionsData} />
+</BaseLayout>
