@@ -12,4 +12,7 @@ export default defineConfig({
   compressHTML: true,
   output: 'server',
   adapter: target === 'cloudflare' ? cloudflare() : vercel(),
+  build: {
+    inlineStylesheets: 'auto',
+  },
 });
