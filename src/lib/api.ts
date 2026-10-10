@@ -5,10 +5,17 @@ const API_BASE = "https://brintoapi.brinto.in";
 export async function fetchMockTests(page = 1, limit = 10) {
   try {
     const res = await fetch(`${API_BASE}/api/mocktests?page=${page}&limit=${limit}`, {
-      headers: { "Accept": "application/json" }
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
+      }
     });
+    if (!res.ok) {
+      console.error(`API responded with status: ${res.status}`);
+      return [];
+    }
     const json = await res.json();
-    return json?.data || json?.tests || json || [];
+    return json?.data || json?.tests || (Array.isArray(json) ? json : []);
   } catch (err) {
     console.error("Error fetching mock tests:", err);
     return [];
