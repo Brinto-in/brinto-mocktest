@@ -1,6 +1,6 @@
 // src/lib/api.ts
 
-const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || "https://brintoapi.brinto.in";
+const API_BASE = "https://brintoapi.brinto.in";
 
 export async function fetchMockTests(page = 1, limit = 10) {
   try {
