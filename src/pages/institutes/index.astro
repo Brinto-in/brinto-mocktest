@@ -1,0 +1,827 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const allInstitutes = [
+  {
+    id: 'sahoo-maths',
+    name: 'Sahoo Sir Mathematics',
+    odiaName: 'ସାହୁ ସର',
+    type: 'Tuition Teacher',
+    specialty: 'Class 10th Board Mathematics Specialist',
+    subjects: ['Mathematics'],
+    city: 'Cuttack',
+    avatarBg: '#B00020',
+    avatarText: 'SS',
+    badge: 'Verified Partner',
+    testsCount: 18,
+    studentsCount: 15200,
+    rating: 4.9,
+    description: 'Specialized in Class 10 BSE Odisha Algebra, Geometry & Mensuration with 15+ years of teaching experience.',
+    contactPhone: '+91 98765 43210',
+    slug: 'sahoo-sir-mathematics',
+  },
+  {
+    id: 'dash-science',
+    name: 'Dash Science Academy',
+    odiaName: 'ଦାଶ ସର',
+    type: 'Tuition Teacher',
+    specialty: 'BSE Odisha Physical & Life Science',
+    subjects: ['Science'],
+    city: 'Bhubaneswar',
+    avatarBg: '#1B6B3A',
+    avatarText: 'DS',
+    badge: 'Top Rated',
+    testsCount: 22,
+    studentsCount: 18400,
+    rating: 4.9,
+    description: 'Comprehensive Physical & Life Science objective test series and chapterwise practice papers for Class 10th.',
+    contactPhone: '+91 98765 12345',
+    slug: 'dash-science-academy',
+  },
+  {
+    id: 'royal-tutorials',
+    name: 'Royal Tutorials Cuttack',
+    odiaName: 'ରୟାଲ ଟ୍ୟୁଟୋରିଆଲ',
+    type: 'Coaching Institute',
+    specialty: '10th Board Model Papers & Competitive Mock Sets',
+    subjects: ['Mathematics', 'Science', 'English'],
+    city: 'Cuttack',
+    avatarBg: '#D4830F',
+    avatarText: 'RT',
+    badge: 'Verified Partner',
+    testsCount: 35,
+    studentsCount: 24100,
+    rating: 4.8,
+    description: 'Leading coaching center in Cuttack offering full length mock exams, timed practice, and state rank analytics.',
+    contactPhone: '+91 94370 00000',
+    slug: 'royal-tutorials-cuttack',
+  },
+  {
+    id: 'pradhan-odia',
+    name: 'Pradhan Sir Odia & SS',
+    odiaName: 'ପ୍ରଧାନ ସର',
+    type: 'Tuition Teacher',
+    specialty: 'Odia Sahitya, Vyakarana & Social Science',
+    subjects: ['Odia & Vyakarana', 'Social Science'],
+    city: 'Balasore',
+    avatarBg: '#4A148C',
+    avatarText: 'PS',
+    badge: 'Popular',
+    testsCount: 14,
+    studentsCount: 12800,
+    rating: 4.9,
+    description: 'Master Class 10 Odia Bhasa, Vyakarana, History, and Geography with chapterwise objective MCQ test sets.',
+    contactPhone: '+91 97780 11223',
+    slug: 'pradhan-sir-classes',
+  },
+  {
+    id: 'target-100',
+    name: 'Target 100 Academy',
+    odiaName: 'ଟାର୍ଗେଟ ୧୦୦',
+    type: 'Coaching Institute',
+    specialty: 'Full Syllabus BSE Board Exam Test Series',
+    subjects: ['Mathematics', 'Science', 'Social Science', 'English'],
+    city: 'Sambalpur',
+    avatarBg: '#006064',
+    avatarText: 'T100',
+    badge: 'Verified Partner',
+    testsCount: 28,
+    studentsCount: 21000,
+    rating: 4.8,
+    description: 'Premier coaching institute in Sambalpur providing Board Exam level objective test series for all subjects.',
+    contactPhone: '+91 99371 88990',
+    slug: 'target-100-academy',
+  },
+  {
+    id: 'mishra-english',
+    name: 'Mishra Sir English Academy',
+    odiaName: 'ମିଶ୍ର ସର',
+    type: 'Tuition Teacher',
+    specialty: 'English Grammar, Prose & Translation Practice',
+    subjects: ['English & Grammar'],
+    city: 'Rourkela',
+    avatarBg: '#0D47A1',
+    avatarText: 'MS',
+    badge: 'Top Rated',
+    testsCount: 16,
+    studentsCount: 14500,
+    rating: 4.9,
+    description: 'Expert guidance for Class 10 English Grammar, Active/Passive Voice, Tenses, and Comprehension MCQs.',
+    contactPhone: '+91 98610 33445',
+    slug: 'mishra-sir-english',
+  },
+  {
+    id: 'mohanty-physics',
+    name: 'Mohanty Sir Physics Classes',
+    odiaName: 'ମହାନ୍ତି ସର',
+    type: 'Tuition Teacher',
+    specialty: 'Class 10th Physical Science & Light/Electricity',
+    subjects: ['Science'],
+    city: 'Puri',
+    avatarBg: '#C0392B',
+    avatarText: 'MS',
+    badge: 'Popular',
+    testsCount: 12,
+    studentsCount: 9800,
+    rating: 4.8,
+    description: 'Focused Physics and Chemistry objective questions based on BSE Board examination pattern.',
+    contactPhone: '+91 94371 77889',
+    slug: 'mohanty-sir-physics',
+  },
+  {
+    id: 'vidya-mandir',
+    name: 'Vidya Mandir Tutorials',
+    odiaName: 'ବିଦ୍ୟା ମନ୍ଦିର',
+    type: 'Coaching Institute',
+    specialty: 'Comprehensive Class 10 & Entrance Preparation',
+    subjects: ['Mathematics', 'Science', 'Social Science'],
+    city: 'Berhampur',
+    avatarBg: '#16A085',
+    avatarText: 'VM',
+    badge: 'Verified Partner',
+    testsCount: 30,
+    studentsCount: 19500,
+    rating: 4.7,
+    description: 'Berhampur’s trusted tutorial center offering timed online tests with detailed Odia & English explanations.',
+    contactPhone: '+91 98532 11009',
+    slug: 'vidya-mandir-tutorials',
+  },
+  {
+    id: 'patra-biology',
+    name: 'Patra Sir Life Science Master',
+    odiaName: 'ପାତ୍ର ସର',
+    type: 'Tuition Teacher',
+    specialty: 'Life Science, Genetics & Environmental Science',
+    subjects: ['Science'],
+    city: 'Angul',
+    avatarBg: '#27AE60',
+    avatarText: 'PS',
+    badge: 'Top Rated',
+    testsCount: 15,
+    studentsCount: 11200,
+    rating: 4.9,
+    description: 'In-depth Life Science practice sets for Class 10th students with detailed diagrams and objective MCQs.',
+    contactPhone: '+91 97761 44556',
+    slug: 'patra-sir-biology',
+  },
+  {
+    id: 'nanda-chemistry',
+    name: 'Nanda Sir Chemistry Academy',
+    odiaName: 'ନନ୍ଦ ସର',
+    type: 'Tuition Teacher',
+    specialty: 'Chemical Reactions, Carbon & Metals',
+    subjects: ['Science'],
+    city: 'Bhubaneswar',
+    avatarBg: '#8E44AD',
+    avatarText: 'NS',
+    badge: 'Popular',
+    testsCount: 11,
+    studentsCount: 8900,
+    rating: 4.8,
+    description: 'Master Class 10 Chemistry equations, periodic table, and objective questions easily.',
+    contactPhone: '+91 94380 66778',
+    slug: 'nanda-sir-chemistry',
+  },
+  {
+    id: 'odisha-scholars',
+    name: 'Odisha Scholars Academy',
+    odiaName: 'ସ୍କୋଲାରସ ଆକାଡେମୀ',
+    type: 'Coaching Institute',
+    specialty: 'OSSSC, OPSC & 10th Board Integrated Coaching',
+    subjects: ['Mathematics', 'General Knowledge', 'English & Grammar'],
+    city: 'Cuttack',
+    avatarBg: '#2C3E50',
+    avatarText: 'OSA',
+    badge: 'Verified Partner',
+    testsCount: 42,
+    studentsCount: 28500,
+    rating: 4.9,
+    description: 'Premier test series provider in Cuttack for both Matric Board exams and state government recruitment tests.',
+    contactPhone: '+91 98611 99001',
+    slug: 'odisha-scholars-academy',
+  },
+  {
+    id: 'swain-social',
+    name: 'Swain Sir Social Studies',
+    odiaName: 'ସ୍ୱାଇଁ ସର',
+    type: 'Tuition Teacher',
+    specialty: 'History, Geography, Economics & Civics',
+    subjects: ['Social Science', 'General Knowledge'],
+    city: 'Balasore',
+    avatarBg: '#D35400',
+    avatarText: 'SS',
+    badge: 'Top Rated',
+    testsCount: 17,
+    studentsCount: 13400,
+    rating: 4.9,
+    description: 'Specialist in Odisha & Indian History, Geography, and Constitution for Class 10 Board aspirants.',
+    contactPhone: '+91 99372 33445',
+    slug: 'swain-sir-social-studies',
+  },
+];
+
+const categoryTypes = ['All', 'Tuition Teacher', 'Coaching Institute'];
+const cities = ['All Cities', 'Bhubaneswar', 'Cuttack', 'Berhampur', 'Sambalpur', 'Balasore', 'Rourkela', 'Puri', 'Angul'];
+const subjects = ['All Subjects', 'Mathematics', 'Science', 'Odia & Vyakarana', 'English & Grammar', 'Social Science', 'General Knowledge'];
+---
+
+<BaseLayout
+  title="All Partner Institutes & Tuition Teachers"
+  description="Explore leading coaching institutes, tuition teachers, and subject masters in Odisha conducting online mock tests on Brinto."
+>
+
+<section class="page-hero">
+  <div class="wrap hero-inner">
+    <div class="hero-text">
+      <span class="hero-badge">🏫 PARTNER EDUCATORS</span>
+      <h1>All Institutes & Tuition Teachers</h1>
+      <p>Discover top coaching centers, subject masters, and tuition classes conducting tests across Odisha.</p>
+    </div>
+    <div class="search-box">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input
+        type="search"
+        id="search-input"
+        placeholder="Search teacher, institute, subject, city…"
+        autocomplete="off"
+        aria-label="Search institutes"
+      />
+    </div>
+  </div>
+</section>
+
+<div class="wrap listing-layout">
+
+  <!-- Filters Sidebar -->
+  <aside class="filters" aria-label="Filter institutes">
+    <div class="filter-group">
+      <h3>Category Type</h3>
+      <ul class="filter-list" id="type-filter">
+        {categoryTypes.map((type, i) => (
+          <li>
+            <button
+              class={`filter-btn ${i === 0 ? 'active' : ''}`}
+              data-type={type}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              {type}
+              <span class="filter-count">
+                {type === 'All' ? allInstitutes.length : allInstitutes.filter(item => item.type === type).length}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="filter-group">
+      <h3>City / Location</h3>
+      <ul class="filter-list" id="city-filter">
+        {cities.map((city, i) => (
+          <li>
+            <button
+              class={`filter-btn ${i === 0 ? 'active' : ''}`}
+              data-city={city}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              {city}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="filter-group">
+      <h3>Subject Focus</h3>
+      <ul class="filter-list" id="subject-filter">
+        {subjects.map((sub, i) => (
+          <li>
+            <button
+              class={`filter-btn ${i === 0 ? 'active' : ''}`}
+              data-subject={sub}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              {sub}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <div class="toolbar">
+      <span class="result-count" id="result-count">{allInstitutes.length} institutes & teachers</span>
+      <div class="sort-row">
+        <label for="sort-select">Sort by:</label>
+        <select id="sort-select" aria-label="Sort institutes">
+          <option value="popular">Most Students</option>
+          <option value="rating">Top Rated</option>
+          <option value="tests">Most Tests</option>
+          <option value="name">Name (A–Z)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="inst-grid" id="inst-grid">
+      {allInstitutes.map((inst) => (
+        <div
+          class="inst-card"
+          data-type={inst.type}
+          data-city={inst.city}
+          data-subjects={inst.subjects.join(',')}
+          data-students={inst.studentsCount}
+          data-rating={inst.rating}
+          data-tests={inst.testsCount}
+          data-name={inst.name}
+        >
+          <div class="ic-top">
+            <div class="ic-avatar" style={`background:${inst.avatarBg}`}>
+              {inst.avatarText}
+            </div>
+            <div class="ic-info">
+              <div class="ic-badge">{inst.badge}</div>
+              <h2 class="ic-name">{inst.name}</h2>
+              <span class="ic-odia">({inst.odiaName})</span>
+            </div>
+          </div>
+
+          <div class="ic-meta">
+            <span class="ic-type">{inst.type}</span>
+            <span class="ic-dot">•</span>
+            <span class="ic-city">📍 {inst.city}</span>
+          </div>
+
+          <p class="ic-desc">{inst.description}</p>
+
+          <div class="ic-subjects">
+            {inst.subjects.map(s => <span class="subject-tag">{s}</span>)}
+          </div>
+
+          <div class="ic-footer">
+            <div class="ic-stats">
+              <span><strong>{inst.testsCount}</strong> Tests</span>
+              <span class="ic-dot">•</span>
+              <span><strong>{inst.studentsCount.toLocaleString('en-IN')}</strong> Students</span>
+              <span class="ic-dot">•</span>
+              <span class="ic-rating">★ {inst.rating}</span>
+            </div>
+            <a href={`/tests?search=${encodeURIComponent(inst.name)}`} class="ic-cta">View Tests →</a>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <p class="empty-msg" id="empty-msg" style="display:none">
+      No institutes match your search or filter. <button id="reset-filters">Reset filters</button>
+    </p>
+
+    <!-- Partner Banner CTA -->
+    <div class="partner-banner">
+      <div class="pb-text">
+        <h2>Are you a tuition teacher or coaching institute in Odisha?</h2>
+        <p>Conduct your online mock tests, manage students, and share instant result keys on Brinto for free.</p>
+      </div>
+      <a href="https://outsource.brinto.in" target="_blank" rel="noopener" class="pb-btn">
+        Become a Test Partner →
+      </a>
+    </div>
+  </div>
+
+</div>
+
+</BaseLayout>
+
+<script is:inline>
+  let activeType = 'All';
+  let activeCity = 'All Cities';
+  let activeSubject = 'All Subjects';
+  let searchQ = '';
+  let sortBy = 'popular';
+
+  const grid = document.getElementById('inst-grid');
+  const cards = Array.from(grid.querySelectorAll('.inst-card'));
+  const countEl = document.getElementById('result-count');
+  const emptyEl = document.getElementById('empty-msg');
+
+  function applyFilters() {
+    let visible = [];
+    cards.forEach(card => {
+      const type = card.dataset.type;
+      const city = card.dataset.city;
+      const subs = card.dataset.subjects.split(',');
+      const name = card.dataset.name.toLowerCase();
+      const desc = card.querySelector('.ic-desc').textContent.toLowerCase();
+
+      const matchesType = activeType === 'All' || type === activeType;
+      const matchesCity = activeCity === 'All Cities' || city === activeCity;
+      const matchesSubject = activeSubject === 'All Subjects' || subs.includes(activeSubject);
+      const matchesSearch = searchQ === '' || name.includes(searchQ) || desc.includes(searchQ) || city.toLowerCase().includes(searchQ);
+
+      const isMatch = matchesType && matchesCity && matchesSubject && matchesSearch;
+      card.style.display = isMatch ? '' : 'none';
+      if (isMatch) visible.push(card);
+    });
+
+    // Sort visible cards
+    visible.sort((a, b) => {
+      if (sortBy === 'popular') return parseInt(b.dataset.students) - parseInt(a.dataset.students);
+      if (sortBy === 'rating') return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+      if (sortBy === 'tests') return parseInt(b.dataset.tests) - parseInt(a.dataset.tests);
+      if (sortBy === 'name') return a.dataset.name.localeCompare(b.dataset.name);
+      return 0;
+    });
+
+    visible.forEach(card => grid.appendChild(card));
+
+    countEl.textContent = `${visible.length} institute${visible.length !== 1 ? 's & teachers' : ' & teacher'}`;
+    emptyEl.style.display = visible.length === 0 ? '' : 'none';
+  }
+
+  function setupFilterGroup(groupId, prop) {
+    document.getElementById(groupId).addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      document.querySelectorAll(`#${groupId} .filter-btn`).forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      if (prop === 'type') activeType = btn.dataset.type;
+      if (prop === 'city') activeCity = btn.dataset.city;
+      if (prop === 'subject') activeSubject = btn.dataset.subject;
+      applyFilters();
+    });
+  }
+
+  setupFilterGroup('type-filter', 'type');
+  setupFilterGroup('city-filter', 'city');
+  setupFilterGroup('subject-filter', 'subject');
+
+  document.getElementById('search-input').addEventListener('input', e => {
+    searchQ = e.target.value.trim().toLowerCase();
+    applyFilters();
+  });
+
+  document.getElementById('sort-select').addEventListener('change', e => {
+    sortBy = e.target.value;
+    applyFilters();
+  });
+
+  document.getElementById('reset-filters').addEventListener('click', () => {
+    activeType = 'All'; activeCity = 'All Cities'; activeSubject = 'All Subjects'; searchQ = '';
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    document.querySelectorAll('.filter-btn:first-child').forEach(b => {
+      b.classList.add('active');
+      b.setAttribute('aria-pressed', 'true');
+    });
+    document.getElementById('search-input').value = '';
+    applyFilters();
+  });
+</script>
+
+<style>
+  .page-hero {
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    padding: 48px 0 36px;
+  }
+  .hero-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--brand);
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    margin-bottom: 10px;
+  }
+  .hero-text h1 {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .hero-text p { color: var(--ink-soft); max-width: 540px; }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1.5px solid var(--rule);
+    border-radius: var(--radius-pill);
+    padding: 10px 18px;
+    min-width: 340px;
+    color: var(--ink-muted);
+    transition: border-color 0.15s;
+  }
+  .search-box:focus-within {
+    border-color: var(--brand);
+    color: var(--ink);
+  }
+  .search-box input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    color: var(--ink);
+    width: 100%;
+  }
+  .search-box input::placeholder { color: var(--ink-muted); }
+
+  /* Layout */
+  .listing-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    padding-top: 36px;
+    padding-bottom: 72px;
+    align-items: start;
+  }
+
+  /* Sidebar */
+  .filters {
+    position: sticky;
+    top: 88px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .filter-group h3 {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+  }
+  .filter-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .filter-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .filter-btn.active { background: var(--brand-light); color: var(--brand-dark); font-weight: 700; }
+  .filter-count {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    background: var(--surface-2);
+    padding: 1px 7px;
+    border-radius: 99px;
+  }
+  .filter-btn.active .filter-count { background: var(--brand-mid); color: var(--brand-dark); }
+
+  /* Toolbar */
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .result-count {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .sort-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+  select {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+
+  /* Grid */
+  .inst-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .inst-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .inst-card:hover {
+    border-color: var(--brand);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(176,0,32,0.08);
+  }
+  .ic-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .ic-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ic-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ic-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--brand);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ic-name {
+    font-size: 1.05rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.25;
+  }
+  .ic-odia {
+    font-size: 0.85rem;
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .ic-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .ic-dot { color: var(--ink-muted); }
+  .ic-desc {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .ic-subjects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .subject-tag {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    background: var(--surface-2);
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--rule);
+  }
+  .ic-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+  }
+  .ic-stats {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .ic-stats strong { color: var(--ink); }
+  .ic-rating { color: var(--gold); font-weight: 700; }
+  .ic-cta {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--brand);
+    transition: transform 0.15s ease;
+  }
+  .inst-card:hover .ic-cta { transform: translateX(3px); }
+
+  .empty-msg {
+    text-align: center;
+    padding: 48px;
+    color: var(--ink-soft);
+  }
+  .empty-msg button {
+    background: none;
+    border: none;
+    color: var(--brand);
+    font-weight: 700;
+    cursor: pointer;
+    font-size: inherit;
+  }
+
+  /* Partner Banner */
+  .partner-banner {
+    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 100%);
+    border-radius: var(--radius-md);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    color: #ffffff;
+    margin-top: 16px;
+  }
+  .pb-text h2 {
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+    color: #ffffff;
+  }
+  .pb-text p {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+  }
+  .pb-btn {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--brand);
+    background: #ffffff;
+    padding: 12px 24px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    transition: transform 0.15s ease;
+  }
+  .pb-btn:hover { transform: translateY(-2px); }
+
+  @media (max-width: 900px) {
+    .listing-layout { grid-template-columns: 1fr; }
+    .filters {
+      position: static;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .filter-group { flex: 1; min-width: 140px; }
+    .filter-list { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+    .filter-btn { width: auto; padding: 6px 12px; }
+    .hero-inner { flex-direction: column; align-items: flex-start; }
+    .search-box { min-width: 100%; }
+    .partner-banner { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 600px) {
+    .inst-grid { grid-template-columns: 1fr; }
+  }
+</style>

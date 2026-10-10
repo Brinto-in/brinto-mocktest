@@ -1,0 +1,429 @@
+---
+// Static UI component showing institutes & tuition teachers conducting tests on Brinto MockTest
+const partners = [
+  {
+    name: 'Sahoo Sir Mathematics',
+    odiaName: 'ସାହୁ ସର',
+    role: 'Senior Math Faculty',
+    specialty: 'Class 10th Board Mathematics Specialist',
+    location: 'Cuttack',
+    avatarBg: '#B00020',
+    avatarText: 'SS',
+    badge: 'Verified Partner',
+    testsCount: 18,
+    studentsCount: '15.2k',
+    rating: '4.9',
+    href: '/tests',
+  },
+  {
+    name: 'Dash Science Academy',
+    odiaName: 'ଦାଶ ସର',
+    role: 'Physics & Biology Expert',
+    specialty: 'BSE Odisha Physical & Life Science',
+    location: 'Bhubaneswar',
+    avatarBg: '#1B6B3A',
+    avatarText: 'DS',
+    badge: 'Top Rated',
+    testsCount: 22,
+    studentsCount: '18.4k',
+    rating: '4.9',
+    href: '/tests',
+  },
+  {
+    name: 'Royal Tutorials Cuttack',
+    odiaName: 'ରୟାଲ ଟ୍ୟୁଟୋରିଆଲ',
+    role: 'Coaching Institute',
+    specialty: '10th Board Model Papers & Mock Sets',
+    location: 'Cuttack',
+    avatarBg: '#D4830F',
+    avatarText: 'RT',
+    badge: 'Verified Partner',
+    testsCount: 35,
+    studentsCount: '24.1k',
+    rating: '4.8',
+    href: '/tests',
+  },
+  {
+    name: 'Pradhan Sir Odia & SS',
+    odiaName: 'ପ୍ରଧାନ ସର',
+    role: 'Sahitya & History Expert',
+    specialty: 'Odia Sahitya, Vyakarana & Social Science',
+    location: 'Balasore',
+    avatarBg: '#4A148C',
+    avatarText: 'PS',
+    badge: 'Popular',
+    testsCount: 14,
+    studentsCount: '12.8k',
+    rating: '4.9',
+    href: '/tests',
+  },
+  {
+    name: 'Target 100 Academy',
+    odiaName: 'ଟାର୍ଗେଟ ୧୦୦',
+    role: 'Premier Coaching',
+    specialty: 'Full Syllabus Board Exam Test Series',
+    location: 'Sambalpur',
+    avatarBg: '#006064',
+    avatarText: 'T100',
+    badge: 'Verified Partner',
+    testsCount: 28,
+    studentsCount: '21.0k',
+    rating: '4.8',
+    href: '/tests',
+  },
+  {
+    name: 'Mishra Sir English Academy',
+    odiaName: 'ମିଶ୍ର ସର',
+    role: 'English Faculty',
+    specialty: 'Grammar, Prose & Translation Practice',
+    location: 'Rourkela',
+    avatarBg: '#0D47A1',
+    avatarText: 'MS',
+    badge: 'Top Rated',
+    testsCount: 16,
+    studentsCount: '14.5k',
+    rating: '4.9',
+    href: '/tests',
+  },
+];
+---
+
+<section class="section institutes-section">
+  <div class="wrap">
+    <!-- Header -->
+    <div class="inst-header">
+      <div class="inst-header-info">
+        <span class="inst-pill">
+          <span class="inst-pill-dot"></span>
+          🏫 TOP TUTION TEACHERS & INSTITUTES
+        </span>
+        <h2>Tests by Leading Institutes & Tuition Teachers</h2>
+        <p class="inst-sub">
+          Practice mock tests created directly by Odisha's top tuition masters, coaching academies, and subject experts.
+        </p>
+      </div>
+      <a href="/institutes" class="inst-see-all">
+        Explore all institutes →
+      </a>
+    </div>
+
+    <!-- Grid -->
+    <div class="inst-grid">
+      {partners.map((p) => (
+        <a href={p.href} class="inst-card">
+          <div class="inst-card-top">
+            <div class="inst-avatar" style={`background:${p.avatarBg};`}>
+              {p.avatarText}
+            </div>
+            <div class="inst-title-box">
+              <div class="inst-name-row">
+                <h3 class="inst-name">{p.name}</h3>
+                <span class="inst-odia-name">({p.odiaName})</span>
+              </div>
+              <span class="inst-role">{p.role} · {p.location}</span>
+            </div>
+          </div>
+
+          <p class="inst-specialty">
+            🎯 {p.specialty}
+          </p>
+
+          <div class="inst-card-footer">
+            <div class="inst-stats">
+              <span class="inst-stat">
+                <strong>{p.testsCount}</strong> Tests
+              </span>
+              <span class="inst-stat-dot">•</span>
+              <span class="inst-stat">
+                <strong>{p.studentsCount}</strong> Students
+              </span>
+              <span class="inst-stat-dot">•</span>
+              <span class="inst-rating">★ {p.rating}</span>
+            </div>
+            <span class="inst-cta">View Tests →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <!-- Partner Banner CTA -->
+    <div class="inst-banner">
+      <div class="inst-banner-text">
+        <strong>Are you a tuition teacher or coaching institute in Odisha?</strong>
+        <p>Conduct your online mock tests on Brinto and reach thousands of students for free.</p>
+      </div>
+      <a href="https://outsource.brinto.in" target="_blank" rel="noopener" class="inst-banner-btn">
+        Become a Test Partner →
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .institutes-section {
+    background: var(--surface);
+    border-top: 1px solid var(--rule);
+    padding: 64px 0;
+  }
+
+  /* Header */
+  .inst-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    gap: 24px;
+  }
+
+  .inst-header-info {
+    max-width: 680px;
+  }
+
+  .inst-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--brand);
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    margin-bottom: 12px;
+  }
+
+  .inst-pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+    display: inline-block;
+  }
+
+  .inst-header h2 {
+    font-size: clamp(1.6rem, 2.8vw, 2.1rem);
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .inst-sub {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .inst-see-all {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--brand);
+    padding: 10px 20px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--brand-mid);
+    background: var(--brand-light);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .inst-see-all:hover {
+    background: var(--brand);
+    color: #ffffff;
+    border-color: var(--brand);
+  }
+
+  /* Grid */
+  .inst-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .inst-card {
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: all 0.2s ease;
+  }
+
+  .inst-card:hover {
+    border-color: var(--brand);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(176, 0, 32, 0.08);
+    background: var(--surface);
+  }
+
+  .inst-card-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .inst-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .inst-title-box {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .inst-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .inst-name {
+    font-size: 1rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .inst-odia-name {
+    font-size: 0.85rem;
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  .inst-role {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  .inst-specialty {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+    background: var(--surface);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--rule);
+    margin: 0;
+  }
+
+  .inst-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .inst-stats {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  .inst-stat strong {
+    color: var(--ink);
+  }
+
+  .inst-stat-dot {
+    color: var(--ink-muted);
+  }
+
+  .inst-rating {
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .inst-cta {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--brand);
+    transition: transform 0.15s ease;
+  }
+
+  .inst-card:hover .inst-cta {
+    transform: translateX(3px);
+  }
+
+  /* Partner Banner */
+  .inst-banner {
+    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 100%);
+    border-radius: var(--radius-md);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    color: #ffffff;
+  }
+
+  .inst-banner-text strong {
+    display: block;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+  }
+
+  .inst-banner-text p {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .inst-banner-btn {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--brand);
+    background: #ffffff;
+    padding: 12px 24px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    transition: transform 0.15s ease;
+  }
+
+  .inst-banner-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .inst-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .inst-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .inst-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .inst-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
