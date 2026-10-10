@@ -5,6 +5,12 @@
   "compatibility_flags": [
     "nodejs_compat_v2"
   ],
+  "routes": [
+    {
+      "pattern": "www.brinto.in/mocktest*",
+      "custom_domain": false
+    }
+  ],
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
