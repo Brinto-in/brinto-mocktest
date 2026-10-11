@@ -70,7 +70,7 @@ const EXAMS = [
 <AdminLayout title="Tests" section="tests">
     <a
         slot="topbar-actions"
-        href="/admin/tests/new"
+        href="/mocktest/admin/tests/new"
         class="btn btn-primary btn-sm"
     >
         + New Test
@@ -202,13 +202,13 @@ const EXAMS = [
                                     <td>
                                         <div style="display:flex;gap:6px;align-items:center">
                                             <a
-                                                href={`/admin/tests/${t.id}`}
+                                                href={`/mocktest/admin/tests/${t.id}`}
                                                 class="btn btn-secondary btn-sm"
                                             >
                                                 + Questions
                                             </a>
                                             <a
-                                                href={`/test/${t.slug}`}
+                                                href={`/mocktest/test/${t.slug}`}
                                                 target="_blank"
                                                 class="btn btn-ghost btn-sm"
                                                 title="Preview"

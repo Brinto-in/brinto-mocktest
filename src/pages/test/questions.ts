@@ -12,8 +12,8 @@ export const GET: APIRoute = async ({ params }) => {
   try {
     // 1. Find the test_id from the href
     const testResult = await db.execute({
-      sql: "SELECT id FROM tests WHERE href = ? LIMIT 1",
-      args: [testHref],
+      sql: "SELECT id FROM tests WHERE href = ? OR href = ? LIMIT 1",
+      args: [`/mocktest/test/${slug}`, `/test/${slug}`],
     });
 
     if (testResult.rows.length === 0) {

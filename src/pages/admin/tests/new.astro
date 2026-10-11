@@ -32,7 +32,7 @@ if (Astro.request.method === "POST") {
                 is_free,
                 is_new,
             });
-            return Astro.redirect(`/admin/tests/${id}?created=1`);
+            return Astro.redirect(`/mocktest/admin/tests/${id}?created=1`);
         }
     } catch (e: any) {
         errorMsg = e?.message?.includes("UNIQUE")
@@ -57,7 +57,7 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 ---
 
 <AdminLayout title="Create New Test" section="tests">
-    <a slot="topbar-actions" href="/admin" class="btn btn-secondary btn-sm"
+    <a slot="topbar-actions" href="/mocktest/admin" class="btn btn-secondary btn-sm"
         >← Back</a
     >
 
@@ -133,7 +133,7 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
                             title="Lowercase letters, numbers and hyphens only"
                         />
                         <span class="form-hint"
-                            >Used in URL: /test/<strong>your-slug</strong></span
+                            >Used in URL: /mocktest/test/<strong>your-slug</strong></span
                         >
                     </div>
                     <div class="form-group">
@@ -178,7 +178,7 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
                     <button type="submit" class="btn btn-primary">
                         Create Test → Add Questions
                     </button>
-                    <a href="/admin" class="btn btn-ghost">Cancel</a>
+                    <a href="/mocktest/admin" class="btn btn-ghost">Cancel</a>
                 </div>
             </div>
         </form>

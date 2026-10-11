@@ -9,8 +9,8 @@ const { title, section = "dashboard" } = Astro.props;
 const fullTitle = `${title} — Admin | Brinto MockTest`;
 
 const nav = [
-    { href: "/admin", label: "Dashboard", icon: "⊞", key: "dashboard" },
-    { href: "/admin/tests", label: "Tests", icon: "📋", key: "tests" },
+    { href: "/mocktest/admin", label: "Dashboard", icon: "⊞", key: "dashboard" },
+    { href: "/mocktest/admin/tests", label: "Tests", icon: "📋", key: "tests" },
 ];
 ---
 
@@ -738,7 +738,7 @@ const nav = [
                 }
             </nav>
             <div class="sb-footer">
-                <a href="/" target="_blank">
+                <a href="/mocktest" target="_blank">
                     <svg
                         width="14"
                         height="14"

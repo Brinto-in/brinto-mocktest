@@ -1,7 +1,7 @@
 // This is a temporary data structure to help with seeding.
 // We'll associate these questions with a test based on the test's `href`.
 export const questionsByTest: Record<string, any[]> = {
-  '/test/osssc-ri-ari-mock-1': [
+  '/mocktest/test/osssc-ri-ari-mock-1': [
     // ── GENERAL KNOWLEDGE (5 Qs) ──
     {
       section: "General Knowledge",

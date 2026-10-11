@@ -59,7 +59,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             <div class="empty-icon">📋</div>
             <h2>No tests attempted yet</h2>
             <p>Your results will appear here after you complete a mock test.</p>
-            <a href="/tests" class="btn-browse">Browse Tests →</a>
+            <a href="/mocktest/tests" class="btn-browse">Browse Tests →</a>
         </div>
 
         <!-- Results grid (populated by JS) -->
@@ -258,7 +258,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <span class="rc-rank ${r.score >= 70 ? "rank-good" : r.score >= 40 ? "rank-avg" : "rank-low"}">
           ${r.score >= 70 ? "🏆 Excellent" : r.score >= 40 ? "📈 Average" : "📉 Needs Practice"}
         </span>
-        <a href="/test/${r.slug}" class="rc-retake">Retake →</a>
+        <a href="/mocktest/test/${r.slug}" class="rc-retake">Retake →</a>
       </div>
     `;
             grid.appendChild(card);

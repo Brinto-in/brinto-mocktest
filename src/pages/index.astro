@@ -27,7 +27,7 @@ try {
       difficulty: row.difficulty || "Medium",
       attempts: row.attempts || 0,
       rating: row.rating || 5,
-      href: `/test/${row.id}`,
+      href: `/mocktest/test/${row.id}`,
       isNew: !!(row.isNew || row.is_new),
       isFree: !!(row.isFree || row.is_free),
     }));
@@ -55,7 +55,7 @@ try {
     <div class="wrap">
       <div class="section-head">
         <h2>Trending tests</h2>
-        <a href="/tests" class="see-all">View all →</a>
+        <a href="/mocktest/tests" class="see-all">View all →</a>
       </div>
       <div class="tests-grid" id="trending-tests-grid">
         {tests.map((t) => <TestCard test={t} />)}
@@ -91,7 +91,7 @@ try {
               const isFreeBadge = (t.is_free || t.isFree) ? '<span class="badge-free">Free</span>' : '';
 
               return `
-                <a href="/test/${t.id}" class="test-card">
+                <a href="/mocktest/test/${t.id}" class="test-card">
                   <div class="tc-top">
                     <span class="tc-exam-tag">${t.exam || 'General'}</span>
                     <div class="tc-badges">
@@ -135,7 +135,7 @@ try {
     <div class="wrap">
       <div class="section-head">
         <h2>Browse by exam</h2>
-        <a href="/tests" class="see-all">See all →</a>
+        <a href="/mocktest/tests" class="see-all">See all →</a>
       </div>
       <div class="cat-grid">
         {categories.map((cat) => <CategoryCard category={cat} />)}
@@ -166,8 +166,8 @@ try {
         </p>
       </div>
       <div class="cta-btns">
-        <a href="/tests" class="cta-btn-primary">Start a free test</a>
-        <a href="/signup" class="cta-btn-ghost">Create account →</a>
+        <a href="/mocktest/tests" class="cta-btn-primary">Start a free test</a>
+        <a href="/mocktest/signup" class="cta-btn-ghost">Create account →</a>
       </div>
     </div>
   </section>

@@ -63,7 +63,7 @@ if (Astro.request.method === "POST") {
 }
 
 const test = await getTestById(testId);
-if (!test) return Astro.redirect("/admin");
+if (!test) return Astro.redirect("/mocktest/admin");
 
 const questions = await getQuestionsForTest(testId);
 const sections = [...new Set(questions.map((q) => q.section))];
@@ -88,11 +88,11 @@ const SECTION_OPTIONS = [
 <AdminLayout title={test.title} section="tests">
     <div slot="topbar-actions" style="display:flex;gap:8px">
         <a
-            href={`/test/${test.slug}`}
+            href={`/mocktest/test/${test.slug}`}
             target="_blank"
             class="btn btn-ghost btn-sm">↗ Preview</a
         >
-        <a href="/admin" class="btn btn-secondary btn-sm">← All Tests</a>
+        <a href="/mocktest/admin" class="btn btn-secondary btn-sm">← All Tests</a>
     </div>
 
     <!-- Created success banner -->

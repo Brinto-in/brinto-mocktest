@@ -1,15 +1,15 @@
 ---
 const nav = [
-  { href: '/tests', label: 'Tests' },
-  { href: '/institutes', label: 'Institutes' },
-  { href: '/results', label: 'My Results' },
-  { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/mocktest/tests', label: 'Tests' },
+  { href: '/mocktest/institutes', label: 'Institutes' },
+  { href: '/mocktest/results', label: 'My Results' },
+  { href: '/mocktest/leaderboard', label: 'Leaderboard' },
 ];
 ---
 
 <header class="header">
   <div class="wrap bar">
-    <a href="/" class="brand" aria-label="Brinto MockTest home">
+    <a href="/mocktest" class="brand" aria-label="Brinto MockTest home">
       <img src="/logo.png" alt="Brinto MockTest logo" width="32" height="32" class="logo-mark" />
     </a>
 
@@ -22,7 +22,7 @@ const nav = [
     <div class="header-cta">
       <div class="auth-guest" data-auth-guest>
         <button type="button" class="btn-ghost" data-open-login>Log in</button>
-        <a href="/signup" class="btn-primary">Start Free</a>
+        <a href="/mocktest/signup" class="btn-primary">Start Free</a>
       </div>
       <div class="profile" data-auth-user hidden>
         <button type="button" class="profile-btn" id="profile-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
@@ -33,7 +33,7 @@ const nav = [
             <span class="profile-name" data-profile-name>User</span>
             <span class="profile-phone" data-profile-phone></span>
           </div>
-          <a href="/results" class="profile-item" role="menuitem">My Results</a>
+          <a href="/mocktest/results" class="profile-item" role="menuitem">My Results</a>
           <button type="button" class="profile-item profile-logout" id="logout-btn" role="menuitem">Log out</button>
         </div>
       </div>
@@ -48,7 +48,7 @@ const nav = [
     <ul>
       {nav.map(n => <li><a href={n.href}>{n.label}</a></li>)}
       <li data-auth-guest><button type="button" class="mobile-login" data-open-login>Log in</button></li>
-      <li data-auth-guest><a href="/signup" class="mobile-signup">Start Free →</a></li>
+      <li data-auth-guest><a href="/mocktest/signup" class="mobile-signup">Start Free →</a></li>
       <li data-auth-user hidden><span class="mobile-user" data-profile-name>User</span></li>
       <li data-auth-user hidden><button type="button" class="mobile-login" id="mobile-logout-btn">Log out</button></li>
     </ul>
@@ -116,7 +116,7 @@ const nav = [
 <script>
   import { getFirebaseAuth } from '../lib/firebase';
   import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from 'firebase/auth';
-  import { fetchBrintoUser, saveAuth, getAuth, clearAuth } from '../lib/auth';
+  import { loginWithMobile, saveAuth, getAuth, clearAuth } from '../lib/authService';
 
   const overlay = document.getElementById('login-overlay');
   const errorEl = document.getElementById('login-error');
@@ -142,7 +142,7 @@ const nav = [
       el.hidden = !loggedIn;
     });
     if (loggedIn && auth) {
-      const name = auth.user.user_name || 'User';
+      const name = auth.user.name || auth.user.user_name || 'User';
       const initial = name.charAt(0).toUpperCase();
       document.querySelectorAll<HTMLElement>('[data-profile-name]').forEach((el) => {
         el.textContent = name;
@@ -251,8 +251,8 @@ const nav = [
     verifyBtn.textContent = 'Verifying...';
     try {
       await confirmation.confirm(code);
-      // OTP verified with Firebase — now fetch the Brinto user profile.
-      const auth = await fetchBrintoUser(currentPhone);
+      // OTP verified with Firebase — now fetch the Brinto user profile via mobile login API.
+      const auth = await loginWithMobile(currentPhone);
       if (!auth) {
         showError('No account found for this number.');
         return;

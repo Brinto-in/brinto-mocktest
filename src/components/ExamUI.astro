@@ -15,10 +15,10 @@ const slug = test.href.split("/").pop();
   <head>
     <script is:inline>
       (function () {
-        const auth = localStorage.getItem("brinto_auth");
+        const auth = localStorage.getItem("brinto_user") || localStorage.getItem("brinto_token") || localStorage.getItem("brinto_auth");
         if (!auth) {
           const currentUrl = encodeURIComponent(window.location.pathname);
-          window.location.replace("/?login=true&redirect=" + currentUrl);
+          window.location.replace("/mocktest/?login=true&redirect=" + currentUrl);
         }
       })();
     </script>
@@ -1272,7 +1272,7 @@ const slug = test.href.split("/").pop();
   <body>
     <!-- ── EXAM HEADER ── -->
     <header class="exam-header" id="exam-header">
-      <a href="/" class="eh-brand">
+      <a href="/mocktest" class="eh-brand">
         <img src="/logo.png" alt="Brinto logo" height="28" style="height:28px; width:auto; object-fit:contain;" />
       </a>
       <div class="eh-title" id="eh-title">{test.title}</div>
@@ -1451,7 +1451,7 @@ const slug = test.href.split("/").pop();
         <div class="review-list" id="review-list"></div>
         <div style="text-align:center;padding-bottom:48px;">
           <a
-            href="/tests"
+            href="/mocktest/tests"
             style="display:inline-block;background:var(--brand);color:#fff;font-weight:700;padding:14px 32px;border-radius:999px;font-size:1rem;"
             >← Back to All Tests</a
           >

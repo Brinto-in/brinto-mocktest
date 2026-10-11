@@ -56,7 +56,7 @@ export async function fetchTestBySlug(idOrSlug: string) {
           difficulty: t.difficulty || "Medium",
           attempts: t.attempts || 0,
           rating: t.rating || 5,
-          href: `/test/${t.id}`,
+          href: `/mocktest/test/${t.id}`,
           isNew: !!t.is_new,
           isFree: !!t.is_free,
         },

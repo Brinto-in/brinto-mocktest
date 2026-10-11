@@ -92,7 +92,7 @@ export async function createTest(input: CreateTestInput): Promise<number> {
             input.slug,
             input.is_free ?? 1,
             input.is_new ?? 0,
-            `/test/${input.slug}`,
+            `/mocktest/test/${input.slug}`,
         ],
     });
     return Number(res.lastInsertRowid);
