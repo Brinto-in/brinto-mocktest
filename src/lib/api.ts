@@ -1,22 +1,19 @@
 // src/lib/api.ts
-import { loginWithMobile } from "./authService";
 
 const API_BASE = "https://brintoapi.brinto.in";
-let STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MDk5NTcsImV4cCI6MTc5MjMxNDc1N30.zakxNYj-GoJ5fUiv9uKMtY0oedsSMlMLqwKcsY1sJWo";
-const STATIC_SESSION_ID = "982f0557-58d8-4f9e-aa57-1db0bd61541c";
-const STATIC_TEST_ID = "11";
 
-async function getFreshToken(): Promise<string> {
-  try {
-    const auth = await loginWithMobile("9178469046");
-    if (auth?.token) {
-      STATIC_TOKEN = auth.token;
-      return auth.token;
-    }
-  } catch (e) {
-    console.error("Failed to auto-refresh token:", e);
+export function getAuthToken(): string {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("brinto_token") || "";
   }
-  return STATIC_TOKEN;
+  return "";
+}
+
+export function getGuestId(): string {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("brinto_guest_id") || "";
+  }
+  return "";
 }
 
 export async function fetchMockTests(page = 1, limit = 10) {
@@ -49,32 +46,72 @@ export async function fetchMockTests(page = 1, limit = 10) {
   }
 }
 
-export async function fetchTestBySlug(idOrSlug?: string) {
+export async function createMockTestSession(testId: string | number): Promise<string | null> {
   try {
-    const testId = idOrSlug || STATIC_TEST_ID;
-    const url = `${API_BASE}/api/mocktests/${testId}?session_id=${STATIC_SESSION_ID}`;
-    let res = await fetch(url, {
-      headers: {
-        "Accept": "*/*",
-        "Authorization": `Bearer ${STATIC_TOKEN}`,
-        "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
-      }
+    const token = getAuthToken();
+    const guestId = getGuestId();
+    const parsedTestId = typeof testId === "number" ? testId : parseInt(testId, 10);
+    if (!parsedTestId || isNaN(parsedTestId)) {
+      console.error("Invalid or missing testId in createMockTestSession:", testId);
+      return null;
+    }
+
+    const headers: Record<string, string> = {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "X-Guest-Id": guestId,
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${API_BASE}/api/mocktests/sessions`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ testId: parsedTestId })
     });
 
-    let json = await res.json();
-
-    // Auto-refresh token if API returned error or unauthorized
-    if (!json?.success) {
-      console.warn("API response was not successful, auto-refreshing token via API...", json);
-      const freshToken = await getFreshToken();
-      res = await fetch(url, {
-        headers: {
-          "Accept": "*/*",
-          "Authorization": `Bearer ${freshToken}`
-        }
-      });
-      json = await res.json();
+    const json = await res.json();
+    if (json?.success && json?.data?.id) {
+      return json.data.id;
     }
+    console.error("createMockTestSession failed:", json);
+    return null;
+  } catch (err) {
+    console.error("Error creating mock test session:", err);
+    return null;
+  }
+}
+
+export async function fetchTestBySlug(idOrSlug?: string) {
+  try {
+    if (!idOrSlug) {
+      console.error("idOrSlug is required for fetchTestBySlug");
+      return null;
+    }
+
+    const testId = idOrSlug;
+    const token = getAuthToken();
+    const guestId = getGuestId();
+
+    const sessionId = await createMockTestSession(testId);
+    if (!sessionId) {
+      console.error("Could not create session for test", testId);
+      return null;
+    }
+
+    const headers: Record<string, string> = {
+      "Accept": "*/*",
+      "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
+      "X-Guest-Id": guestId,
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const url = `${API_BASE}/api/mocktests/${testId}?session_id=${sessionId}`;
+    const res = await fetch(url, { headers });
+    const json = await res.json();
 
     if (json?.success && json?.data) {
       const t = json.data;
@@ -89,19 +126,20 @@ export async function fetchTestBySlug(idOrSlug?: string) {
 
       return {
         test: {
-          id: t.id ?? STATIC_TEST_ID,
-          title: t.title || "OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026",
-          exam: t.exam || "OSSSC",
+          id: t.id ?? testId,
+          title: t.title || "Mock Test",
+          exam: t.exam || "General",
           questions: formattedQuestions.length || (typeof t.questions === 'number' ? t.questions : 0),
           duration: t.duration || 30,
           difficulty: t.difficulty || "Medium",
           attempts: t.attempts || 0,
           rating: t.rating || 5,
-          href: `/mocktest/test/${t.id ?? STATIC_TEST_ID}`,
+          href: `/mocktest/test/${t.id ?? testId}`,
           isNew: !!t.is_new,
           isFree: !!t.is_free,
         },
-        questions: formattedQuestions
+        questions: formattedQuestions,
+        sessionId
       };
     } else {
       const errMsg = json?.error || json?.message || "Failed to fetch test details";
@@ -113,7 +151,7 @@ export async function fetchTestBySlug(idOrSlug?: string) {
     return null;
   } catch (err: any) {
     const errMsg = err?.message || String(err);
-    console.error(`Error fetching static test:`, err);
+    console.error(`Error fetching test by slug:`, err);
     if (typeof window !== "undefined") {
       alert(`API Connection Error: ${errMsg}`);
     }

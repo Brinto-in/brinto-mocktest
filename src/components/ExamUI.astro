@@ -7,7 +7,7 @@ interface Props {
   questionsData?: any[];
 }
 
-const { slug = "11", test, questionsData = [] } = Astro.props;
+const { slug = "", test, questionsData = [] } = Astro.props;
 ---
 
 <!doctype html>
@@ -2053,15 +2053,28 @@ const { slug = "11", test, questionsData = [] } = Astro.props;
       document.getElementById("btn-fullscreen")?.addEventListener("click", toggleFullscreen);
 
       // ─────────────────────────────────────────────
-      //  INSTRUCTION MODAL
+      //  INSTRUCTION MODAL & START TEST SESSION
       // ─────────────────────────────────────────────
       const instrOverlay = document.getElementById("instr-overlay");
       const instrCb = document.getElementById("instr-agree-cb");
       const btnStart = document.getElementById("btn-start-test");
 
-      // Populate dynamic meta
-      document.getElementById("instr-exam-name").textContent =
-        `${testMeta?.exam || "Competitive Exam"} · Mock Test`;
+      // Populate dynamic initial meta in instruction modal
+      const initialExam = `${testMeta?.exam || "Competitive Exam"} · Mock Test`;
+      const initialTitle = testMeta?.title || "Online Mock Test";
+      const initialDuration = testMeta?.duration || 30;
+      const initialQCount = testMeta?.questions || 20;
+
+      const instrExamEl = document.getElementById("instr-exam-name");
+      if (instrExamEl) instrExamEl.textContent = initialExam;
+      const instrTitleEl = document.getElementById("instr-title");
+      if (instrTitleEl) instrTitleEl.textContent = initialTitle;
+      const instrDurEl = document.getElementById("instr-duration");
+      if (instrDurEl) instrDurEl.textContent = initialDuration;
+      const instrQEl = document.getElementById("instr-questions");
+      if (instrQEl) instrQEl.textContent = initialQCount;
+      const instrMarksEl = document.getElementById("instr-marks");
+      if (instrMarksEl) instrMarksEl.textContent = initialQCount;
 
       instrCb.addEventListener("change", () => {
         btnStart.disabled = !instrCb.checked;
@@ -2069,33 +2082,120 @@ const { slug = "11", test, questionsData = [] } = Astro.props;
 
       let timerInterval;
 
-      btnStart.addEventListener("click", () => {
-        // Request Fullscreen Mode
-        enterFullscreen();
+      btnStart.addEventListener("click", async () => {
+        btnStart.disabled = true;
+        btnStart.textContent = "Starting Test...";
 
-        // Animate out
-        instrOverlay.style.transition = "opacity 0.3s";
-        instrOverlay.style.opacity = "0";
-        setTimeout(() => {
-          instrOverlay.style.display = "none";
-        }, 300);
+        try {
+          if (Array.isArray(questionsData) && questionsData.length > 0) {
+            questions = questionsData;
+          } else {
+            const token = localStorage.getItem("brinto_token") || "";
+            const guestId = localStorage.getItem("brinto_guest_id") || "";
+            const testIdRaw = slug || testMeta?.id;
+            if (!testIdRaw) {
+              throw new Error("Test ID is required to start the test.");
+            }
+            const parsedTestId = typeof testIdRaw === "number" ? testIdRaw : parseInt(testIdRaw, 10);
+            if (!parsedTestId || isNaN(parsedTestId)) {
+              throw new Error("Invalid Test ID.");
+            }
 
-        // Start timer NOW
-        timerEl.textContent = fmt(state.timeLeft);
-        timerInterval = setInterval(() => {
-          if (state.submitted) return;
-          state.timeLeft--;
-          timerEl.textContent = fmt(state.timeLeft);
-          if (state.timeLeft <= 300) timerEl.className = "warning";
-          if (state.timeLeft <= 60) timerEl.className = "danger";
-          if (state.timeLeft <= 0) {
-            clearInterval(timerInterval);
-            showResults();
+            // Step 1: Create session via POST /api/mocktests/sessions
+            const sessRes = await fetch("https://brintoapi.brinto.in/api/mocktests/sessions", {
+              method: "POST",
+              headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "X-Guest-Id": guestId,
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ testId: parsedTestId })
+            });
+
+            const sessJson = await sessRes.json();
+            if (!sessJson?.success || !sessJson?.data?.id) {
+              throw new Error(sessJson?.error || sessJson?.message || "Failed to create test session.");
+            }
+
+            const sessionId = sessJson.data.id;
+
+            // Step 2: Fetch questions using returned session_id
+            const qRes = await fetch(`https://brintoapi.brinto.in/api/mocktests/${testIdRaw}?session_id=${sessionId}`, {
+              headers: {
+                "Accept": "*/*",
+                "Authorization": `Bearer ${token}`
+              }
+            });
+
+            const qJson = await qRes.json();
+            if (!qJson?.success || !qJson?.data?.questions) {
+              throw new Error(qJson?.error || qJson?.message || "Failed to load test questions.");
+            }
+
+            const raw = qJson.data.questions;
+            questions = raw.map((q) => ({
+              ...q,
+              options: Array.isArray(q.options)
+                ? q.options.map((opt) => (typeof opt === 'object' && opt !== null ? opt.text : opt))
+                : []
+            }));
+
+            const testTitle = qJson.data.title || initialTitle;
+            const duration = qJson.data.duration || initialDuration;
+
+            // Update Header and Page title
+            document.title = `${testTitle} | Brinto MockTest`;
+            const ehTitle = document.getElementById("eh-title");
+            if (ehTitle) ehTitle.textContent = testTitle;
+
+            // Update timer state
+            state.timeLeft = duration * 60;
           }
-        }, 1000);
 
-        // Start tab-switch detection
-        startTabDetection();
+          if (!questions || questions.length === 0) {
+            throw new Error("No questions available for this test.");
+          }
+
+          sections = [...new Set(questions.map((q) => q.section))];
+          state.visited.add(0);
+
+          // Render UI components
+          renderSectionTabs();
+          renderQuestion();
+
+          // Request Fullscreen Mode
+          enterFullscreen();
+
+          // Animate out instruction overlay
+          instrOverlay.style.transition = "opacity 0.3s";
+          instrOverlay.style.opacity = "0";
+          setTimeout(() => {
+            instrOverlay.style.display = "none";
+          }, 300);
+
+          // Start timer NOW
+          timerEl.textContent = fmt(state.timeLeft);
+          timerInterval = setInterval(() => {
+            if (state.submitted) return;
+            state.timeLeft--;
+            timerEl.textContent = fmt(state.timeLeft);
+            if (state.timeLeft <= 300) timerEl.className = "warning";
+            if (state.timeLeft <= 60) timerEl.className = "danger";
+            if (state.timeLeft <= 0) {
+              clearInterval(timerInterval);
+              showResults();
+            }
+          }, 1000);
+
+          // Start tab-switch detection
+          startTabDetection();
+        } catch (err) {
+          console.error("Error starting test session:", err);
+          alert("Unable to start test session: " + (err.message || "Network error. Please try again."));
+          btnStart.disabled = !instrCb.checked;
+          btnStart.textContent = "Start Test →";
+        }
       });
 
       // ─────────────────────────────────────────────
@@ -2269,89 +2369,6 @@ const { slug = "11", test, questionsData = [] } = Astro.props;
         .addEventListener("click", () => {
           document.getElementById("sidebar").classList.toggle("open");
         });
-
-      // ─────────────────────────────────────────────
-      //  INIT
-      // ─────────────────────────────────────────────
-      async function initQuestions() {
-        if (Array.isArray(questionsData) && questionsData.length > 0) {
-          questions = questionsData;
-        } else {
-          try {
-            const STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MTU3MzQsImV4cCI6MTc5MjMyMDUzNH0.LbEN3W0AUhI78dcoKdjvn2thtufP9R1PcVCtGlEj8Qc";
-            const STATIC_SESSION_ID = "982f0557-58d8-4f9e-aa57-1db0bd61541c";
-            const testId = slug || "11";
-            const token = localStorage.getItem("brinto_token") || STATIC_TOKEN;
-            const res = await fetch(`https://brintoapi.brinto.in/api/mocktests/${testId}?session_id=${STATIC_SESSION_ID}`, {
-              headers: {
-                "Accept": "*/*",
-                "Authorization": `Bearer ${token}`
-              }
-            });
-            const json = await res.json();
-            if (json?.success && json?.data?.questions && json.data.questions.length > 0) {
-              const raw = json.data.questions;
-              questions = raw.map((q) => ({
-                ...q,
-                options: Array.isArray(q.options)
-                  ? q.options.map((opt) => (typeof opt === 'object' && opt !== null ? opt.text : opt))
-                  : []
-              }));
-
-              const testTitle = json.data.title || "Online Mock Test";
-              const duration = json.data.duration || 30;
-              const totalQ = questions.length;
-
-              // Update Header and Page title
-              document.title = `${testTitle} | Brinto MockTest`;
-              const ehTitle = document.getElementById("eh-title");
-              if (ehTitle) ehTitle.textContent = testTitle;
-
-              // Update Instruction modal
-              const instrTitle = document.getElementById("instr-title");
-              if (instrTitle) instrTitle.textContent = testTitle;
-              const instrExam = document.getElementById("instr-exam-name");
-              if (instrExam && json.data.exam) instrExam.textContent = `${json.data.exam} · Mock Test`;
-              const instrDur = document.getElementById("instr-duration");
-              if (instrDur) instrDur.textContent = duration;
-              const instrQ = document.getElementById("instr-questions");
-              if (instrQ) instrQ.textContent = totalQ;
-              const instrMarks = document.getElementById("instr-marks");
-              if (instrMarks) instrMarks.textContent = totalQ;
-
-              // Update timer state
-              state.timeLeft = duration * 60;
-            } else {
-              const errMsg = json?.error || json?.message || "Test questions could not be loaded.";
-              const errEl = document.getElementById("exam-error-msg");
-              if (errEl) errEl.textContent = errMsg;
-            }
-          } catch (err) {
-            console.error("Client-side questions fetch error:", err);
-            const errEl = document.getElementById("exam-error-msg");
-            if (errEl) errEl.textContent = "Unable to connect to the test service. Please check your internet connection.";
-          }
-        }
-
-        // If no questions could be loaded, show error UI
-        if (!questions || questions.length === 0) {
-          const errorView = document.getElementById("exam-error-view");
-          if (errorView) errorView.style.display = "flex";
-          const instrModal = document.getElementById("instr-overlay");
-          if (instrModal) instrModal.style.display = "none";
-          return;
-        }
-
-        console.log("✅ Questions loaded:", questions);
-        sections = [...new Set(questions.map((q) => q.section))];
-        state.visited.add(0);
-
-        // Render UI
-        renderSectionTabs();
-        renderQuestion();
-      }
-
-      initQuestions();
     </script>
   </body>
 </html>

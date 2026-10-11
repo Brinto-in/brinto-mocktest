@@ -8,7 +8,7 @@ try {
   const items = await fetchMockTests(1, 50);
   if (Array.isArray(items) && items.length > 0) {
     allTests = items.map((t: any) => ({
-      slug: t.id ? String(t.id) : (t.slug || "11"),
+      slug: String(t.id ?? t.slug ?? ""),
       id: t.id,
       title: t.title || t.name,
       exam: t.exam || "General",
