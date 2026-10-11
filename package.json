@@ -8,10 +8,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "build:cf": "DEPLOY_TARGET=cloudflare astro build",
+    "build:cf": "astro build",
     "preview": "astro preview",
-    "preview:cf": "DEPLOY_TARGET=cloudflare astro build && wrangler dev",
-    "deploy:cf": "DEPLOY_TARGET=cloudflare astro build && wrangler deploy",
+    "preview:cf": "astro build && wrangler dev --config dist/server/wrangler.json",
+    "deploy:cf": "astro build && wrangler deploy --config dist/server/wrangler.json",
     "astro": "astro",
     "db:seed": "tsx scripts/seed.ts"
   },
