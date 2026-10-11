@@ -1,22 +1,19 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
-import vercel from '@astrojs/vercel';
 import sitemap from '@astrojs/sitemap';
-
-const target = process.env.DEPLOY_TARGET || process.env.ADAPTER || '';
-const isVercel = target === 'vercel';
 
 export default defineConfig({
   site: 'https://www.brinto.in',
   base: '/mocktest',
-  integrations: [sitemap()],
-  compressHTML: true,
   output: 'server',
-  adapter: isVercel
-    ? vercel()
-    : cloudflare({
-        imageService: 'passthrough',
-      }),
+  security: {
+    checkOrigin: false,
+  },
+  adapter: cloudflare({
+    imageService: 'compile',
+  }),
+  compressHTML: true,
+  integrations: [sitemap()],
   build: {
     inlineStylesheets: 'auto',
   },

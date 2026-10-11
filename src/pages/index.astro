@@ -68,16 +68,20 @@ try {
     (async function() {
       const grid = document.getElementById("trending-tests-grid");
       if (!grid) return;
-      if (grid.children.length === 0) {
+      if (grid.querySelectorAll('.test-card').length === 0) {
         try {
-          const res = await fetch("https://brintoapi.brinto.in/api/mocktests?page=1&limit=10");
+          const res = await fetch("https://brintoapi.brinto.in/api/mocktests?page=1&limit=10", {
+            headers: {
+              "Accept": "application/json"
+            }
+          });
           if (!res.ok) {
-            alert("API Error: Unable to load tests (" + res.status + ")");
+            console.error("API Error: Unable to load tests (" + res.status + ")");
             return;
           }
           const json = await res.json();
           if (json?.error) {
-            alert("API Error: " + json.error);
+            console.error("API Error: " + json.error);
             return;
           }
           const items = json?.data || json?.tests || (Array.isArray(json) ? json : []);

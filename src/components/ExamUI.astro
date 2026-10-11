@@ -13,15 +13,6 @@ const slug = test.href.split("/").pop();
 <!doctype html>
 <html lang="en">
   <head>
-    <script is:inline>
-      (function () {
-        const auth = localStorage.getItem("brinto_user") || localStorage.getItem("brinto_token") || localStorage.getItem("brinto_auth");
-        if (!auth) {
-          const currentUrl = encodeURIComponent(window.location.pathname);
-          window.location.replace("/mocktest/?login=true&redirect=" + currentUrl);
-        }
-      })();
-    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{test.title} | Brinto MockTest</title>
@@ -2263,14 +2254,50 @@ const slug = test.href.split("/").pop();
       // ─────────────────────────────────────────────
       //  INIT
       // ─────────────────────────────────────────────
-      questions = questionsData;
-      console.log("✅ Questions loaded from DB:", questions);
-      sections = [...new Set(questions.map((q) => q.section))];
-      state.visited.add(0);
+      async function initQuestions() {
+        if (Array.isArray(questionsData) && questionsData.length > 0) {
+          questions = questionsData;
+        } else {
+          try {
+            const STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MTU3MzQsImV4cCI6MTc5MjMyMDUzNH0.LbEN3W0AUhI78dcoKdjvn2thtufP9R1PcVCtGlEj8Qc";
+            const STATIC_SESSION_ID = "982f0557-58d8-4f9e-aa57-1db0bd61541c";
+            const testId = slug || "11";
+            const token = localStorage.getItem("brinto_token") || STATIC_TOKEN;
+            const res = await fetch(`https://brintoapi.brinto.in/api/mocktests/${testId}?session_id=${STATIC_SESSION_ID}`, {
+              headers: {
+                "Accept": "*/*",
+                "Authorization": `Bearer ${token}`
+              }
+            });
+            const json = await res.json();
+            if (json?.success && json?.data?.questions) {
+              const raw = json.data.questions;
+              questions = raw.map((q) => ({
+                ...q,
+                options: Array.isArray(q.options)
+                  ? q.options.map((opt) => (typeof opt === 'object' && opt !== null ? opt.text : opt))
+                  : []
+              }));
+              if (json.data.title) {
+                const headerTitle = document.querySelector(".exam-brand-title");
+                if (headerTitle) headerTitle.textContent = json.data.title;
+              }
+            }
+          } catch (err) {
+            console.error("Client-side questions fetch error:", err);
+          }
+        }
 
-      // Now that we have questions, render the UI
-      renderSectionTabs();
-      renderQuestion();
+        console.log("✅ Questions loaded:", questions);
+        sections = [...new Set(questions.map((q) => q.section))];
+        state.visited.add(0);
+
+        // Render UI
+        renderSectionTabs();
+        renderQuestion();
+      }
+
+      initQuestions();
     </script>
   </body>
 </html>

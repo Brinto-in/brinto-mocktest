@@ -1,29 +1,28 @@
 ---
 export const prerender = false;
-import BaseLayout from "../../layouts/BaseLayout.astro";
 import ExamUI from "../../components/ExamUI.astro";
-import { fetchTestBySlug } from "../../lib/api";
 import type { Test } from "../../lib/types";
 
 const { slug } = Astro.params;
 
-let test: Test | null = null;
-let questionsData: any[] = [];
+const test: Test = {
+  id: slug || "11",
+  title: "Online Mock Test",
+  exam: "Competitive Exam",
+  questions: 20,
+  duration: 30,
+  difficulty: "Medium",
+  attempts: 0,
+  rating: 5,
+  href: `/mocktest/test/${slug || "11"}`,
+  isNew: true,
+  isFree: true,
+};
 
-const data = await fetchTestBySlug(slug!);
-if (data && data.test) {
-  test = data.test as Test;
-  questionsData = data.questions || [];
-}
-
-if (!test) {
-  return Astro.redirect("/mocktest/404");
-}
+const questionsData: any[] = [];
 
 const title = `${test.title} - Free Online Mock Test & Practice Questions`;
 const description = `Take the free online mock test for ${test.title} (${test.exam}). Practice ${test.questions} questions in ${test.duration} mins with instant scoring, detailed solutions, and all-India rank analysis.`;
 ---
 
-<BaseLayout title={title} description={description}>
-  <ExamUI test={test} questionsData={questionsData} />
-</BaseLayout>
+<ExamUI test={test} questionsData={questionsData} />

@@ -3,7 +3,7 @@
   "name": "brinto-mocktest",
   "compatibility_date": "2026-08-04",
   "compatibility_flags": [
-    "nodejs_compat_v2"
+    "nodejs_compat"
   ],
   "routes": [
     {

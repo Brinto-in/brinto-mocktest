@@ -25,6 +25,7 @@ export async function fetchMockTests(page = 1, limit = 10) {
     const res = await fetch(url, {
       headers: {
         "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
       }
     });
 
@@ -48,21 +49,23 @@ export async function fetchMockTests(page = 1, limit = 10) {
   }
 }
 
-export async function fetchTestBySlug(_idOrSlug?: string) {
+export async function fetchTestBySlug(idOrSlug?: string) {
   try {
-    const url = `${API_BASE}/api/mocktests/${STATIC_TEST_ID}?session_id=${STATIC_SESSION_ID}`;
+    const testId = idOrSlug || STATIC_TEST_ID;
+    const url = `${API_BASE}/api/mocktests/${testId}?session_id=${STATIC_SESSION_ID}`;
     let res = await fetch(url, {
       headers: {
         "Accept": "*/*",
-        "Authorization": `Bearer ${STATIC_TOKEN}`
+        "Authorization": `Bearer ${STATIC_TOKEN}`,
+        "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
       }
     });
 
     let json = await res.json();
 
-    // Auto-refresh token if 401 Unauthorized occurs
-    if (!json?.success && json?.error?.toLowerCase().includes("unauthorized")) {
-      console.warn("Token expired, auto-refreshing token via API...");
+    // Auto-refresh token if API returned error or unauthorized
+    if (!json?.success) {
+      console.warn("API response was not successful, auto-refreshing token via API...", json);
       const freshToken = await getFreshToken();
       res = await fetch(url, {
         headers: {
@@ -87,8 +90,8 @@ export async function fetchTestBySlug(_idOrSlug?: string) {
       return {
         test: {
           id: t.id ?? STATIC_TEST_ID,
-          title: t.title || "Mock Test",
-          exam: t.exam || "General",
+          title: t.title || "OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026",
+          exam: t.exam || "OSSSC",
           questions: formattedQuestions.length || (typeof t.questions === 'number' ? t.questions : 0),
           duration: t.duration || 30,
           difficulty: t.difficulty || "Medium",
