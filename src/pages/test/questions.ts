@@ -1,69 +1,40 @@
 import type { APIRoute } from "astro";
-import { db } from "../../lib/db";
 
-export const GET: APIRoute = async ({ params }) => {
-  const { slug } = params;
-  const testHref = `/test/${slug}`;
+const STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MDc0MDIsImV4cCI6MTc5MjMxMjU2MH0.vOCsFW-7RKeiCTfygY3HiFD3tgKR57atbOzGKq6nuLY";
+const DEFAULT_SESSION_ID = "982f0557-58d8-4f9e-aa57-1db0bd61541c";
 
-  if (!slug) {
-    return new Response(JSON.stringify({ message: "Test slug is required" }), { status: 400 });
-  }
+export const GET: APIRoute = async ({ request, params }) => {
+  const urlParams = new URL(request.url).searchParams;
+  const id = params.slug || urlParams.get("id") || "11";
+  const sessionId = urlParams.get("session_id") || DEFAULT_SESSION_ID;
+  const authHeader = request.headers.get("authorization") || `Bearer ${STATIC_TOKEN}`;
 
   try {
-    // 1. Find the test_id from the href
-    const testResult = await db.execute({
-      sql: "SELECT id FROM tests WHERE href = ? OR href = ? LIMIT 1",
-      args: [`/mocktest/test/${slug}`, `/test/${slug}`],
+    const res = await fetch(`https://brintoapi.brinto.in/api/mocktests/${id}?session_id=${sessionId}`, {
+      headers: {
+        "Accept": "*/*",
+        "Authorization": authHeader,
+      }
     });
 
-    if (testResult.rows.length === 0) {
-      return new Response(JSON.stringify({ message: "Test not found" }), { status: 404 });
+    const json = await res.json();
+    if (json?.success && json?.data?.questions) {
+      const rawQuestions = json.data.questions;
+      const formattedQuestions = rawQuestions.map((q: any) => ({
+        ...q,
+        options: Array.isArray(q.options)
+          ? q.options.map((opt: any) => (typeof opt === 'object' && opt !== null ? opt.text : opt))
+          : []
+      }));
+      return new Response(JSON.stringify(formattedQuestions), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
     }
-    const testId = testResult.rows[0].id;
 
-    // 2. Get all questions for that test_id
-    const questionsAndOptionsResult = await db.execute({
-      sql: `
-        SELECT
-          q.id as question_id,
-          q.section,
-          q.text as question_text,
-          q.explanation,
-          o.text as option_text,
-          o.is_correct
-        FROM questions q
-        JOIN options o ON q.id = o.question_id
-        WHERE q.test_id = ?
-        ORDER BY q.id, o.id;
-      `,
-      args: [testId],
-    });
-
-    // 3. Process the flat results into a nested structure
-    const questionsMap = new Map();
-    for (const row of questionsAndOptionsResult.rows) {
-      if (!questionsMap.has(row.question_id)) {
-        questionsMap.set(row.question_id, {
-          id: row.question_id,
-          section: row.section,
-          text: row.question_text,
-          explanation: row.explanation,
-          options: [],
-          correct: -1,
-        });
-      }
-      const question = questionsMap.get(row.question_id);
-      question.options.push(row.option_text);
-      if (row.is_correct) {
-        question.correct = question.options.length - 1;
-      }
-    }
-    const questions = Array.from(questionsMap.values());
-
-    return new Response(JSON.stringify(questions), { status: 200 });
-
+    return new Response(JSON.stringify({ message: json?.error || "Test not found" }), { status: 404 });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching questions:", error);
     return new Response(JSON.stringify({ message: "Failed to fetch questions" }), { status: 500 });
   }
 };

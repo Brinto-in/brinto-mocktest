@@ -1,24 +1,30 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { fetchMockTests } from '../../lib/api';
 
-const allTests = [
-  { slug: 'osssc-ri-ari-mock-1', title: 'OSSSC RI/ARI Full Mock Test 1', exam: 'OSSSC', questions: 100, duration: 90, difficulty: 'Medium', attempts: 12480, rating: 4.8, isFree: true, isNew: false, tags: ['GK','Reasoning','Maths'] },
-  { slug: 'osssc-ri-ari-mock-2', title: 'OSSSC RI/ARI Full Mock Test 2', exam: 'OSSSC', questions: 100, duration: 90, difficulty: 'Hard', attempts: 9340, rating: 4.7, isFree: true, isNew: false, tags: ['GK','Reasoning','Maths'] },
-  { slug: 'osssc-si-mock-1', title: 'OSSSC SI/ASI Prelims Mock Test 1', exam: 'OSSSC', questions: 100, duration: 60, difficulty: 'Medium', attempts: 7210, rating: 4.6, isFree: true, isNew: true, tags: ['GK','English','Maths'] },
-  { slug: 'opsc-oas-prelims-gs1', title: 'OPSC OAS Prelims GS Paper I', exam: 'OPSC', questions: 200, duration: 120, difficulty: 'Hard', attempts: 8930, rating: 4.9, isFree: true, isNew: false, tags: ['History','Polity','Geography'] },
-  { slug: 'opsc-oas-prelims-gs2', title: 'OPSC OAS Prelims GS Paper II (CSAT)', exam: 'OPSC', questions: 100, duration: 120, difficulty: 'Hard', attempts: 6120, rating: 4.7, isFree: true, isNew: false, tags: ['Reasoning','Comprehension','Maths'] },
-  { slug: 'ssc-cgl-tier1-mock-1', title: 'SSC CGL Tier 1 Full Mock Test 1', exam: 'SSC', questions: 100, duration: 60, difficulty: 'Medium', attempts: 21060, rating: 4.8, isFree: true, isNew: false, tags: ['GK','Reasoning','English','Maths'] },
-  { slug: 'ssc-cgl-reasoning-4', title: 'SSC CGL – Reasoning Section Test 4', exam: 'SSC', questions: 25, duration: 20, difficulty: 'Easy', attempts: 18400, rating: 4.7, isFree: true, isNew: true, tags: ['Reasoning'] },
-  { slug: 'ssc-chsl-mock-1', title: 'SSC CHSL Tier 1 Full Mock Test', exam: 'SSC', questions: 100, duration: 60, difficulty: 'Easy', attempts: 14300, rating: 4.6, isFree: true, isNew: false, tags: ['GK','Reasoning','English','Maths'] },
-  { slug: 'rrb-ntpc-cbt1', title: 'RRB NTPC CBT 1 Full Mock Test', exam: 'Railway', questions: 100, duration: 90, difficulty: 'Medium', attempts: 15700, rating: 4.6, isFree: true, isNew: false, tags: ['Maths','GK','Reasoning'] },
-  { slug: 'rrb-group-d-mock-1', title: 'RRB Group D Full Mock Test 1', exam: 'Railway', questions: 100, duration: 90, difficulty: 'Easy', attempts: 11200, rating: 4.5, isFree: true, isNew: false, tags: ['Maths','GK','Reasoning','Science'] },
-  { slug: 'ibps-po-prelims-mock-1', title: 'IBPS PO Prelims Full Mock Test 1', exam: 'Banking', questions: 100, duration: 60, difficulty: 'Medium', attempts: 9870, rating: 4.7, isFree: true, isNew: false, tags: ['Reasoning','English','Quant'] },
-  { slug: 'sbi-clerk-prelims-mock-1', title: 'SBI Clerk Prelims Mock Test 1', exam: 'Banking', questions: 100, duration: 60, difficulty: 'Easy', attempts: 13600, rating: 4.6, isFree: true, isNew: true, tags: ['Reasoning','English','Quant'] },
-  { slug: 'ossc-cgl-gk-2026', title: 'OSSC CGL 2026 – GK & Current Affairs', exam: 'OSSC', questions: 50, duration: 40, difficulty: 'Medium', attempts: 6320, rating: 4.5, isFree: true, isNew: true, tags: ['GK','Current Affairs'] },
-  { slug: 'odisha-police-constable-mock-1', title: 'Odisha Police Constable Mock Test 1', exam: 'Police', questions: 100, duration: 90, difficulty: 'Medium', attempts: 5490, rating: 4.5, isFree: true, isNew: false, tags: ['GK','Reasoning','Maths'] },
-  { slug: 'odisha-gk-district', title: 'Odisha GK – Districts, History & Culture', exam: 'General', questions: 75, duration: 60, difficulty: 'Easy', attempts: 9850, rating: 4.8, isFree: true, isNew: false, tags: ['Odisha GK'] },
-  { slug: 'current-affairs-june-2026', title: 'Current Affairs June 2026 – Full Set', exam: 'General', questions: 50, duration: 30, difficulty: 'Easy', attempts: 4200, rating: 4.6, isFree: true, isNew: true, tags: ['Current Affairs'] },
-];
+let allTests: any[] = [];
+
+try {
+  const items = await fetchMockTests(1, 50);
+  if (Array.isArray(items) && items.length > 0) {
+    allTests = items.map((t: any) => ({
+      slug: t.id ? String(t.id) : (t.slug || "11"),
+      id: t.id,
+      title: t.title || t.name,
+      exam: t.exam || "General",
+      questions: Array.isArray(t.questions) ? t.questions.length : (t.questions || 0),
+      duration: t.duration || 30,
+      difficulty: t.difficulty || "Medium",
+      attempts: t.attempts || 0,
+      rating: t.rating || 5,
+      isFree: !!(t.is_free || t.isFree),
+      isNew: !!(t.is_new || t.isNew),
+      tags: [t.exam || "General"],
+    }));
+  }
+} catch (e) {
+  console.error("Error fetching mock tests for listing page:", e);
+}
 
 const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 'Police', 'General'];
 ---

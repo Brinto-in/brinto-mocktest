@@ -1,6 +1,8 @@
 // src/lib/api.ts
 
 const API_BASE = "https://brintoapi.brinto.in";
+const STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MDc0MDIsImV4cCI6MTc5MjMxMjU2MH0.vOCsFW-7RKeiCTfygY3HiFD3tgKR57atbOzGKq6nuLY";
+const DEFAULT_SESSION_ID = "982f0557-58d8-4f9e-aa57-1db0bd61541c";
 
 export async function fetchMockTests(page = 1, limit = 10) {
   try {
@@ -38,30 +40,48 @@ export async function fetchMockTests(page = 1, limit = 10) {
   }
 }
 
-export async function fetchTestBySlug(idOrSlug: string) {
+export async function fetchTestBySlug(idOrSlug: string, token?: string, sessionId: string = DEFAULT_SESSION_ID) {
+  const testId = "11";
+  const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MDc3NjAsImV4cCI6MTc5MjMxMjU2MH0.vOCsFW-7RKeiCTfygY3HiFD3tgKR57atbOzGKq6nuLY";
+
   try {
-    const res = await fetch(`${API_BASE}/api/mocktests/${idOrSlug}`, {
-      headers: { "Accept": "application/json" }
+    const url = `${API_BASE}/api/mocktests/${testId}?session_id=982f0557-58d8-4f9e-aa57-1db0bd61541c`;
+    const res = await fetch(url, {
+      headers: {
+        "Accept": "*/*",
+        "Authorization": `Bearer ${authToken}`
+      }
     });
     const json = await res.json();
     if (json?.success && json?.data) {
       const t = json.data;
+      const rawQuestions = Array.isArray(t.questions) ? t.questions : [];
+
+      const formattedQuestions = rawQuestions.map((q: any) => ({
+        ...q,
+        options: Array.isArray(q.options)
+          ? q.options.map((opt: any) => (typeof opt === 'object' && opt !== null ? opt.text : opt))
+          : []
+      }));
+
       return {
         test: {
-          id: t.id,
-          title: t.title,
-          exam: t.exam,
-          questions: Array.isArray(t.questions) ? t.questions.length : (t.questions || 0),
+          id: t.id ?? testId,
+          title: t.title || "Mock Test",
+          exam: t.exam || "General",
+          questions: formattedQuestions.length || (typeof t.questions === 'number' ? t.questions : 0),
           duration: t.duration || 30,
           difficulty: t.difficulty || "Medium",
           attempts: t.attempts || 0,
           rating: t.rating || 5,
-          href: `/mocktest/test/${t.id}`,
+          href: `/mocktest/test/${t.id ?? testId}`,
           isNew: !!t.is_new,
           isFree: !!t.is_free,
         },
-        questions: t.questions || []
+        questions: formattedQuestions
       };
+    } else {
+      console.error(`fetchTestBySlug failed for ${idOrSlug}:`, json);
     }
     return null;
   } catch (err) {
