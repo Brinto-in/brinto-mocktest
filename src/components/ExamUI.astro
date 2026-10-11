@@ -1748,6 +1748,8 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         visited: new Set(),
         submitted: false,
         timeLeft: (testMeta?.duration || 30) * 60,
+        totalDuration: (testMeta?.duration || 30) * 60,
+        sessionId: "",
         activeSection: "all",
       };
 
@@ -1915,34 +1917,91 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       // ─────────────────────────────────────────────
       //  RESULTS
       // ─────────────────────────────────────────────
-      function showResults() {
+      async function showResults() {
+        if (state.submitted) return;
         state.submitted = true;
         clearInterval(timerInterval);
         closeSubmitModal();
 
+        const timeTaken = Math.max(0, state.totalDuration - state.timeLeft);
+
+        // Build answers payload for attempt submission
+        const answersPayload = questions.map((q, i) => {
+          const userOptIdx = state.answers[i];
+          let selectedOptionId = null;
+          if (userOptIdx !== undefined && q.optionsObjects && q.optionsObjects[userOptIdx]) {
+            const optObj = q.optionsObjects[userOptIdx];
+            selectedOptionId = typeof optObj === 'object' && optObj !== null ? (optObj.id ?? optObj) : optObj;
+          }
+          return {
+            questionId: q.id,
+            selectedOptionId: selectedOptionId,
+            isMarked: state.marked.has(i)
+          };
+        });
+
+        let serverData = null;
+        if (state.sessionId) {
+          try {
+            const token = localStorage.getItem("brinto_token") || "";
+            const guestId = localStorage.getItem("brinto_guest_id") || "";
+            const headers = {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "X-Guest-Id": guestId
+            };
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+
+            const res = await fetch("https://brintoapi.brinto.in/api/mocktests/attempts", {
+              method: "POST",
+              headers: headers,
+              body: JSON.stringify({
+                sessionId: state.sessionId,
+                timeTaken: timeTaken,
+                answers: answersPayload
+              })
+            });
+            const json = await res.json();
+            if (json?.success && json?.data) {
+              serverData = json.data;
+            } else {
+              console.warn("Attempt submission response warning:", json);
+            }
+          } catch (err) {
+            console.error("Error submitting mock test attempt to API:", err);
+          }
+        }
+
         document.getElementById("exam-body").style.display = "none";
         document.getElementById("palette-toggle").style.display = "none";
-        document.querySelector(".mobile-nav-bar").style.display = "none";
+        const mobNav = document.querySelector(".mobile-nav-bar");
+        if (mobNav) mobNav.style.display = "none";
         document.getElementById("btn-submit-header").style.display = "none";
         document.getElementById("results-view").classList.add("show");
         document.getElementById("res-test-name").textContent = testMeta?.title || document.getElementById("eh-title")?.textContent || "Online Mock Test";
 
         // Compute stats
-        let correct = 0,
-          wrong = 0,
-          skipped = 0;
-        questions.forEach((q, i) => {
-          if (state.answers[i] === undefined) skipped++;
-          else if (state.answers[i] === q.correct) correct++;
-          else wrong++;
-        });
-        const total = questions.length;
-        const pct = Math.round((correct / total) * 100);
+        let correct = serverData?.correct;
+        let wrong = serverData?.wrong;
+        let skipped = serverData?.skipped;
+        let marked = serverData?.marked ?? state.marked.size;
+
+        if (correct === undefined || wrong === undefined || skipped === undefined) {
+          correct = 0; wrong = 0; skipped = 0;
+          questions.forEach((q, i) => {
+            if (state.answers[i] === undefined) skipped++;
+            else if (state.answers[i] === q.correct) correct++;
+            else wrong++;
+          });
+        }
+
+        const total = serverData?.totalQuestions || questions.length;
+        const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         document.getElementById("rc-correct").textContent = correct;
         document.getElementById("rc-wrong").textContent = wrong;
         document.getElementById("rc-skipped").textContent = skipped;
-        document.getElementById("rc-marked").textContent = state.marked.size;
+        document.getElementById("rc-marked").textContent = marked;
         document.getElementById("score-pct-text").textContent = pct + "%";
 
         // Animate ring
@@ -1959,28 +2018,45 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         // Section table
         const tbody = document.getElementById("section-table-body");
         tbody.innerHTML = "";
-        sections.forEach((sec) => {
-          const qs = questions.filter((q) => q.section === sec);
-          let sc = 0,
-            sw = 0,
-            ss = 0;
-          qs.forEach((q) => {
-            const i = questions.indexOf(q);
-            if (state.answers[i] === undefined) ss++;
-            else if (state.answers[i] === q.correct) sc++;
-            else sw++;
+
+        if (Array.isArray(serverData?.sections) && serverData.sections.length > 0) {
+          serverData.sections.forEach((sec) => {
+            const secTotal = sec.total || (sec.correct + sec.wrong + sec.skipped);
+            const secPct = secTotal > 0 ? Math.round((sec.correct / secTotal) * 100) : 0;
+            tbody.innerHTML += `
+        <tr>
+          <td><strong>${sec.sectionName || sec.section || "General"}</strong></td>
+          <td>${secTotal}</td>
+          <td class="td-correct">${sec.correct}</td>
+          <td class="td-wrong">${sec.wrong}</td>
+          <td>${sec.skipped}</td>
+          <td><strong>${secPct}%</strong></td>
+        </tr>`;
           });
-          const secPct = Math.round((sc / qs.length) * 100);
-          tbody.innerHTML += `
-      <tr>
-        <td><strong>${sec}</strong></td>
-        <td>${qs.length}</td>
-        <td class="td-correct">${sc}</td>
-        <td class="td-wrong">${sw}</td>
-        <td>${ss}</td>
-        <td><strong>${secPct}%</strong></td>
-      </tr>`;
-        });
+        } else {
+          sections.forEach((sec) => {
+            const qs = questions.filter((q) => q.section === sec);
+            let sc = 0,
+              sw = 0,
+              ss = 0;
+            qs.forEach((q) => {
+              const i = questions.indexOf(q);
+              if (state.answers[i] === undefined) ss++;
+              else if (state.answers[i] === q.correct) sc++;
+              else sw++;
+            });
+            const secPct = qs.length > 0 ? Math.round((sc / qs.length) * 100) : 0;
+            tbody.innerHTML += `
+        <tr>
+          <td><strong>${sec}</strong></td>
+          <td>${qs.length}</td>
+          <td class="td-correct">${sc}</td>
+          <td class="td-wrong">${sw}</td>
+          <td>${ss}</td>
+          <td><strong>${secPct}%</strong></td>
+        </tr>`;
+          });
+        }
 
         // Review list
         const reviewList = document.getElementById("review-list");
@@ -2025,8 +2101,29 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       }
 
       // ─────────────────────────────────────────────
-      //  FULLSCREEN HANDLERS
+      //  FULLSCREEN HANDLERS & ICON TOGGLE
       // ─────────────────────────────────────────────
+      const ENTER_FS_SVG = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
+      const EXIT_FS_SVG = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>`;
+
+      function isFullscreen() {
+        return !!(document.fullscreenElement || (document).webkitFullscreenElement || (document).msFullscreenElement);
+      }
+
+      function updateFullscreenIcon() {
+        const btn = document.getElementById("btn-fullscreen");
+        if (!btn) return;
+        if (isFullscreen()) {
+          btn.innerHTML = EXIT_FS_SVG;
+          btn.title = "Exit Fullscreen";
+          btn.setAttribute("aria-label", "Exit Fullscreen");
+        } else {
+          btn.innerHTML = ENTER_FS_SVG;
+          btn.title = "Enter Fullscreen";
+          btn.setAttribute("aria-label", "Enter Fullscreen");
+        }
+      }
+
       function enterFullscreen() {
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
@@ -2039,7 +2136,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       }
 
       function toggleFullscreen() {
-        if (!document.fullscreenElement && !(document).webkitFullscreenElement) {
+        if (!isFullscreen()) {
           enterFullscreen();
         } else {
           if (document.exitFullscreen) {
@@ -2051,6 +2148,9 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       }
 
       document.getElementById("btn-fullscreen")?.addEventListener("click", toggleFullscreen);
+      document.addEventListener("fullscreenchange", updateFullscreenIcon);
+      document.addEventListener("webkitfullscreenchange", updateFullscreenIcon);
+      document.addEventListener("msfullscreenchange", updateFullscreenIcon);
 
       // ─────────────────────────────────────────────
       //  INSTRUCTION MODAL & START TEST SESSION
@@ -2119,6 +2219,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             }
 
             const sessionId = sessJson.data.id;
+            state.sessionId = sessionId;
 
             // Step 2: Fetch questions using returned session_id
             const qRes = await fetch(`https://brintoapi.brinto.in/api/mocktests/${testIdRaw}?session_id=${sessionId}`, {
@@ -2136,6 +2237,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             const raw = qJson.data.questions;
             questions = raw.map((q) => ({
               ...q,
+              optionsObjects: Array.isArray(q.options) ? q.options : [],
               options: Array.isArray(q.options)
                 ? q.options.map((opt) => (typeof opt === 'object' && opt !== null ? opt.text : opt))
                 : []
@@ -2150,6 +2252,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             if (ehTitle) ehTitle.textContent = testTitle;
 
             // Update timer state
+            state.totalDuration = duration * 60;
             state.timeLeft = duration * 60;
           }
 

@@ -83,6 +83,50 @@ export async function createMockTestSession(testId: string | number): Promise<st
   }
 }
 
+export interface AttemptAnswer {
+  questionId: number | string;
+  selectedOptionId: number | string | null;
+  isMarked: boolean;
+}
+
+export interface AttemptPayload {
+  sessionId: string;
+  timeTaken: number;
+  answers: AttemptAnswer[];
+}
+
+export async function submitMockTestAttempt(payload: AttemptPayload) {
+  try {
+    const token = getAuthToken();
+    const guestId = getGuestId();
+
+    const headers: Record<string, string> = {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "X-Guest-Id": guestId,
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${API_BASE}/api/mocktests/attempts`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json();
+    if (json?.success && json?.data) {
+      return json.data;
+    }
+    console.error("submitMockTestAttempt failed:", json);
+    return null;
+  } catch (err) {
+    console.error("Error submitting mock test attempt:", err);
+    return null;
+  }
+}
+
 export async function fetchTestBySlug(idOrSlug?: string) {
   try {
     if (!idOrSlug) {
