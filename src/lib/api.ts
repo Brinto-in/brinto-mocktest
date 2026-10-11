@@ -21,27 +21,12 @@ async function getFreshToken(): Promise<string> {
 
 export async function fetchMockTests(page = 1, limit = 10) {
   try {
-    let url = `${API_BASE}/api/mocktests?page=${page}&limit=${limit}`;
-    let res = await fetch(url, {
-      redirect: "manual",
+    const url = `${API_BASE}/api/mocktests?page=${page}&limit=${limit}`;
+    const res = await fetch(url, {
       headers: {
         "Accept": "application/json",
-        "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
       }
     });
-
-    if (res.status >= 300 && res.status < 400) {
-      const loc = res.headers.get("location");
-      console.warn("fetchMockTests was redirected to:", loc);
-      if (loc) {
-        res = await fetch(loc, {
-          headers: {
-            "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
-          }
-        });
-      }
-    }
 
     if (!res.ok) {
       const errMsg = `API responded with status: ${res.status}`;
