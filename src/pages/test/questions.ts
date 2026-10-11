@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-const STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MDc0MDIsImV4cCI6MTc5MjMxMjU2MH0.vOCsFW-7RKeiCTfygY3HiFD3tgKR57atbOzGKq6nuLY";
+const STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MDk5NTcsImV4cCI6MTc5MjMxNDc1N30.zakxNYj-GoJ5fUiv9uKMtY0oedsSMlMLqwKcsY1sJWo";
 const DEFAULT_SESSION_ID = "982f0557-58d8-4f9e-aa57-1db0bd61541c";
 
 export const GET: APIRoute = async ({ request, params }) => {

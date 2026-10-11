@@ -1,9 +1,23 @@
 // src/lib/api.ts
+import { loginWithMobile } from "./authService";
 
 const API_BASE = "https://brintoapi.brinto.in";
-const STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MDc0MDIsImV4cCI6MTc5MjMxMjU2MH0.vOCsFW-7RKeiCTfygY3HiFD3tgKR57atbOzGKq6nuLY";
+let STATIC_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDYiLCJpYXQiOjE3OTE3MDk5NTcsImV4cCI6MTc5MjMxNDc1N30.zakxNYj-GoJ5fUiv9uKMtY0oedsSMlMLqwKcsY1sJWo";
 const STATIC_SESSION_ID = "982f0557-58d8-4f9e-aa57-1db0bd61541c";
 const STATIC_TEST_ID = "11";
+
+async function getFreshToken(): Promise<string> {
+  try {
+    const auth = await loginWithMobile("9178469046");
+    if (auth?.token) {
+      STATIC_TOKEN = auth.token;
+      return auth.token;
+    }
+  } catch (e) {
+    console.error("Failed to auto-refresh token:", e);
+  }
+  return STATIC_TOKEN;
+}
 
 export async function fetchMockTests(page = 1, limit = 10) {
   try {
@@ -52,13 +66,28 @@ export async function fetchMockTests(page = 1, limit = 10) {
 export async function fetchTestBySlug(_idOrSlug?: string) {
   try {
     const url = `${API_BASE}/api/mocktests/${STATIC_TEST_ID}?session_id=${STATIC_SESSION_ID}`;
-    const res = await fetch(url, {
+    let res = await fetch(url, {
       headers: {
         "Accept": "*/*",
         "Authorization": `Bearer ${STATIC_TOKEN}`
       }
     });
-    const json = await res.json();
+
+    let json = await res.json();
+
+    // Auto-refresh token if 401 Unauthorized occurs
+    if (!json?.success && json?.error?.toLowerCase().includes("unauthorized")) {
+      console.warn("Token expired, auto-refreshing token via API...");
+      const freshToken = await getFreshToken();
+      res = await fetch(url, {
+        headers: {
+          "Accept": "*/*",
+          "Authorization": `Bearer ${freshToken}`
+        }
+      });
+      json = await res.json();
+    }
+
     if (json?.success && json?.data) {
       const t = json.data;
       const rawQuestions = Array.isArray(t.questions) ? t.questions : [];
