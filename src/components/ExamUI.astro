@@ -2,12 +2,12 @@
 import type { Test } from "../lib/types";
 
 interface Props {
-  test: Test;
-  questionsData: any[];
+  slug?: string;
+  test?: Test;
+  questionsData?: any[];
 }
 
-const { test, questionsData } = Astro.props;
-const slug = test.href.split("/").pop();
+const { slug = "11", test, questionsData = [] } = Astro.props;
 ---
 
 <!doctype html>
@@ -15,7 +15,7 @@ const slug = test.href.split("/").pop();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{test.title} | Brinto MockTest</title>
+    <title id="page-title">Online Mock Test | Brinto MockTest</title>
     <meta name="robots" content="noindex" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -1266,7 +1266,7 @@ const slug = test.href.split("/").pop();
       <a href="/mocktest" class="eh-brand">
         <img src="/logo.png" alt="Brinto logo" height="28" style="height:28px; width:auto; object-fit:contain;" />
       </a>
-      <div class="eh-title" id="eh-title">{test.title}</div>
+      <div class="eh-title" id="eh-title">Online Mock Test</div>
       <button class="btn-fullscreen" id="btn-fullscreen" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
       </button>
@@ -1450,6 +1450,25 @@ const slug = test.href.split("/").pop();
       </div>
     </div>
 
+    <!-- ── ERROR / NO DATA UI ── -->
+    <div class="exam-error-view" id="exam-error-view" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:99999;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--brand-light);color:var(--brand);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h2 style="font-size:1.6rem;color:var(--ink);margin-bottom:8px;font-family:var(--font-display);">Test Data Not Available</h2>
+      <p id="exam-error-msg" style="color:var(--ink-soft);max-width:440px;margin-bottom:28px;line-height:1.5;">
+        Unable to load the questions for this test. Please try again or explore other tests.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+        <button onclick="window.location.reload()" style="background:var(--brand);color:#fff;font-weight:600;padding:12px 26px;border-radius:999px;border:none;">Retry</button>
+        <a href="/mocktest/tests" style="background:var(--surface);border:1px solid var(--rule);color:var(--ink);font-weight:600;padding:12px 26px;border-radius:999px;">Browse Other Tests</a>
+      </div>
+    </div>
+
     <!-- ── SUBMIT MODAL ── -->
     <div
       class="modal-overlay"
@@ -1497,7 +1516,7 @@ const slug = test.href.split("/").pop();
           <div class="instr-exam-name" id="instr-exam-name">
             OSSSC · Mock Test
           </div>
-          <div class="instr-test-title" id="instr-title">{test.title}</div>
+          <div class="instr-test-title" id="instr-title">Mock Test</div>
           <div class="instr-meta-pills">
             <span class="instr-pill">
               <svg
@@ -1510,7 +1529,7 @@ const slug = test.href.split("/").pop();
                 ><circle cx="12" cy="12" r="10"></circle><polyline
                   points="12 6 12 12 16 14"></polyline></svg
               >
-              {test.duration} Minutes
+              <span id="instr-duration">30</span> Minutes
             </span>
             <span class="instr-pill">
               <svg
@@ -1524,7 +1543,7 @@ const slug = test.href.split("/").pop();
                   d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
                 ></path></svg
               >
-              {test.questions} Questions
+              <span id="instr-questions">20</span> Questions
             </span>
             <span class="instr-pill">
               <svg
@@ -1538,7 +1557,7 @@ const slug = test.href.split("/").pop();
                   d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                 ></path></svg
               >
-              {test.questions} Marks Total
+              <span id="instr-marks">20</span> Marks Total
             </span>
             <span class="instr-pill" style="background:rgba(176,0,32,0.3)">
               <svg
@@ -1728,7 +1747,7 @@ const slug = test.href.split("/").pop();
         marked: new Set(),
         visited: new Set(),
         submitted: false,
-        timeLeft: testMeta.duration * 60,
+        timeLeft: (testMeta?.duration || 30) * 60,
         activeSection: "all",
       };
 
@@ -1906,7 +1925,7 @@ const slug = test.href.split("/").pop();
         document.querySelector(".mobile-nav-bar").style.display = "none";
         document.getElementById("btn-submit-header").style.display = "none";
         document.getElementById("results-view").classList.add("show");
-        document.getElementById("res-test-name").textContent = testMeta.title;
+        document.getElementById("res-test-name").textContent = testMeta?.title || document.getElementById("eh-title")?.textContent || "Online Mock Test";
 
         // Compute stats
         let correct = 0,
@@ -2042,7 +2061,7 @@ const slug = test.href.split("/").pop();
 
       // Populate dynamic meta
       document.getElementById("instr-exam-name").textContent =
-        `${testMeta.exam} · Mock Test`;
+        `${testMeta?.exam || "Competitive Exam"} · Mock Test`;
 
       instrCb.addEventListener("change", () => {
         btnStart.disabled = !instrCb.checked;
@@ -2270,7 +2289,7 @@ const slug = test.href.split("/").pop();
               }
             });
             const json = await res.json();
-            if (json?.success && json?.data?.questions) {
+            if (json?.success && json?.data?.questions && json.data.questions.length > 0) {
               const raw = json.data.questions;
               questions = raw.map((q) => ({
                 ...q,
@@ -2278,14 +2297,49 @@ const slug = test.href.split("/").pop();
                   ? q.options.map((opt) => (typeof opt === 'object' && opt !== null ? opt.text : opt))
                   : []
               }));
-              if (json.data.title) {
-                const headerTitle = document.querySelector(".exam-brand-title");
-                if (headerTitle) headerTitle.textContent = json.data.title;
-              }
+
+              const testTitle = json.data.title || "Online Mock Test";
+              const duration = json.data.duration || 30;
+              const totalQ = questions.length;
+
+              // Update Header and Page title
+              document.title = `${testTitle} | Brinto MockTest`;
+              const ehTitle = document.getElementById("eh-title");
+              if (ehTitle) ehTitle.textContent = testTitle;
+
+              // Update Instruction modal
+              const instrTitle = document.getElementById("instr-title");
+              if (instrTitle) instrTitle.textContent = testTitle;
+              const instrExam = document.getElementById("instr-exam-name");
+              if (instrExam && json.data.exam) instrExam.textContent = `${json.data.exam} · Mock Test`;
+              const instrDur = document.getElementById("instr-duration");
+              if (instrDur) instrDur.textContent = duration;
+              const instrQ = document.getElementById("instr-questions");
+              if (instrQ) instrQ.textContent = totalQ;
+              const instrMarks = document.getElementById("instr-marks");
+              if (instrMarks) instrMarks.textContent = totalQ;
+
+              // Update timer state
+              state.timeLeft = duration * 60;
+            } else {
+              const errMsg = json?.error || json?.message || "Test questions could not be loaded.";
+              const errEl = document.getElementById("exam-error-msg");
+              if (errEl) errEl.textContent = errMsg;
             }
           } catch (err) {
             console.error("Client-side questions fetch error:", err);
+            const errEl = document.getElementById("exam-error-msg");
+            if (errEl) errEl.textContent = "Unable to connect to the test service. Please check your internet connection.";
           }
+        }
+
+        // If no questions could be loaded, show error UI
+        if (!questions || questions.length === 0) {
+          const errorView = document.getElementById("exam-error-view");
+          if (errorView) errorView.style.display = "flex";
+          const instrModal = document.getElementById("instr-overlay");
+          if (instrModal) instrModal.style.display = "none";
+          return;
         }
 
         console.log("✅ Questions loaded:", questions);
