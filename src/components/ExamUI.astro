@@ -2058,14 +2058,24 @@ const { slug = "", test, questionsData = [] } = Astro.props;
           });
         }
 
+        // Build map from server response questions array
+        const resQuestionMap = new Map();
+        if (Array.isArray(serverData?.questions)) {
+          serverData.questions.forEach((sq) => {
+            resQuestionMap.set(Number(sq.questionId), sq);
+          });
+        }
+
         // Review list
         const reviewList = document.getElementById("review-list");
         reviewList.innerHTML = "";
         const keys = ["A", "B", "C", "D"];
         questions.forEach((q, i) => {
+          const sq = resQuestionMap.get(Number(q.id));
           const userAns = state.answers[i];
-          const isCorrect = userAns === q.correct;
-          const isSkipped = userAns === undefined;
+          const isCorrect = sq ? sq.isCorrect : (userAns !== undefined && userAns === q.correct);
+          const isSkipped = sq ? (sq.selectedOptionId === null || sq.selectedOptionId === undefined) : (userAns === undefined);
+
           const statusClass = isSkipped
             ? "rs-skipped"
             : isCorrect
@@ -2073,13 +2083,24 @@ const { slug = "", test, questionsData = [] } = Astro.props;
               : "rs-wrong";
           const statusIcon = isSkipped ? "–" : isCorrect ? "✓" : "✗";
 
+          const correctAnsId = sq ? sq.answer : null;
+          const selectedOptId = sq ? sq.selectedOptionId : (userAns !== undefined && q.optionsObjects && q.optionsObjects[userAns] ? (q.optionsObjects[userAns].id ?? q.optionsObjects[userAns]) : null);
+
           const card = document.createElement("div");
           card.className = "review-card";
           const optionsHtml = q.options
             .map((opt, oi) => {
+              const optObj = q.optionsObjects && q.optionsObjects[oi];
+              const optId = typeof optObj === 'object' && optObj !== null ? (optObj.id ?? optObj) : optObj;
+
               let cls = "";
-              if (oi === q.correct) cls = "rev-correct";
-              else if (oi === userAns) cls = "rev-wrong";
+              if (correctAnsId !== null && correctAnsId !== undefined) {
+                if (optId === correctAnsId) cls = "rev-correct";
+                else if (optId === selectedOptId) cls = "rev-wrong";
+              } else {
+                if (oi === q.correct) cls = "rev-correct";
+                else if (oi === userAns) cls = "rev-wrong";
+              }
               return `<div class="rev-opt ${cls}"><span class="rev-key">${keys[oi]}.</span> ${opt}</div>`;
             })
             .join("");
@@ -2094,7 +2115,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       <div class="review-body">
         <div class="review-q-text">${q.text}</div>
         <div class="review-options">${optionsHtml}</div>
-        <div class="review-expl"><strong>Explanation:</strong> ${q.explanation}</div>
+        <div class="review-expl"><strong>Explanation:</strong> ${q.explanation || "No explanation provided."}</div>
       </div>`;
           reviewList.appendChild(card);
         });

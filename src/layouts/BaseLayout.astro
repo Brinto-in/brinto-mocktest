@@ -42,6 +42,8 @@ const fullImageUrl = new URL(image, Astro.site);
 
   <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
 
+  <slot name="head" />
+
   <!-- Schema.org Structured Data -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
