@@ -130,10 +130,6 @@ const webPageJsonLd = {
           ⚠️ Brinto is an independent educational platform and is not affiliated with Navodaya Vidyalaya Samiti (NVS) or the Government of India.
         </p>
       </div>
-      <div class="hero__bg" aria-hidden="true">
-        <div class="hero__blob hero__blob--1"></div>
-        <div class="hero__blob hero__blob--2"></div>
-      </div>
     </section>
 
     <!-- 2. EXAM CARD -->
@@ -385,7 +381,6 @@ const webPageJsonLd = {
     <!-- 9. FINAL CTA -->
     <section class="final-cta" aria-labelledby="final-cta-heading">
       <div class="final-cta__inner">
-        <div class="final-cta__bg" aria-hidden="true"><div class="final-cta__blob"></div></div>
         <h2 id="final-cta-heading" class="final-cta__title">Ready to Test Your Navodaya Preparation?</h2>
         <p class="final-cta__desc">Attempt the free JNVST Class 6 Mock Test 2027 and check your preparation level. Get your instant score and All India Rank — no fee, no registration hassle.</p>
         <a href={MOCK_TEST_URL} class="btn btn--primary btn--large btn--light" id="final-cta" aria-label="Start the free Navodaya mock test 2027">
@@ -461,7 +456,7 @@ const webPageJsonLd = {
 
   /* SECTION SHARED */
   .section { padding-block: var(--section-pad); }
-  .section--alt { background: var(--surface-2); }
+  .section--alt { background: var(--surface-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
   .section__title {
     font-size: clamp(1.5rem, 3vw, 2.1rem);
     font-weight: 700;
@@ -483,36 +478,16 @@ const webPageJsonLd = {
     margin-top: 40px;
   }
 
-  /* HERO */
+  /* HERO - CLEAN PROFESSIONAL SOLID SURFACE */
   .hero {
-    position: relative;
-    overflow: hidden;
-    padding-block: clamp(56px, 9vw, 100px);
-    background: linear-gradient(135deg, var(--brand-light) 0%, var(--surface) 40%, var(--surface-2) 100%);
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    padding-block: clamp(48px, 8vw, 88px);
   }
   .hero__inner {
-    position: relative;
-    z-index: 1;
     max-width: var(--page-max);
     margin-inline: auto;
     padding-inline: clamp(16px, 4vw, 40px);
-  }
-  .hero__bg { position: absolute; inset: 0; pointer-events: none; }
-  .hero__blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.25;
-  }
-  .hero__blob--1 {
-    width: 480px; height: 480px;
-    background: var(--brand-mid);
-    top: -120px; right: -80px;
-  }
-  .hero__blob--2 {
-    width: 320px; height: 320px;
-    background: var(--gold-light);
-    bottom: -80px; left: -60px;
   }
 
   .breadcrumb ol {
@@ -564,12 +539,12 @@ const webPageJsonLd = {
     font-weight: 600;
     font-family: var(--font-body);
     border: 1.5px solid var(--rule);
-    background: var(--surface);
+    background: var(--surface-2);
   }
   .badge--free { color: var(--green); background: var(--green-light); border-color: #a7d7b8; }
   .badge--instant { color: var(--gold); background: var(--gold-light); border-color: #f6d8a0; }
   .badge--rank { color: var(--brand); background: var(--brand-light); border-color: var(--brand-mid); }
-  .badge--mobile { color: var(--ink-soft); background: var(--surface-2); }
+  .badge--mobile { color: var(--ink-soft); background: var(--surface); }
 
   .hero__ctas {
     display: flex;
@@ -580,7 +555,7 @@ const webPageJsonLd = {
   .hero__disclaimer {
     font-size: 0.8rem;
     color: var(--ink-muted);
-    background: var(--surface);
+    background: var(--surface-2);
     border: 1px solid var(--rule);
     border-radius: var(--radius-sm);
     padding: 10px 14px;
@@ -594,7 +569,7 @@ const webPageJsonLd = {
     border: 1px solid var(--rule);
     border-radius: var(--radius-lg);
     padding: clamp(24px, 4vw, 44px);
-    box-shadow: 0 12px 32px rgba(26, 20, 16, 0.08);
+    box-shadow: 0 8px 24px rgba(26, 20, 16, 0.05);
     max-width: 720px;
     margin-inline: auto;
   }
@@ -656,7 +631,7 @@ const webPageJsonLd = {
     padding: 24px;
     transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   }
-  .benefit-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,20,16,0.06); border-color: var(--brand); }
+  .benefit-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,20,16,0.05); border-color: var(--brand); }
   .benefit-card__icon { font-size: 1.8rem; margin-bottom: 12px; }
   .benefit-card__title { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; font-family: var(--font-body); }
   .benefit-card__desc { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.65; }
@@ -676,7 +651,7 @@ const webPageJsonLd = {
     overflow: hidden;
     transition: transform 0.15s, box-shadow 0.15s;
   }
-  .subject-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,20,16,0.06); }
+  .subject-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,20,16,0.05); }
   .subject-card::before {
     content: "";
     position: absolute;
@@ -706,21 +681,21 @@ const webPageJsonLd = {
     position: absolute;
     left: 22px; top: 48px; bottom: 0;
     width: 2px;
-    background: linear-gradient(to bottom, var(--brand-mid), transparent);
+    background: var(--rule);
   }
   .step__number {
     flex-shrink: 0;
     width: 46px; height: 46px;
     border-radius: 50%;
-    background: var(--brand);
-    color: #fff;
+    background: var(--surface);
+    border: 2px solid var(--brand);
+    color: var(--brand);
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 1.15rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 14px rgba(176, 0, 32, 0.22);
   }
   .step__content { padding-top: 8px; }
   .step__title { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; font-family: var(--font-body); }
@@ -735,7 +710,7 @@ const webPageJsonLd = {
     padding: 24px;
     transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   }
-  .audience-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,20,16,0.06); border-color: var(--brand); }
+  .audience-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,20,16,0.05); border-color: var(--brand); }
   .audience-card__icon { font-size: 1.8rem; margin-bottom: 12px; }
   .audience-card__title { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 8px; font-family: var(--font-body); }
   .audience-card__desc { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.65; }
@@ -749,7 +724,7 @@ const webPageJsonLd = {
     padding: 24px;
     transition: border-color 0.15s, transform 0.15s;
   }
-  .tip-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,20,16,0.06); }
+  .tip-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,20,16,0.05); }
   .tip-card__num { font-family: var(--font-display); font-size: 0.85rem; font-weight: 700; color: var(--brand); letter-spacing: 0.06em; margin-bottom: 8px; }
   .tip-card__title { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 10px; font-family: var(--font-body); }
   .tip-card__desc { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.7; }
@@ -801,32 +776,21 @@ const webPageJsonLd = {
   .faq-item__answer { padding: 0 20px 18px; border-top: 1px solid var(--rule); }
   .faq-item__answer p { margin: 12px 0 0; font-size: 0.9rem; color: var(--ink-soft); line-height: 1.7; }
 
-  /* FINAL CTA */
+  /* FINAL CTA - CLEAN SOLID SURFACE (NO AI BLOB GRADIENTS) */
   .final-cta {
-    position: relative;
-    overflow: hidden;
-    background: var(--brand);
-    padding-block: clamp(56px, 9vw, 100px);
+    background: var(--surface-2);
+    border-top: 1px solid var(--rule);
+    padding-block: clamp(48px, 8vw, 80px);
     text-align: center;
   }
   .final-cta__inner {
-    position: relative;
-    z-index: 1;
     max-width: 680px;
     margin-inline: auto;
     padding-inline: clamp(16px, 4vw, 40px);
   }
-  .final-cta__bg { position: absolute; inset: 0; pointer-events: none; }
-  .final-cta__blob {
-    position: absolute;
-    width: 600px; height: 600px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    top: -200px; right: -150px;
-  }
-  .final-cta__title { font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 700; font-family: var(--font-display); color: #fff; margin-bottom: 16px; line-height: 1.2; }
-  .final-cta__desc { font-size: 1.02rem; color: rgba(255,255,255,0.85); line-height: 1.65; margin-bottom: 32px; }
-  .final-cta__note { margin-top: 20px; font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.5; }
+  .final-cta__title { font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 700; font-family: var(--font-display); color: var(--ink); margin-bottom: 12px; line-height: 1.2; }
+  .final-cta__desc { font-size: 1rem; color: var(--ink-soft); line-height: 1.65; margin-bottom: 28px; }
+  .final-cta__note { margin-top: 20px; font-size: 0.78rem; color: var(--ink-muted); line-height: 1.5; }
 
   /* RESPONSIVE */
   @media (max-width: 640px) {
@@ -835,6 +799,6 @@ const webPageJsonLd = {
     .exam-card__meta { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 480px) {
-    .exam-card__meta { grid-template-columns: 1fr 1fr; }
+    .exam-card__meta { grid-template-columns: grid-template-columns: 1fr 1fr; }
   }
 </style>
