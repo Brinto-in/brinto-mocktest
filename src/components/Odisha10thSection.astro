@@ -130,22 +130,6 @@ const subjects = [
             ))}
           </div>
 
-          <div class="o10-card-meta">
-            <span>
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-              {s.questions} Qs
-            </span>
-            <span>
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              {s.duration} min
-            </span>
-            <span class="o10-attempts">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              {s.attempts}
-            </span>
-            <span class="o10-rating">★ {s.rating}</span>
-          </div>
-
           <div class="o10-card-footer">
             <span class="o10-free-badge">100% Free</span>
             <span class="o10-cta">Start Practice →</span>
@@ -354,30 +338,6 @@ const subjects = [
     border: 1px solid var(--rule);
   }
 
-  .o10-card-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.8rem;
-    color: var(--ink-soft);
-    padding-top: 8px;
-  }
-
-  .o10-card-meta span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .o10-attempts {
-    color: var(--ink-muted);
-  }
-
-  .o10-rating {
-    color: var(--gold);
-    font-weight: 600;
-    margin-left: auto;
-  }
 
   .o10-card-footer {
     display: flex;
