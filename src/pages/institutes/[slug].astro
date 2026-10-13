@@ -210,6 +210,7 @@ function starsStr(n: number) {
             <p>{inst.description}</p>
           </div>
 
+          {/*
           <!-- 4 Achievements Cards -->
           <div class="achievements-section">
             <h3 class="subsection-title">Key Distinctions & Milestones</h3>
@@ -225,7 +226,9 @@ function starsStr(n: number) {
               ))}
             </div>
           </div>
+          */}
 
+          {/*
           <!-- Syllabus Topics Covered -->
           <div class="syllabus-section">
             <h3 class="subsection-title">Chapters & Units Covered in Test Series</h3>
@@ -238,6 +241,7 @@ function starsStr(n: number) {
               ))}
             </div>
           </div>
+          */}
         </section>
 
         <!-- ── SECTION 2: PROPERLY STRUCTURED MOCK TESTS ── -->
@@ -2064,21 +2068,81 @@ function starsStr(n: number) {
   }
 
   @media (max-width: 768px) {
-    .phc-left {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 20px;
+    .profile-hero-section {
+      padding: 16px 0 24px;
     }
 
-    .phc-avatar-wrap {
+    .breadcrumb {
+      margin-bottom: 14px;
+    }
+
+    .profile-hero-card {
+      padding: 18px 16px;
+      margin-bottom: 16px;
+      border-radius: var(--radius-md);
+    }
+
+    .phc-left {
       flex-direction: row;
+      align-items: flex-start;
       gap: 16px;
     }
 
+    .phc-avatar-wrap {
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
     .phc-avatar {
-      width: 80px;
-      height: 80px;
-      font-size: 1.7rem;
+      width: 64px;
+      height: 64px;
+      font-size: 1.4rem;
+      border-radius: 14px;
+    }
+
+    .exp-ribbon {
+      padding: 3px 8px;
+      font-size: 0.68rem;
+    }
+
+    .exp-medal {
+      font-size: 0.76rem;
+    }
+
+    .phc-main-info {
+      gap: 8px;
+      width: 100%;
+    }
+
+    .phc-name {
+      font-size: 1.45rem;
+    }
+
+    .phc-odia-title {
+      font-size: 0.95rem;
+    }
+
+    .phc-highlight {
+      font-size: 0.85rem;
+      padding: 8px 12px;
+    }
+
+    .phc-action-buttons {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    .btn-primary-action,
+    .btn-secondary-action,
+    .btn-whatsapp-action {
+      width: 100%;
+      justify-content: center;
+      padding: 9px 16px;
+      font-size: 0.85rem;
     }
 
     /* On mobile, keep impact-metrics-bar strictly in a single line with smooth touch scroll */
@@ -2133,6 +2197,29 @@ function starsStr(n: number) {
       flex-direction: column;
       align-items: flex-start;
       padding: 24px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .phc-left {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .phc-badge-row {
+      justify-content: center;
+    }
+
+    .phc-main-info {
+      align-items: center;
+    }
+
+    .phc-highlight {
+      border-left: none;
+      border-top: 3px solid var(--brand);
+      border-radius: var(--radius-sm);
     }
   }
 </style>
