@@ -1306,8 +1306,9 @@ const webPageJsonLd = {
     background: var(--surface);
     border: 1px solid var(--rule);
     border-radius: 16px;
-    padding: 20px 28px;
+    padding: 20px 24px;
     box-shadow: var(--shadow-sm);
+    gap: 16px;
   }
 
   .hsc-metric-card {
@@ -1315,11 +1316,11 @@ const webPageJsonLd = {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 0 12px;
+    padding: 4px 8px;
   }
 
   .hsc-metric-val {
-    font-size: 2.2rem;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
     font-weight: 800;
     color: var(--brand);
     line-height: 1.1;
@@ -1327,7 +1328,7 @@ const webPageJsonLd = {
   }
 
   .hsc-metric-lbl {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: var(--ink);
     margin-top: 4px;
@@ -1337,11 +1338,11 @@ const webPageJsonLd = {
     font-size: 0.74rem;
     color: var(--ink-muted);
     margin-top: 2px;
+    line-height: 1.35;
   }
 
   .hsc-metric-divider {
-    width: 1px;
-    background: var(--rule);
+    display: none;
   }
 
   /* ── GENERAL SECTIONS ───────────────────────────────── */
@@ -2853,11 +2854,8 @@ const webPageJsonLd = {
 
     .hsc-metrics-ribbon {
       grid-template-columns: repeat(2, 1fr);
-      row-gap: 20px;
-    }
-
-    .hsc-metric-divider:nth-child(4) {
-      display: none;
+      gap: 16px;
+      padding: 18px 20px;
     }
 
     .hsc-tips-grid {
@@ -2881,6 +2879,12 @@ const webPageJsonLd = {
     .hsc-section-header {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    .hsc-metrics-ribbon {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 16px;
     }
 
     .hsc-palette-sidebar {
@@ -2908,13 +2912,21 @@ const webPageJsonLd = {
     }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 540px) {
     .hsc-metrics-ribbon {
       grid-template-columns: 1fr;
+      gap: 14px;
+      padding: 16px;
     }
 
-    .hsc-metric-divider {
-      display: none;
+    .hsc-metric-card {
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 12px;
+    }
+
+    .hsc-metric-card:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
     }
 
     .hsc-hero-actions {
