@@ -10,10 +10,11 @@ const partners = [
     avatarBg: '#B00020',
     avatarText: 'SS',
     badge: 'Verified Partner',
+    yearsExp: 15,
     testsCount: 18,
     studentsCount: '15.2k',
     rating: '4.9',
-    href: '/mocktest/tests',
+    href: '/mocktest/institutes/sahoo-sir-mathematics',
   },
   {
     name: 'Dash Science Academy',
@@ -24,10 +25,11 @@ const partners = [
     avatarBg: '#1B6B3A',
     avatarText: 'DS',
     badge: 'Top Rated',
+    yearsExp: 16,
     testsCount: 22,
     studentsCount: '18.4k',
     rating: '4.9',
-    href: '/mocktest/tests',
+    href: '/mocktest/institutes/dash-science-academy',
   },
   {
     name: 'Royal Tutorials Cuttack',
@@ -38,10 +40,11 @@ const partners = [
     avatarBg: '#D4830F',
     avatarText: 'RT',
     badge: 'Verified Partner',
+    yearsExp: 18,
     testsCount: 35,
     studentsCount: '24.1k',
     rating: '4.8',
-    href: '/mocktest/tests',
+    href: '/mocktest/institutes/royal-tutorials-cuttack',
   },
   {
     name: 'Pradhan Sir Odia & SS',
@@ -52,10 +55,11 @@ const partners = [
     avatarBg: '#4A148C',
     avatarText: 'PS',
     badge: 'Popular',
+    yearsExp: 15,
     testsCount: 14,
     studentsCount: '12.8k',
     rating: '4.9',
-    href: '/mocktest/tests',
+    href: '/mocktest/institutes/pradhan-sir-classes',
   },
   {
     name: 'Target 100 Academy',
@@ -66,10 +70,11 @@ const partners = [
     avatarBg: '#006064',
     avatarText: 'T100',
     badge: 'Verified Partner',
+    yearsExp: 15,
     testsCount: 28,
     studentsCount: '21.0k',
     rating: '4.8',
-    href: '/mocktest/tests',
+    href: '/mocktest/institutes/target-100-academy',
   },
   {
     name: 'Mishra Sir English Academy',
@@ -80,10 +85,11 @@ const partners = [
     avatarBg: '#0D47A1',
     avatarText: 'MS',
     badge: 'Top Rated',
+    yearsExp: 15,
     testsCount: 16,
     studentsCount: '14.5k',
     rating: '4.9',
-    href: '/mocktest/tests',
+    href: '/mocktest/institutes/mishra-sir-english',
   },
 ];
 ---
@@ -116,6 +122,10 @@ const partners = [
               {p.avatarText}
             </div>
             <div class="inst-title-box">
+              <div class="inst-badge-strip">
+                <span class="inst-exp-pill">🎖️ {p.yearsExp}+ Yrs Exp</span>
+                <span class="inst-type-badge">{p.badge}</span>
+              </div>
               <div class="inst-name-row">
                 <h3 class="inst-name">{p.name}</h3>
                 <span class="inst-odia-name">({p.odiaName})</span>
@@ -140,7 +150,7 @@ const partners = [
               <span class="inst-stat-dot">•</span>
               <span class="inst-rating">★ {p.rating}</span>
             </div>
-            <span class="inst-cta">View Tests →</span>
+            <span class="inst-cta">View Profile & Tests →</span>
           </div>
         </a>
       ))}
@@ -281,7 +291,40 @@ const partners = [
   .inst-title-box {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .inst-badge-strip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 2px;
+  }
+
+  .inst-exp-pill {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #8C5200;
+    background: #FEF3E2;
+    border: 1px solid #FCD79B;
+    padding: 2px 7px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+
+  .inst-type-badge {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--brand);
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+    padding: 2px 6px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
   }
 
   .inst-name-row {

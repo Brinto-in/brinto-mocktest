@@ -1,0 +1,2111 @@
+---
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getInstituteBySlug, getAllInstitutes, type Institute } from '../../data/institutes';
+
+const { slug } = Astro.params;
+const inst = slug ? getInstituteBySlug(slug) : undefined;
+
+if (!inst) {
+  return Astro.redirect('/mocktest/institutes');
+}
+
+// Stats & Helpers
+const totalFreeTests = inst.mockTests.filter(t => t.isFree).length;
+const totalQuestionsInBank = inst.mockTests.reduce((acc, t) => acc + t.questions, 0);
+
+// Difficulty color mapping
+const diffColorMap: Record<string, { bg: string; text: string; border: string }> = {
+  Easy: { bg: '#E8F5EE', text: '#1B6B3A', border: '#A3D9B5' },
+  Medium: { bg: '#FEF3E2', text: '#B86A00', border: '#FCD79B' },
+  Hard: { bg: '#FFF0F2', text: '#B00020', border: '#F5C6CE' },
+};
+
+function starsStr(n: number) {
+  return '★'.repeat(n) + '☆'.repeat(Math.max(0, 5 - n));
+}
+---
+
+<BaseLayout
+  title={`${inst.name} (${inst.odiaName}) — ${inst.yearsExp}+ Years Experience | Brinto MockTest`}
+  description={`Practice online mock tests by ${inst.name} (${inst.odiaName}), senior faculty with ${inst.yearsExp}+ years of experience in ${inst.city}, Odisha. ${inst.testsCount} tests, ${inst.studentsCount.toLocaleString('en-IN')}+ students.`}
+>
+  <!-- Schema.org for Education Organization / Person -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": inst.type === 'Tuition Teacher' ? 'Person' : 'EducationalOrganization',
+    "name": inst.name,
+    "alternateName": inst.odiaName,
+    "description": inst.description,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": inst.city,
+      "addressRegion": inst.state,
+      "addressCountry": "IN"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": inst.rating,
+      "reviewCount": inst.reviewCount,
+      "bestRating": 5,
+      "worstRating": 1
+    }
+  })} />
+
+  <!-- ═══════════════════════════════════════════════ TOP BREADCRUMB & HERO ══ -->
+  <section class="profile-hero-section">
+    <div class="wrap">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/mocktest">Home</a>
+        <span class="bc-sep">/</span>
+        <a href="/mocktest/institutes">Institutes</a>
+        <span class="bc-sep">/</span>
+        <span class="bc-current">{inst.name}</span>
+      </nav>
+
+      <!-- Main Profile Banner Card -->
+      <div class="profile-hero-card">
+        <div class="phc-left">
+          <!-- Avatar + Experience Medal -->
+          <div class="phc-avatar-wrap">
+            <div class="phc-avatar" style={`background:${inst.avatarBg}`}>
+              {inst.avatarText}
+            </div>
+            <!-- Prominent 15+ Yrs Exp Ribbon -->
+            <div class="exp-ribbon">
+              <span class="exp-medal">🎖️</span>
+              <span class="exp-text"><strong>{inst.yearsExp}+ Years</strong> Experience</span>
+            </div>
+          </div>
+
+          <!-- Profile Details -->
+          <div class="phc-main-info">
+            <div class="phc-badge-row">
+              <span class="partner-badge">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm-2 16l-4-4 1.41-1.41L10 15.17l6.59-6.59L18 10l-8 8z"/>
+                </svg>
+                {inst.badge}
+              </span>
+              <span class="status-live">
+                <span class="live-dot"></span> Active Educator
+              </span>
+            </div>
+
+            <h1 class="phc-name">{inst.name}</h1>
+            <p class="phc-odia-title">{inst.odiaName}</p>
+
+            <div class="phc-meta-chips">
+              <span class="meta-chip chip-role">🎓 {inst.role}</span>
+              <span class="meta-chip chip-city">📍 {inst.city}, {inst.state}</span>
+              <span class="meta-chip chip-type">🏛️ {inst.type}</span>
+              <span class="meta-chip chip-lang">🗣️ Odia & English</span>
+              {inst.subjects.map(s => (
+                <span class="meta-chip chip-subj">📚 {s}</span>
+              ))}
+            </div>
+
+            <p class="phc-highlight">
+              <span class="highlight-quote">“</span>
+              {inst.experienceHighlight}
+              <span class="highlight-quote">”</span>
+            </p>
+
+            <div class="phc-action-buttons">
+              <a href="#mock-tests" class="btn-primary-action">
+                <span>🚀 Explore Mock Tests</span>
+                <span class="btn-count">({inst.mockTests.length})</span>
+              </a>
+              <a href={`tel:${inst.contactPhone.replace(/\s+/g, '')}`} class="btn-secondary-action">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                </svg>
+                <span>{inst.contactPhone}</span>
+              </a>
+              <a
+                href={`https://wa.me/919437012845?text=${encodeURIComponent(`Hello, I saw ${inst.name}'s profile on Brinto MockTest and want to know more about the test series.`)}`}
+                target="_blank"
+                rel="noopener"
+                class="btn-whatsapp-action"
+                aria-label="Ask on WhatsApp"
+              >
+                <span>💬 WhatsApp</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 5-Metric Experience Impact Bar ── -->
+      <div class="impact-metrics-bar">
+        <div class="im-card highlight-card">
+          <div class="im-icon">🎖️</div>
+          <div class="im-data">
+            <span class="im-value gold-text">{inst.yearsExp}+ Years</span>
+            <span class="im-label">Teaching Legacy</span>
+          </div>
+        </div>
+
+        <div class="im-divider"></div>
+
+        <div class="im-card">
+          <div class="im-icon">📝</div>
+          <div class="im-data">
+            <span class="im-value">{inst.testsCount}</span>
+            <span class="im-label">Active Mock Tests</span>
+          </div>
+        </div>
+
+        <div class="im-divider"></div>
+
+        <div class="im-card">
+          <div class="im-icon">👥</div>
+          <div class="im-data">
+            <span class="im-value">{inst.studentsCount.toLocaleString('en-IN')}+</span>
+            <span class="im-label">Students Mentored</span>
+          </div>
+        </div>
+
+        <div class="im-divider"></div>
+
+        <div class="im-card">
+          <div class="im-icon">★</div>
+          <div class="im-data">
+            <span class="im-value gold-text">{inst.rating} / 5.0</span>
+            <span class="im-label">{inst.reviewCount} Verified Reviews</span>
+          </div>
+        </div>
+
+        <div class="im-divider"></div>
+
+        <div class="im-card">
+          <div class="im-icon">🎯</div>
+          <div class="im-data">
+            <span class="im-value green-text">{inst.passRate}%</span>
+            <span class="im-label">Board Pass Rate</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════ MAIN CONTENT BODY ═════ -->
+  <main class="wrap profile-body-container">
+    <div class="layout-grid">
+
+      <!-- LEFT COLUMN: ABOUT + MOCK TESTS + REVIEWS -->
+      <div class="main-column">
+
+        <!-- ── SECTION 1: ABOUT & PEDAGOGY ── -->
+        <section class="content-card" id="about">
+          <div class="card-header">
+            <div class="ch-left">
+              <span class="ch-icon">👨‍🏫</span>
+              <div>
+                <h2 class="ch-title">About Faculty & Pedagogy</h2>
+                <p class="ch-subtitle">15+ years of board exam mentorship, methodology, and student success</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-text-content">
+            <p>{inst.description}</p>
+          </div>
+
+          <!-- 4 Achievements Cards -->
+          <div class="achievements-section">
+            <h3 class="subsection-title">Key Distinctions & Milestones</h3>
+            <div class="achievements-grid">
+              {inst.achievements.map((ach, idx) => (
+                <div class="achieve-card">
+                  <div class="achieve-badge-num">0{idx + 1}</div>
+                  <div class="achieve-info">
+                    <span class="achieve-check-icon">✓</span>
+                    <span class="achieve-text">{ach}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <!-- Syllabus Topics Covered -->
+          <div class="syllabus-section">
+            <h3 class="subsection-title">Chapters & Units Covered in Test Series</h3>
+            <div class="syllabus-tags-grid">
+              {inst.syllabusTopics.map(topic => (
+                <div class="syllabus-topic-chip">
+                  <span class="stc-bullet">🔹</span>
+                  <span>{topic}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <!-- ── SECTION 2: PROPERLY STRUCTURED MOCK TESTS ── -->
+        <section class="content-card tests-section-card" id="mock-tests">
+          <div class="card-header tests-header">
+            <div class="ch-left">
+              <span class="ch-icon">📝</span>
+              <div>
+                <div class="title-with-pill">
+                  <h2 class="ch-title">Institute Mock Tests & Model Papers</h2>
+                  <span class="badge-counter">{inst.mockTests.length} Available</span>
+                </div>
+                <p class="ch-subtitle">
+                  Strictly aligned with BSE Odisha Matriculation exam blueprint with instant solutions & state ranking.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls: Category Filter Tabs + Search + Difficulty -->
+          <div class="tests-controls-bar">
+            <!-- Tabs -->
+            <div class="category-tabs" role="tablist" aria-label="Test categories">
+              <button class="cat-tab active" data-category="All" role="tab" aria-selected="true">
+                All Tests ({inst.mockTests.length})
+              </button>
+              <button class="cat-tab" data-category="Chapter-wise" role="tab" aria-selected="false">
+                Chapter-wise
+              </button>
+              <button class="cat-tab" data-category="Model Paper" role="tab" aria-selected="false">
+                Model Papers
+              </button>
+              <button class="cat-tab" data-category="Full Syllabus" role="tab" aria-selected="false">
+                Full Syllabus
+              </button>
+              <button class="cat-tab" data-category="High-Yield" role="tab" aria-selected="false">
+                High-Yield
+              </button>
+            </div>
+
+            <!-- Second row: Search & Filters -->
+            <div class="filters-subrow">
+              <div class="search-input-wrap">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                </svg>
+                <input
+                  type="text"
+                  id="test-search-input"
+                  placeholder="Search tests by title or chapter..."
+                  aria-label="Search mock tests"
+                />
+              </div>
+
+              <div class="filter-controls-group">
+                <select id="diff-filter-select" aria-label="Filter by difficulty">
+                  <option value="All">All Difficulties</option>
+                  <option value="Easy">Easy Level</option>
+                  <option value="Medium">Medium Level</option>
+                  <option value="Hard">Hard Level</option>
+                </select>
+
+                <label class="free-only-toggle" for="free-only-checkbox">
+                  <input type="checkbox" id="free-only-checkbox" />
+                  <span>Free Only</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Structured Mock Test Cards List -->
+          <div class="structured-tests-list" id="tests-list-container">
+            {inst.mockTests.map((test, index) => {
+              const diffColors = diffColorMap[test.difficulty] || diffColorMap['Medium'];
+              return (
+                <article
+                  class="mock-test-item-card"
+                  data-category={test.category}
+                  data-difficulty={test.difficulty}
+                  data-free={test.isFree ? 'true' : 'false'}
+                  data-title={test.title.toLowerCase()}
+                  data-syllabus={test.syllabus.join(' ').toLowerCase()}
+                >
+                  <div class="mti-top-row">
+                    <div class="mti-index-badge">#{String(index + 1).padStart(2, '0')}</div>
+
+                    <div class="mti-meta-pill-group">
+                      <span class="mti-cat-badge">{test.category}</span>
+                      {test.isFree ? (
+                        <span class="mti-free-badge">🎉 FREE TEST</span>
+                      ) : (
+                        <span class="mti-pro-badge">🔒 VERIFIED SET</span>
+                      )}
+                      <span
+                        class="mti-diff-badge"
+                        style={`background:${diffColors.bg}; color:${diffColors.text}; border:1px solid ${diffColors.border};`}
+                      >
+                        ● {test.difficulty}
+                      </span>
+                    </div>
+
+                    <div class="mti-attempts-meta">
+                      👥 {test.attempts.toLocaleString('en-IN')} attempts
+                    </div>
+                  </div>
+
+                  <div class="mti-body-row">
+                    <div class="mti-titles">
+                      <h3 class="mti-title">{test.title}</h3>
+                      {test.odiaTitle && (
+                        <p class="mti-odia-title">{test.odiaTitle}</p>
+                      )}
+                      {test.description && (
+                        <p class="mti-desc">{test.description}</p>
+                      )}
+                    </div>
+
+                    <div class="mti-cta-wrap">
+                      <a
+                        href={`/mocktest/test/${test.id}`}
+                        class="btn-start-test"
+                        aria-label={`Start test: ${test.title}`}
+                      >
+                        <span>Start Test</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Structured Specifications Strip -->
+                  <div class="mti-specs-strip">
+                    <div class="spec-item">
+                      <span class="spec-icon">⏱️</span>
+                      <span class="spec-value">{test.duration} Minutes</span>
+                    </div>
+                    <div class="spec-bullet">•</div>
+                    <div class="spec-item">
+                      <span class="spec-icon">📝</span>
+                      <span class="spec-value">{test.questions} MCQs</span>
+                    </div>
+                    <div class="spec-bullet">•</div>
+                    <div class="spec-item">
+                      <span class="spec-icon">🎯</span>
+                      <span class="spec-value">{test.marks} Marks</span>
+                    </div>
+                    <div class="spec-bullet">•</div>
+                    <div class="spec-item">
+                      <span class="spec-icon">🌐</span>
+                      <span class="spec-value">{test.language}</span>
+                    </div>
+                    <div class="spec-bullet">•</div>
+                    <div class="spec-item">
+                      <span class="spec-icon">⚡</span>
+                      <span class="spec-value">Instant Solutions</span>
+                    </div>
+                  </div>
+
+                  <!-- Chapters / Topics included -->
+                  {test.syllabus && test.syllabus.length > 0 && (
+                    <div class="mti-syllabus-bar">
+                      <span class="syl-label">Topics:</span>
+                      <div class="syl-tags">
+                        {test.syllabus.map(s => (
+                          <span class="syl-pill">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+
+          <!-- Empty state when filters return nothing -->
+          <div class="empty-search-state" id="empty-tests-state" style="display:none;">
+            <div class="empty-icon">🔍</div>
+            <h3>No mock tests match your filter</h3>
+            <p>Try switching category tabs, clearing search query, or checking another difficulty level.</p>
+            <button id="reset-test-filters" class="btn-reset-filters">Reset All Filters</button>
+          </div>
+        </section>
+
+        <!-- ── SECTION 3: REVIEWS & TESTIMONIALS ── -->
+        <section class="content-card" id="reviews">
+          <div class="card-header">
+            <div class="ch-left">
+              <span class="ch-icon">⭐</span>
+              <div>
+                <h2 class="ch-title">Student Reviews & Board Results</h2>
+                <p class="ch-subtitle">Authentic feedback from Class 10th matriculation candidates across Odisha</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating summary overview -->
+          <div class="rating-overview-card">
+            <div class="ro-left">
+              <div class="ro-score">{inst.rating}</div>
+              <div class="ro-stars">
+                {starsStr(Math.round(inst.rating))}
+              </div>
+              <div class="ro-count">Based on {inst.reviewCount} student ratings</div>
+              <div class="ro-verified-tag">✓ 100% Verified Candidates</div>
+            </div>
+
+            <div class="ro-right-bars">
+              <div class="bar-row">
+                <span class="bar-label">5 Stars</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 86%;"></div></div>
+                <span class="bar-pct">86%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">4 Stars</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 11%;"></div></div>
+                <span class="bar-pct">11%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">3 Stars</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 3%;"></div></div>
+                <span class="bar-pct">3%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">2 Stars</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 0%;"></div></div>
+                <span class="bar-pct">0%</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">1 Star</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 0%;"></div></div>
+                <span class="bar-pct">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reviews Cards Grid -->
+          <div class="reviews-grid">
+            {inst.reviews.map(rev => (
+              <div class="review-item-card">
+                <div class="ric-top">
+                  <div class="ric-avatar">{rev.name.charAt(0)}</div>
+                  <div class="ric-user-meta">
+                    <h4 class="ric-name">{rev.name}</h4>
+                    <p class="ric-location">{rev.schoolOrCity}</p>
+                  </div>
+                  <div class="ric-stars">{starsStr(rev.rating)}</div>
+                </div>
+
+                {rev.scoreHighlight && (
+                  <div class="ric-score-badge">
+                    🏆 {rev.scoreHighlight}
+                  </div>
+                )}
+
+                <p class="ric-text">“{rev.text}”</p>
+                <div class="ric-date">Verified Board Student • {rev.date}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN: STICKY FACULTY SIDEBAR -->
+      <aside class="sidebar-column">
+
+        <!-- 1. Faculty Overview Card -->
+        <div class="sidebar-card">
+          <h3 class="sc-heading">Educator Profile</h3>
+
+          <ul class="sc-details-list">
+            <li>
+              <span class="sc-label">Experience</span>
+              <span class="sc-value gold-text"><strong>{inst.yearsExp}+ Years</strong></span>
+            </li>
+            <li>
+              <span class="sc-label">Type</span>
+              <span class="sc-value">{inst.type}</span>
+            </li>
+            <li>
+              <span class="sc-label">Location</span>
+              <span class="sc-value">{inst.city}, Odisha</span>
+            </li>
+            <li>
+              <span class="sc-label">Board</span>
+              <span class="sc-value">BSE Odisha 10th</span>
+            </li>
+            <li>
+              <span class="sc-label">Active Tests</span>
+              <span class="sc-value"><strong>{inst.testsCount} Tests</strong></span>
+            </li>
+            <li>
+              <span class="sc-label">Students Guided</span>
+              <span class="sc-value">{inst.studentsCount.toLocaleString('en-IN')}+</span>
+            </li>
+            <li>
+              <span class="sc-label">Success Rate</span>
+              <span class="sc-value green-text"><strong>{inst.passRate}% Pass</strong></span>
+            </li>
+            <li>
+              <span class="sc-label">Average Rating</span>
+              <span class="sc-value gold-text">★ {inst.rating} / 5.0</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 2. Test Bank Overview Card -->
+        <div class="sidebar-card bank-overview-card">
+          <h3 class="sc-heading">Test Series Bank</h3>
+          <div class="bank-stats-grid">
+            <div class="bs-stat">
+              <span class="bs-val">{totalQuestionsInBank}+</span>
+              <span class="bs-lbl">Total MCQs</span>
+            </div>
+            <div class="bs-stat">
+              <span class="bs-val">{totalFreeTests}</span>
+              <span class="bs-lbl">Free Mocks</span>
+            </div>
+            <div class="bs-stat">
+              <span class="bs-val">100%</span>
+              <span class="bs-lbl">Board Blueprint</span>
+            </div>
+          </div>
+          <a href="#mock-tests" class="btn-sidebar-cta">
+            Attempt Free Mocks Now →
+          </a>
+        </div>
+
+        <!-- 3. Direct Inquiries & Contact Card -->
+        <div class="sidebar-card contact-card">
+          <div class="cc-badge">ADMISSIONS & DOUBTS</div>
+          <h3 class="cc-title">Need Guidance?</h3>
+          <p class="cc-desc">
+            Directly connect with {inst.name}'s academic support for batch timings, model test papers, and offline tuition schedules.
+          </p>
+
+          <a href={`tel:${inst.contactPhone.replace(/\s+/g, '')}`} class="btn-contact-call">
+            📞 Call {inst.contactPhone}
+          </a>
+
+          <a
+            href={`https://wa.me/919437012845?text=${encodeURIComponent(`Hello, I saw ${inst.name}'s profile on Brinto MockTest and want to know more about the test series.`)}`}
+            target="_blank"
+            rel="noopener"
+            class="btn-contact-whatsapp"
+          >
+            💬 Chat on WhatsApp
+          </a>
+        </div>
+
+        <!-- 4. Back Link to all institutes -->
+        <a href="/mocktest/institutes" class="sidebar-back-link">
+          ← Back to All Partner Institutes
+        </a>
+
+      </aside>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════ PARTNER BANNER ═════════ -->
+    <div class="institute-partner-cta-strip">
+      <div class="ipc-content">
+        <div class="ipc-badge">FOR EDUCATORS & TUITION TEACHERS</div>
+        <h2>Conduct Your Tests on Brinto MockTest</h2>
+        <p>
+          Are you a teacher, coaching institute, or subject expert in Odisha? Upload your mock tests, track state percentiles, and empower thousands of students for free.
+        </p>
+      </div>
+      <a href="https://outsource.brinto.in" target="_blank" rel="noopener" class="ipc-btn">
+        Become a Partner Educator →
+      </a>
+    </div>
+  </main>
+</BaseLayout>
+
+<!-- ═══════════════════════════════════════════════ CLIENT SCRIPT ═════════ -->
+<script>
+  // Interactive client-side filtering for Mock Tests
+  function initMockTestsFilter() {
+    const tabs = document.querySelectorAll<HTMLButtonElement>('.cat-tab');
+    const searchInput = document.getElementById('test-search-input') as HTMLInputElement | null;
+    const diffSelect = document.getElementById('diff-filter-select') as HTMLSelectElement | null;
+    const freeOnlyCheckbox = document.getElementById('free-only-checkbox') as HTMLInputElement | null;
+    const testCards = document.querySelectorAll<HTMLElement>('.mock-test-item-card');
+    const emptyState = document.getElementById('empty-tests-state');
+    const resetBtn = document.getElementById('reset-test-filters');
+
+    if (!testCards.length) return;
+
+    let activeCategory = 'All';
+    let searchQuery = '';
+    let activeDiff = 'All';
+    let freeOnly = false;
+
+    function applyFilters() {
+      let visibleCount = 0;
+
+      testCards.forEach(card => {
+        const cardCat = card.dataset.category || '';
+        const cardDiff = card.dataset.difficulty || '';
+        const cardFree = card.dataset.free === 'true';
+        const cardTitle = card.dataset.title || '';
+        const cardSyllabus = card.dataset.syllabus || '';
+
+        const matchesCat = activeCategory === 'All' || cardCat === activeCategory;
+        const matchesDiff = activeDiff === 'All' || cardDiff === activeDiff;
+        const matchesFree = !freeOnly || cardFree;
+        const matchesSearch = !searchQuery || cardTitle.includes(searchQuery) || cardSyllabus.includes(searchQuery);
+
+        if (matchesCat && matchesDiff && matchesFree && matchesSearch) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (emptyState) {
+        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+    }
+
+    // Category Tabs click
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        activeCategory = tab.dataset.category || 'All';
+        applyFilters();
+      });
+    });
+
+    // Search input
+    searchInput?.addEventListener('input', (e) => {
+      searchQuery = (e.target as HTMLInputElement).value.trim().toLowerCase();
+      applyFilters();
+    });
+
+    // Difficulty filter
+    diffSelect?.addEventListener('change', (e) => {
+      activeDiff = (e.target as HTMLSelectElement).value;
+      applyFilters();
+    });
+
+    // Free only toggle
+    freeOnlyCheckbox?.addEventListener('change', (e) => {
+      freeOnly = (e.target as HTMLInputElement).checked;
+      applyFilters();
+    });
+
+    // Reset button
+    resetBtn?.addEventListener('click', () => {
+      activeCategory = 'All';
+      searchQuery = '';
+      activeDiff = 'All';
+      freeOnly = false;
+
+      tabs.forEach(t => {
+        t.classList.toggle('active', t.dataset.category === 'All');
+        t.setAttribute('aria-selected', t.dataset.category === 'All' ? 'true' : 'false');
+      });
+
+      if (searchInput) searchInput.value = '';
+      if (diffSelect) diffSelect.value = 'All';
+      if (freeOnlyCheckbox) freeOnlyCheckbox.checked = false;
+
+      applyFilters();
+    });
+  }
+
+  // Initialize on DOM load and Astro page load
+  document.addEventListener('DOMContentLoaded', initMockTestsFilter);
+  document.addEventListener('astro:page-load', initMockTestsFilter);
+</script>
+
+<!-- ═══════════════════════════════════════════════ STYLES ════════════════ -->
+<style>
+  /* ── Variables & Scoped Colors ── */
+  :root {
+    --gold: #D4830F;
+    --gold-light: #FEF3E2;
+    --gold-dark: #8C5200;
+  }
+
+  /* ── Hero & Profile Section ── */
+  .profile-hero-section {
+    background: linear-gradient(180deg, #FFFFFF 0%, #FAF8F4 100%);
+    border-bottom: 1px solid var(--rule);
+    padding: 28px 0 36px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.84rem;
+    color: var(--ink-muted);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .breadcrumb a {
+    color: var(--brand);
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  .bc-sep {
+    color: var(--rule);
+  }
+
+  .bc-current {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  /* Profile Hero Card */
+  .profile-hero-card {
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: 0 4px 20px rgba(26, 20, 16, 0.04);
+    margin-bottom: 24px;
+  }
+
+  .phc-left {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  .phc-avatar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .phc-avatar {
+    width: 108px;
+    height: 108px;
+    border-radius: 24px;
+    color: #FFFFFF;
+    font-size: 2.2rem;
+    font-weight: 800;
+    font-family: var(--font-display);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    letter-spacing: -0.5px;
+    border: 3px solid #FFFFFF;
+  }
+
+  /* 15+ Yrs Exp Ribbon */
+  .exp-ribbon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #FEF3E2 0%, #FDE4BD 100%);
+    border: 1px solid #EAC07B;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+    color: #8C5200;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(212, 131, 15, 0.15);
+  }
+
+  .exp-ribbon strong {
+    font-weight: 800;
+    color: #693C00;
+  }
+
+  .exp-medal {
+    font-size: 0.95rem;
+  }
+
+  /* Details inside hero */
+  .phc-main-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .phc-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .partner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--brand-light);
+    color: var(--brand-dark);
+    border: 1px solid var(--brand-mid);
+    padding: 3px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .status-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--green);
+    background: var(--green-light);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulseDot 2s infinite;
+  }
+
+  @keyframes pulseDot {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+  }
+
+  .phc-name {
+    font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+    font-family: var(--font-display);
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .phc-odia-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--brand);
+    margin: 0;
+  }
+
+  .phc-meta-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+  }
+
+  .meta-chip {
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+  }
+
+  .chip-subj {
+    background: var(--brand-light);
+    color: var(--brand-dark);
+    border-color: var(--brand-mid);
+  }
+
+  .phc-highlight {
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin: 4px 0 6px;
+    font-style: italic;
+    background: var(--surface-2);
+    padding: 10px 16px;
+    border-left: 3px solid var(--brand);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  .highlight-quote {
+    color: var(--brand);
+    font-weight: 800;
+    font-size: 1.2rem;
+  }
+
+  .phc-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 100%);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 10px 22px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 4px 14px rgba(176, 0, 32, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .btn-primary-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(176, 0, 32, 0.35);
+  }
+
+  .btn-count {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 2px 7px;
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+  }
+
+  .btn-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #FFFFFF;
+    color: var(--ink);
+    border: 1.5px solid var(--rule);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 9px 18px;
+    border-radius: var(--radius-pill);
+    transition: all 0.15s ease;
+  }
+
+  .btn-secondary-action:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+
+  .btn-whatsapp-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #E8F5EE;
+    color: #1B6B3A;
+    border: 1.5px solid #A3D9B5;
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 9px 16px;
+    border-radius: var(--radius-pill);
+    transition: all 0.15s ease;
+  }
+
+  .btn-whatsapp-action:hover {
+    background: #1B6B3A;
+    color: #FFFFFF;
+  }
+
+  /* ── 5-Metric Experience Impact Bar ── */
+  .impact-metrics-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  }
+
+  .im-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .im-card.highlight-card {
+    background: linear-gradient(135deg, #FFFBF3 0%, #FEF8EC 100%);
+  }
+
+  .im-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  .im-data {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .im-value {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.35rem;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .im-label {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .im-divider {
+    width: 1px;
+    background: var(--rule);
+  }
+
+  .gold-text {
+    color: #B86A00 !important;
+  }
+
+  .green-text {
+    color: var(--green) !important;
+  }
+
+  /* ── Main Layout Body ── */
+  .profile-body-container {
+    padding-top: 36px;
+    padding-bottom: 72px;
+  }
+
+  .layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 36px;
+    align-items: start;
+  }
+
+  .main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .content-card {
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 24px;
+  }
+
+  .ch-left {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .ch-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  .ch-title {
+    font-size: 1.35rem;
+    font-family: var(--font-display);
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .ch-subtitle {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin: 4px 0 0;
+  }
+
+  .subsection-title {
+    font-size: 1rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 24px 0 14px;
+  }
+
+  /* About text */
+  .about-text-content p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* Achievements Grid */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .achieve-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+  }
+
+  .achieve-badge-num {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--brand);
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-display);
+  }
+
+  .achieve-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .achieve-check-icon {
+    color: var(--green);
+    font-weight: 800;
+    font-size: 1rem;
+  }
+
+  .achieve-text {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* Syllabus topics chips */
+  .syllabus-tags-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .syllabus-topic-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+
+  /* ── SECTION 2: PROPERLY STRUCTURED MOCK TESTS ── */
+  .title-with-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .badge-counter {
+    background: var(--brand-light);
+    color: var(--brand-dark);
+    border: 1px solid var(--brand-mid);
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  /* Test Controls Bar */
+  .tests-controls-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .category-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .cat-tab {
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-size: 0.84rem;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    transition: all 0.15s ease;
+  }
+
+  .cat-tab:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+
+  .cat-tab.active {
+    background: var(--brand);
+    color: #FFFFFF;
+    border-color: var(--brand);
+    box-shadow: 0 2px 8px rgba(176, 0, 32, 0.25);
+  }
+
+  .filters-subrow {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-pill);
+    padding: 8px 16px;
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .search-input-wrap svg {
+    color: var(--ink-muted);
+  }
+
+  .search-input-wrap input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.88rem;
+    font-family: inherit;
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .filter-controls-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .filter-controls-group select {
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-pill);
+    padding: 8px 14px;
+    font-size: 0.84rem;
+    font-family: inherit;
+    color: var(--ink-soft);
+    cursor: pointer;
+    outline: none;
+  }
+
+  .free-only-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    user-select: none;
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    padding: 7px 12px;
+    border-radius: var(--radius-pill);
+  }
+
+  .free-only-toggle input {
+    cursor: pointer;
+  }
+
+  /* Structured Mock Test Cards */
+  .structured-tests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .mock-test-item-card {
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .mock-test-item-card:hover {
+    border-color: var(--brand);
+    box-shadow: 0 6px 20px rgba(176, 0, 32, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .mti-top-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .mti-index-badge {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--ink-muted);
+    font-family: var(--font-display);
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .mti-meta-pill-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mti-cat-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+  }
+
+  .mti-free-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #1B6B3A;
+    background: #E8F5EE;
+    border: 1px solid #A3D9B5;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+  }
+
+  .mti-pro-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #7B0015;
+    background: #FFF0F2;
+    border: 1px solid #F5C6CE;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+  }
+
+  .mti-diff-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+  }
+
+  .mti-attempts-meta {
+    margin-left: auto;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+
+  .mti-body-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .mti-titles {
+    flex: 1;
+  }
+
+  .mti-title {
+    font-size: 1.12rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  .mti-odia-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--brand);
+    margin: 3px 0 0;
+  }
+
+  .mti-desc {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    margin: 6px 0 0;
+    line-height: 1.5;
+  }
+
+  .mti-cta-wrap {
+    flex-shrink: 0;
+  }
+
+  .btn-start-test {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 100%);
+    color: #FFFFFF;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 4px 12px rgba(176, 0, 32, 0.2);
+  }
+
+  .btn-start-test:hover {
+    transform: translateX(3px);
+    box-shadow: 0 6px 16px rgba(176, 0, 32, 0.3);
+  }
+
+  /* Specifications Strip */
+  .mti-specs-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    flex-wrap: wrap;
+  }
+
+  .spec-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  .spec-icon {
+    font-size: 0.88rem;
+  }
+
+  .spec-bullet {
+    color: var(--rule);
+    font-size: 0.8rem;
+  }
+
+  /* Syllabus Bar */
+  .mti-syllabus-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+  }
+
+  .syl-label {
+    font-weight: 700;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+  }
+
+  .syl-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .syl-pill {
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+  }
+
+  /* Empty Search State */
+  .empty-search-state {
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--surface-2);
+    border: 1px dashed var(--rule);
+    border-radius: var(--radius-md);
+  }
+
+  .empty-icon {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+  }
+
+  .empty-search-state h3 {
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .empty-search-state p {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    max-width: 420px;
+    margin: 0 auto 16px;
+  }
+
+  .btn-reset-filters {
+    background: var(--brand);
+    color: #FFFFFF;
+    border: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 8px 18px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+  }
+
+  /* ── SECTION 3: REVIEWS & TESTIMONIALS ── */
+  .rating-overview-card {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+
+  .ro-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-right: 28px;
+    border-right: 1px solid var(--rule);
+    min-width: 160px;
+  }
+
+  .ro-score {
+    font-size: 3.5rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .ro-stars {
+    color: #B86A00;
+    font-size: 1.25rem;
+    letter-spacing: 2px;
+  }
+
+  .ro-count {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    text-align: center;
+  }
+
+  .ro-verified-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--green);
+    background: var(--green-light);
+    border: 1px solid #A3D9B5;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+  }
+
+  .ro-right-bars {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  .bar-label {
+    min-width: 50px;
+    font-weight: 600;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: #E4DDD0;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: #B86A00;
+    border-radius: 999px;
+  }
+
+  .bar-pct {
+    min-width: 32px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+
+  .reviews-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .review-item-card {
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ric-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ric-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #FFFFFF;
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ric-user-meta {
+    flex: 1;
+  }
+
+  .ric-name {
+    font-size: 0.94rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .ric-location {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    margin: 2px 0 0;
+  }
+
+  .ric-stars {
+    color: #B86A00;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+  }
+
+  .ric-score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #FEF3E2;
+    border: 1px solid #EAC07B;
+    color: #8C5200;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    width: fit-content;
+  }
+
+  .ric-text {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin: 0;
+    font-style: italic;
+  }
+
+  .ric-date {
+    font-size: 0.74rem;
+    color: var(--ink-muted);
+  }
+
+  /* ── RIGHT COLUMN: SIDEBAR ── */
+  .sidebar-column {
+    position: sticky;
+    top: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .sidebar-card {
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  }
+
+  .sc-heading {
+    font-size: 0.82rem;
+    font-family: var(--font-body);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin: 0 0 16px;
+  }
+
+  .sc-details-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sc-details-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.86rem;
+  }
+
+  .sc-details-list li:last-child {
+    border-bottom: none;
+  }
+
+  .sc-label {
+    color: var(--ink-soft);
+  }
+
+  .sc-value {
+    color: var(--ink);
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* Test Bank Card */
+  .bank-overview-card {
+    background: linear-gradient(180deg, #FFFFFF 0%, #FAF8F4 100%);
+  }
+
+  .bank-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .bs-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    padding: 8px 4px;
+    border-radius: var(--radius-sm);
+  }
+
+  .bs-val {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: var(--brand);
+  }
+
+  .bs-lbl {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+  }
+
+  .btn-sidebar-cta {
+    display: block;
+    text-align: center;
+    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 100%);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.86rem;
+    padding: 10px 16px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 4px 12px rgba(176, 0, 32, 0.2);
+    transition: transform 0.15s ease;
+  }
+
+  .btn-sidebar-cta:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Contact Card */
+  .contact-card {
+    background: linear-gradient(135deg, #FFF9FA 0%, #FFF0F2 100%);
+    border-color: var(--brand-mid);
+  }
+
+  .cc-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--brand);
+    margin-bottom: 6px;
+  }
+
+  .cc-title {
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .cc-desc {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 16px;
+  }
+
+  .btn-contact-call {
+    display: block;
+    text-align: center;
+    background: var(--brand);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 10px 16px;
+    border-radius: var(--radius-pill);
+    margin-bottom: 8px;
+    transition: background 0.15s ease;
+  }
+
+  .btn-contact-call:hover {
+    background: var(--brand-dark);
+  }
+
+  .btn-contact-whatsapp {
+    display: block;
+    text-align: center;
+    background: #E8F5EE;
+    color: #1B6B3A;
+    border: 1px solid #A3D9B5;
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 10px 16px;
+    border-radius: var(--radius-pill);
+    transition: all 0.15s ease;
+  }
+
+  .btn-contact-whatsapp:hover {
+    background: #1B6B3A;
+    color: #FFFFFF;
+  }
+
+  .sidebar-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    padding: 6px 0;
+    transition: color 0.15s;
+  }
+
+  .sidebar-back-link:hover {
+    color: var(--brand);
+  }
+
+  /* ── Bottom Educator Partner Strip ── */
+  .institute-partner-cta-strip {
+    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 100%);
+    border-radius: var(--radius-lg);
+    padding: 32px 36px;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    margin-top: 48px;
+  }
+
+  .ipc-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 6px;
+  }
+
+  .ipc-content h2 {
+    font-size: 1.4rem;
+    color: #FFFFFF;
+    margin: 0 0 6px;
+  }
+
+  .ipc-content p {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.88);
+    margin: 0;
+    max-width: 680px;
+    line-height: 1.5;
+  }
+
+  .ipc-btn {
+    background: #FFFFFF;
+    color: var(--brand);
+    font-weight: 800;
+    font-size: 0.92rem;
+    padding: 12px 24px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .ipc-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  /* ── Responsive Media Queries ── */
+  @media (max-width: 1080px) {
+    .layout-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar-column {
+      position: static;
+    }
+
+    .impact-metrics-bar {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .im-divider:nth-child(6) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .phc-left {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .phc-avatar-wrap {
+      flex-direction: row;
+      gap: 16px;
+    }
+
+    .phc-avatar {
+      width: 80px;
+      height: 80px;
+      font-size: 1.7rem;
+    }
+
+    .impact-metrics-bar {
+      grid-template-columns: 1fr;
+    }
+
+    .im-divider {
+      width: 100%;
+      height: 1px;
+    }
+
+    .achievements-grid,
+    .syllabus-tags-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .rating-overview-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .ro-left {
+      padding-right: 0;
+      border-right: none;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 16px;
+      width: 100%;
+    }
+
+    .mti-body-row {
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .mti-cta-wrap {
+      width: 100%;
+    }
+
+    .btn-start-test {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .institute-partner-cta-strip {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 24px;
+    }
+  }
+</style>
