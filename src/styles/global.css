@@ -16,13 +16,13 @@
   --green-light:  #E8F5EE;
 
   /* Neutrals */
-  --bg:           #FAF8F4;
+  --bg:           #FFFFFF;
   --surface:      #FFFFFF;
-  --surface-2:    #F5F2ED;
+  --surface-2:    #F8FAFC;
   --ink:          #1A1410;
-  --ink-soft:     #5C5248;
-  --ink-muted:    #9C9189;
-  --rule:         #E4DDD0;
+  --ink-soft:     #4B5563;
+  --ink-muted:    #9CA3AF;
+  --rule:         #E5E7EB;
 
   /* Type */
   --font-display: 'Source Serif 4', Georgia, serif;

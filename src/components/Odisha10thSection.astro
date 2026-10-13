@@ -2,6 +2,7 @@
 // Simple static UI component for Odisha 10th Board Students
 const subjects = [
   {
+    id: 'math',
     icon: '📐',
     badge: 'BSE Class 10',
     title: 'Mathematics (ଗଣିତ)',
@@ -11,10 +12,11 @@ const subjects = [
     duration: 45,
     attempts: '18.4k',
     rating: '4.9',
-    href: '/mocktest/tests',
+    href: '/mocktest/odisha-10th-mock-test#subject-math',
     isNew: true,
   },
   {
+    id: 'science',
     icon: '🔬',
     badge: 'BSE Class 10',
     title: 'Science (ବିଜ୍ଞାନ)',
@@ -24,10 +26,11 @@ const subjects = [
     duration: 45,
     attempts: '16.8k',
     rating: '4.8',
-    href: '/mocktest/tests',
+    href: '/mocktest/odisha-10th-mock-test#subject-science',
     isNew: false,
   },
   {
+    id: 'social',
     icon: '📜',
     badge: 'BSE Class 10',
     title: 'Social Science (ସାମାଜିକ ବିଜ୍ଞାନ)',
@@ -37,10 +40,11 @@ const subjects = [
     duration: 40,
     attempts: '14.2k',
     rating: '4.8',
-    href: '/mocktest/tests',
+    href: '/mocktest/odisha-10th-mock-test#subject-social',
     isNew: false,
   },
   {
+    id: 'odia',
     icon: '📖',
     badge: 'BSE Class 10',
     title: 'Odia Sahitya (ସାହିତ୍ୟ)',
@@ -50,10 +54,11 @@ const subjects = [
     duration: 40,
     attempts: '19.1k',
     rating: '4.9',
-    href: '/mocktest/tests',
+    href: '/mocktest/odisha-10th-mock-test#subject-odia',
     isNew: true,
   },
   {
+    id: 'english',
     icon: '🇬🇧',
     badge: 'BSE Class 10',
     title: 'English (Second Language)',
@@ -63,10 +68,11 @@ const subjects = [
     duration: 40,
     attempts: '15.6k',
     rating: '4.7',
-    href: '/mocktest/tests',
+    href: '/mocktest/odisha-10th-mock-test#subject-english',
     isNew: false,
   },
   {
+    id: 'sanskrit-hindi',
     icon: '🕉️',
     badge: 'BSE Class 10',
     title: 'Sanskrit / Hindi (Third Language)',
@@ -76,7 +82,7 @@ const subjects = [
     duration: 40,
     attempts: '11.3k',
     rating: '4.8',
-    href: '/mocktest/tests',
+    href: '/mocktest/odisha-10th-mock-test#subject-sanskrit-hindi',
     isNew: false,
   },
 ];
@@ -96,7 +102,7 @@ const subjects = [
           Subject-wise objective practice sets, chapter MCQs & model papers tailored for BSE Odisha Class 10th Matriculation Board exams.
         </p>
       </div>
-      <a href="/mocktest/tests" class="o10-see-all">
+      <a href="/mocktest/odisha-10th-mock-test" class="o10-see-all">
         View all 10th tests →
       </a>
     </div>
@@ -179,7 +185,7 @@ const subjects = [
 
 <style>
   .odisha-10th-section {
-    background: linear-gradient(180deg, #FAF8F4 0%, #FFF5F6 100%);
+    background: #ffffff;
     border-top: 1px solid var(--rule);
     border-bottom: 1px solid var(--rule);
     padding: 64px 0;
@@ -293,10 +299,10 @@ const subjects = [
   .o10-icon {
     font-size: 1.8rem;
     line-height: 1;
-    background: var(--surface-2);
+    background: #fff5f6;
     padding: 10px;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--rule);
+    border: 1px solid var(--brand-mid);
     flex-shrink: 0;
   }
 
@@ -342,7 +348,7 @@ const subjects = [
   .o10-tag {
     font-size: 0.72rem;
     color: var(--ink-soft);
-    background: var(--surface-2);
+    background: #f8fafc;
     padding: 3px 9px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--rule);
