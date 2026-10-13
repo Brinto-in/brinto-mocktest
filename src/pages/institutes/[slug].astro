@@ -137,8 +137,8 @@ function starsStr(n: number) {
         </div>
       </div>
 
-      <!-- ── 5-Metric Experience Impact Bar ── -->
-      <div class="impact-metrics-bar">
+      <!-- ── 5-Metric Experience Impact Bar (Single Line) ── -->
+      <div class="impact-metrics-bar" role="region" aria-label="Key Educator Impact Statistics">
         <div class="im-card highlight-card">
           <div class="im-icon">🎖️</div>
           <div class="im-data">
@@ -146,8 +146,6 @@ function starsStr(n: number) {
             <span class="im-label">Teaching Legacy</span>
           </div>
         </div>
-
-        <div class="im-divider"></div>
 
         <div class="im-card">
           <div class="im-icon">📝</div>
@@ -157,8 +155,6 @@ function starsStr(n: number) {
           </div>
         </div>
 
-        <div class="im-divider"></div>
-
         <div class="im-card">
           <div class="im-icon">👥</div>
           <div class="im-data">
@@ -167,8 +163,6 @@ function starsStr(n: number) {
           </div>
         </div>
 
-        <div class="im-divider"></div>
-
         <div class="im-card">
           <div class="im-icon">★</div>
           <div class="im-data">
@@ -176,8 +170,6 @@ function starsStr(n: number) {
             <span class="im-label">{inst.reviewCount} Verified Reviews</span>
           </div>
         </div>
-
-        <div class="im-divider"></div>
 
         <div class="im-card">
           <div class="im-icon">🎯</div>
@@ -1016,22 +1008,39 @@ function starsStr(n: number) {
     color: #FFFFFF;
   }
 
-  /* ── 5-Metric Experience Impact Bar ── */
+  /* ── 5-Metric Experience Impact Bar (Strictly Single Line) ── */
   .impact-metrics-bar {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
     background: #FFFFFF;
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
-    overflow: hidden;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .impact-metrics-bar::-webkit-scrollbar {
+    display: none;
   }
 
   .im-card {
+    flex: 1 1 0px;
+    min-width: 170px;
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
+    border-right: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  .im-card:last-child {
+    border-right: none;
   }
 
   .im-card.highlight-card {
@@ -1039,35 +1048,34 @@ function starsStr(n: number) {
   }
 
   .im-icon {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   .im-data {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    min-width: 0;
   }
 
   .im-value {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     color: var(--ink);
-    line-height: 1.1;
+    line-height: 1.15;
+    white-space: nowrap;
   }
 
   .im-label {
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     font-weight: 600;
     color: var(--ink-muted);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .im-divider {
-    width: 1px;
-    background: var(--rule);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
   }
 
   .gold-text {
@@ -2034,12 +2042,14 @@ function starsStr(n: number) {
       position: static;
     }
 
-    .impact-metrics-bar {
-      grid-template-columns: repeat(3, 1fr);
+    /* Keep impact-metrics-bar strictly in 1 single line */
+    .im-card {
+      padding: 14px 16px;
+      min-width: 155px;
+      gap: 10px;
     }
-
-    .im-divider:nth-child(6) {
-      display: none;
+    .im-value {
+      font-size: 1.2rem;
     }
   }
 
@@ -2061,13 +2071,20 @@ function starsStr(n: number) {
       font-size: 1.7rem;
     }
 
-    .impact-metrics-bar {
-      grid-template-columns: 1fr;
+    /* On mobile, keep impact-metrics-bar strictly in a single line with smooth touch scroll */
+    .im-card {
+      padding: 12px 14px;
+      min-width: 140px;
+      gap: 8px;
     }
-
-    .im-divider {
-      width: 100%;
-      height: 1px;
+    .im-icon {
+      font-size: 1.25rem;
+    }
+    .im-value {
+      font-size: 1.08rem;
+    }
+    .im-label {
+      font-size: 0.66rem;
     }
 
     .achievements-grid,
