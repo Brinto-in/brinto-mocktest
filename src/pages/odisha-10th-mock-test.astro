@@ -207,32 +207,6 @@ const webPageJsonLd = {
                 <p class="hsc-card-desc">{s.description}</p>
                 <p class="hsc-card-desc-odia">{s.descriptionOdia}</p>
 
-                <!-- Sub-Streams / Papers -->
-                <div class="hsc-substreams">
-                  <span class="hsc-substream-label">Includes:</span>
-                  {s.subStreams.map((sub) => (
-                    <span class="hsc-substream-chip">{sub}</span>
-                  ))}
-                </div>
-
-                <!-- Chapters Preview List -->
-                <div class="hsc-chapters-preview">
-                  <div class="hsc-chapters-heading">
-                    <span>Key Syllabus Topics</span>
-                    <a href={`#blueprint-${s.id}`} class="hsc-view-all-link">Full Blueprint →</a>
-                  </div>
-                  <ul class="hsc-chapter-list">
-                    {s.chapters.flatMap((c) => c.topics.slice(0, 3)).slice(0, 4).map((topic) => (
-                      <li>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        <span>{topic}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
                 <!-- Meta Specs -->
                 <div class="hsc-card-meta">
                   <div class="hsc-meta-item">
@@ -689,6 +663,51 @@ const webPageJsonLd = {
         </div>
       </div>
     </dialog>
+
+    <!-- ── 9. TEST MODE & CHAPTER SELECTOR MODAL ─────────── -->
+    <dialog class="hsc-mode-modal" id="hsc-mode-modal" aria-label="Choose Test Mode">
+      <div class="hsc-modal-container">
+        <div class="hsc-sheet-handle" aria-hidden="true"></div>
+        <header class="hsc-modal-header">
+          <div class="hsc-modal-header-left">
+            <span class="hsc-test-badge" id="mode-modal-badge">BSE Class 10</span>
+            <h2 id="mode-modal-title" class="hsc-modal-test-name">Select Test or Chapter</h2>
+          </div>
+          <button type="button" class="hsc-modal-btn-close" id="btn-close-mode-modal" aria-label="Close">
+            &times;
+          </button>
+        </header>
+        <div class="hsc-modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+          <p style="color: var(--ink-soft); font-size: 0.9rem; margin: 0; line-height: 1.4;">
+            Choose whether to attempt the full subject test or practice a specific chapter for <strong id="mode-subject-name" style="color: var(--ink);">Subject</strong>:
+          </p>
+
+          <!-- Option 1: Full Test -->
+          <button type="button" class="hsc-full-test-option-btn" id="btn-mode-full">
+            <div class="hsc-opt-left">
+              <span class="hsc-opt-icon">🚀</span>
+              <div>
+                <strong>Full Subject Grand Test</strong>
+                <span>50 MCQs • Complete Syllabus • Timed (45 Mins)</span>
+              </div>
+            </div>
+            <span class="hsc-opt-cta">Start Full Test →</span>
+          </button>
+
+          <!-- Divider / Separator -->
+          <div class="hsc-modal-divider">
+            <hr />
+            <span>OR CHOOSE CHAPTER</span>
+            <hr />
+          </div>
+
+          <!-- Option 2: Chapters List -->
+          <div id="chapters-list-container" class="hsc-chapters-modal-list">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </div>
+    </dialog>
   </div>
 </BaseLayout>
 
@@ -769,20 +788,30 @@ const webPageJsonLd = {
     let testStartTime = 0;
     let currentSubjectId = 'all';
 
-    function startTest(subjectId) {
+    function startTest(subjectId, mode = 'full', chapterIndex = null) {
       currentSubjectId = subjectId;
       if (subjectId === 'all') {
         activeQuestions = [...questionsData];
         modalTitle.textContent = 'BSE Class 10 Grand Mock Test (All Subjects)';
         modalBadge.textContent = 'Full Model Set';
       } else {
-        activeQuestions = questionsData.filter((q) => q.subjectId === subjectId);
-        if (activeQuestions.length === 0) {
-          activeQuestions = [...questionsData];
-        }
         const subj = subjectsData.find((s) => s.id === subjectId);
-        modalTitle.textContent = subj ? `${subj.name} (${subj.nameOdia}) Mock Test` : '10th Mock Test';
-        modalBadge.textContent = subj ? subj.code : 'BSE Class 10';
+        let subjQuestions = questionsData.filter((q) => q.subjectId === subjectId);
+
+        if (mode === 'chapter' && chapterIndex !== null && subj && subj.chapters[chapterIndex]) {
+          const ch = subj.chapters[chapterIndex];
+          const filtered = subjQuestions.filter((q) => {
+            return (q.topic && (q.topic === ch.unit || ch.unit.includes(q.topic) || q.topic.includes(ch.unit))) ||
+                   ch.topics.some((t) => q.topic && q.topic.toLowerCase().includes(t.toLowerCase()));
+          });
+          activeQuestions = filtered.length > 0 ? filtered : subjQuestions.slice(0, 5);
+          modalTitle.textContent = `${subj.name}: ${ch.unit}`;
+          modalBadge.textContent = 'Chapter Practice';
+        } else {
+          activeQuestions = subjQuestions.length > 0 ? subjQuestions : [...questionsData];
+          modalTitle.textContent = subj ? `${subj.name} (${subj.nameOdia}) Full Mock Test` : '10th Mock Test';
+          modalBadge.textContent = subj ? subj.code : 'BSE Class 10';
+        }
       }
 
       currentIdx = 0;
@@ -1076,6 +1105,97 @@ const webPageJsonLd = {
       startTest(currentSubjectId);
     });
 
+    // Mode Modal Logic
+    const modeModal = document.getElementById('hsc-mode-modal');
+    const btnCloseModeModal = document.getElementById('btn-close-mode-modal');
+    const modeSubjectName = document.getElementById('mode-subject-name');
+    const modeModalBadge = document.getElementById('mode-modal-badge');
+    const btnModeFull = document.getElementById('btn-mode-full');
+    const chaptersListContainer = document.getElementById('chapters-list-container');
+
+    let selectedSubjectForMode = null;
+
+    function openModeModal(subjectId) {
+      if (subjectId === 'all') {
+        startTest('all');
+        return;
+      }
+      selectedSubjectForMode = subjectId;
+      const subj = subjectsData.find((s) => s.id === subjectId);
+      modeSubjectName.textContent = subj ? `${subj.name} (${subj.nameOdia})` : 'Subject';
+      modeModalBadge.textContent = subj ? subj.code : 'BSE Class 10';
+
+      renderChaptersList(subjectId);
+
+      if (typeof modeModal.showModal === 'function') {
+        modeModal.showModal();
+      } else {
+        modeModal.setAttribute('open', 'true');
+      }
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModeModal() {
+      if (typeof modeModal.close === 'function') {
+        modeModal.close();
+      } else {
+        modeModal.removeAttribute('open');
+      }
+      document.body.style.overflow = '';
+    }
+
+    modeModal.addEventListener('cancel', () => {
+      document.body.style.overflow = '';
+    });
+
+    if (btnCloseModeModal) {
+      btnCloseModeModal.addEventListener('click', closeModeModal);
+    }
+
+    if (btnModeFull) {
+      btnModeFull.addEventListener('click', () => {
+        closeModeModal();
+        startTest(selectedSubjectForMode, 'full');
+      });
+    }
+
+    function renderChaptersList(subjectId) {
+      if (!chaptersListContainer) return;
+      chaptersListContainer.innerHTML = '';
+      const subj = subjectsData.find((s) => s.id === subjectId);
+      if (!subj || !subj.chapters) return;
+
+      subj.chapters.forEach((ch, chIdx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.style.cssText = 'background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left; width: 100%; transition: all 0.15s ease;';
+
+        btn.onmouseover = () => {
+          btn.style.borderColor = '#b00020';
+          btn.style.background = '#fff5f6';
+        };
+        btn.onmouseout = () => {
+          btn.style.borderColor = '#e5e7eb';
+          btn.style.background = '#ffffff';
+        };
+
+        btn.innerHTML = `
+          <div>
+            <strong style="display: block; font-size: 0.9rem; color: #111827;">${ch.unit}</strong>
+            <span style="font-size: 0.78rem; color: #4b5563;">${ch.unitOdia} • Weightage: ${ch.weightageMarks} Marks</span>
+          </div>
+          <span style="font-weight: 700; color: #b00020; font-size: 0.85rem;">Practice →</span>
+        `;
+
+        btn.addEventListener('click', () => {
+          closeModeModal();
+          startTest(subjectId, 'chapter', chIdx);
+        });
+
+        chaptersListContainer.appendChild(btn);
+      });
+    }
+
     // Modal Close
     btnCloseModal.addEventListener('click', closeTestModal);
     btnExitModal.addEventListener('click', closeTestModal);
@@ -1084,13 +1204,165 @@ const webPageJsonLd = {
     document.querySelectorAll('[data-subject]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const subjId = btn.getAttribute('data-subject') || 'all';
-        startTest(subjId);
+        openModeModal(subjId);
       });
     });
   })();
 </script>
 
-<style>
+<style is:global>
+  /* ── MODE SELECTOR MODAL / BOTTOM SHEET ─────────────── */
+  .hsc-mode-modal {
+    width: 94vw;
+    max-width: 600px;
+    height: auto;
+    max-height: 90vh;
+    border: none;
+    border-radius: 20px;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+  }
+  .hsc-mode-modal::backdrop {
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+  }
+  .hsc-sheet-handle {
+    display: none;
+    width: 40px;
+    height: 4px;
+    background: var(--rule);
+    border-radius: 2px;
+    margin: 10px auto 2px;
+  }
+  @media (max-width: 768px) {
+    .hsc-mode-modal {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      top: auto;
+      margin: 0;
+      width: 100vw;
+      max-width: 100vw;
+      max-height: 85vh;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      animation: slideUpBottomsheet 0.25s ease-out;
+    }
+    .hsc-sheet-handle {
+      display: block;
+    }
+    @keyframes slideUpBottomsheet {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+  }
+  .hsc-modal-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 2px 0;
+    color: var(--ink-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .hsc-modal-divider hr {
+    flex: 1;
+    border: none;
+    border-top: 1px solid var(--rule);
+  }
+  .hsc-chapters-modal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .hsc-full-test-option-btn {
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+  .hsc-full-test-option-btn:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+  .hsc-full-test-option-btn:hover strong,
+  .hsc-full-test-option-btn:hover span {
+    color: #ffffff !important;
+  }
+  .hsc-opt-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hsc-opt-icon {
+    font-size: 1.6rem;
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+  .hsc-full-test-option-btn strong {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .hsc-full-test-option-btn span {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .hsc-opt-cta {
+    font-weight: 700;
+    color: var(--brand);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  .hsc-chapter-item-btn {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: all 0.15s ease;
+  }
+  .hsc-chapter-item-btn:hover {
+    border-color: var(--brand);
+    background: #fff5f6;
+  }
+
+  @media (max-width: 640px) {
+    .hsc-full-test-option-btn {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .hsc-opt-cta {
+      align-self: flex-end;
+    }
+  }
+
   /* ── ROOT & LAYOUT ──────────────────────────────────── */
   .hsc-page {
     --brand: #b00020;
@@ -2198,9 +2470,10 @@ const webPageJsonLd = {
 
   /* ── INTERACTIVE TEST RUNNER MODAL ──────────────────── */
   .hsc-test-modal {
-    width: 95vw;
+    width: 96vw;
     max-width: 1100px;
-    height: 92vh;
+    height: 94vh;
+    max-height: 900px;
     border: none;
     border-radius: 20px;
     padding: 0;
@@ -2213,6 +2486,39 @@ const webPageJsonLd = {
   .hsc-test-modal::backdrop {
     background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(4px);
+  }
+
+  @media (max-width: 768px) {
+    .hsc-test-modal {
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+    .hsc-modal-header {
+      padding: 10px 16px;
+      gap: 10px;
+    }
+    .hsc-modal-test-name {
+      font-size: 0.95rem;
+    }
+    .hsc-modal-timer-box {
+      font-size: 0.9rem;
+      padding: 4px 10px;
+    }
+    .hsc-test-main-view {
+      padding: 16px;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .hsc-modal-header-left {
+      gap: 8px;
+    }
+    .hsc-test-badge {
+      display: none;
+    }
   }
 
   .hsc-modal-container {
