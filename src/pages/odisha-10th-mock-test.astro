@@ -172,11 +172,11 @@ const webPageJsonLd = {
         <!-- Subject Filter Pills -->
         <div class="hsc-filter-tabs" role="tablist" aria-label="Subject filter tabs">
           <button class="hsc-filter-tab active" data-filter="all" role="tab" aria-selected="true">
-            All Subjects (6)
+            All Subjects (7)
           </button>
           {ODISHA_10TH_SUBJECTS.map((s) => (
             <button class="hsc-filter-tab" data-filter={s.id} role="tab" aria-selected="false">
-              <span>{s.icon}</span> {s.name} ({s.nameOdia})
+              <span>{s.icon}</span> {s.nameOdia}
             </button>
           ))}
         </div>
@@ -199,7 +199,7 @@ const webPageJsonLd = {
                       {s.isPopular && <span class="hsc-popular-badge">★ Popular</span>}
                     </div>
                     <h3 class="hsc-card-title">
-                      {s.name} <span class="hsc-card-title-odia">({s.nameOdia})</span>
+                      {s.nameOdia}
                     </h3>
                   </div>
                 </div>
