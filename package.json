@@ -18,13 +18,13 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
     "@libsql/client": "^0.18.0",
-    "astro": "7.3.8",
-    "dotenv": "18.0.7",
+    "astro": "7.4.0",
+    "dotenv": "18.0.8",
     "firebase": "13.0.0"
   },
   "devDependencies": {
-    "@astrojs/cloudflare": "^14.3.4",
+    "@astrojs/cloudflare": "^14.4.0",
     "tsx": "^4.23.15",
-    "wrangler": "^4.149.0"
+    "wrangler": "^4.151.0"
   }
 }
