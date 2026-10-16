@@ -1,21 +1,58 @@
 ---
+const currentPath = Astro.url.pathname;
+
 const nav = [
-  { href: '/mocktest/tests', label: 'Tests' },
-  { href: '/mocktest/institutes', label: 'Institutes' },
-  { href: '/mocktest/results', label: 'My Results' },
-  { href: '/mocktest/leaderboard', label: 'Leaderboard' },
+  {
+    href: '/mocktest/tests',
+    label: 'Tests',
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>`
+  },
+  {
+    href: '/mocktest/institutes',
+    label: 'Institutes',
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>`
+  },
+  {
+    href: '/mocktest/results',
+    label: 'My Results',
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
+  },
+  {
+    href: '/mocktest/leaderboard',
+    label: 'Leaderboard',
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>`
+  },
 ];
+
+function isNavActive(href: string) {
+  if (href === '/mocktest' && (currentPath === '/mocktest' || currentPath === '/mocktest/')) {
+    return true;
+  }
+  if (href !== '/mocktest' && currentPath.startsWith(href)) {
+    return true;
+  }
+  return false;
+}
 ---
 
 <header class="header">
   <div class="wrap bar">
     <a href="/mocktest" class="brand" aria-label="Brinto MockTest home">
-      <img src="/logo.png" alt="Brinto MockTest logo" width="32" height="32" class="logo-mark" />
+      <img src="/logo.png" alt="Brinto MockTest logo" width="32" height="32" class="logo-mark" onerror="this.onerror=null;this.src='/mocktest/logo.png';" />
     </a>
 
     <nav class="nav-desktop" aria-label="Primary">
       <ul>
-        {nav.map(n => <li><a href={n.href}>{n.label}</a></li>)}
+        {nav.map(n => {
+          const active = isNavActive(n.href);
+          return (
+            <li>
+              <a href={n.href} class={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
+                {n.label}
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </nav>
 
@@ -39,22 +76,97 @@ const nav = [
       </div>
     </div>
 
-    <button class="hamburger" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu(this)">
+    <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false" onclick="toggleMenu(this)">
       <span></span><span></span><span></span>
     </button>
   </div>
-
-  <nav class="nav-mobile" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true">
-    <ul>
-      {nav.map(n => <li><a href={n.href}>{n.label}</a></li>)}
-      <li data-auth-guest><button type="button" class="mobile-login" data-open-login>Log in</button></li>
-      <li data-auth-guest><a href="/mocktest/signup" class="mobile-signup">Start Free →</a></li>
-      <li data-auth-user hidden><span class="mobile-user" data-profile-name>User</span></li>
-      <li data-auth-user hidden><button type="button" class="mobile-login" id="mobile-logout-btn">Log out</button></li>
-    </ul>
-  </nav>
 </header>
 
+<!-- Mobile Navigation Backdrop Overlay (outside header stacking context) -->
+<div class="nav-mobile-backdrop" id="mobile-nav-backdrop" aria-hidden="true" onclick="closeMenu()"></div>
+
+<!-- Mobile Navigation Right-To-Left Slide Drawer -->
+<nav class="nav-mobile" id="mobile-nav" aria-label="Mobile navigation" aria-hidden="true">
+  <div class="drawer-inner">
+    <!-- Drawer Header -->
+    <div class="drawer-header">
+      <a href="/mocktest" class="drawer-brand" onclick="closeMenu()">
+        <img src="/logo.png" alt="Brinto Logo" width="28" height="28" class="drawer-logo" onerror="this.onerror=null;this.src='/mocktest/logo.png';" />
+        <span class="drawer-brand-name">Brinto<span class="brand-accent">MockTest</span></span>
+      </a>
+      <button type="button" class="drawer-close-btn" aria-label="Close menu" onclick="closeMenu()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- User Profile Header in Drawer (Logged In) -->
+    <div class="drawer-user-card" data-auth-user hidden style="--i: 1">
+      <div class="drawer-user-avatar" data-profile-initial>U</div>
+      <div class="drawer-user-info">
+        <span class="drawer-user-name" data-profile-name>User</span>
+        <span class="drawer-user-phone" data-profile-phone></span>
+      </div>
+      <span class="drawer-user-badge">Active</span>
+    </div>
+
+    <!-- Drawer Body / Nav List -->
+    <div class="drawer-body">
+      <p class="drawer-section-title">Navigation</p>
+      <ul class="drawer-menu">
+        {nav.map((n, idx) => {
+          const active = isNavActive(n.href);
+          return (
+            <li style={`--i: ${idx + 2}`}>
+              <a href={n.href} class={active ? 'drawer-link active' : 'drawer-link'} aria-current={active ? 'page' : undefined} onclick="closeMenu()">
+                <span class="drawer-link-icon" set:html={n.icon} />
+                <span class="drawer-link-text">{n.label}</span>
+                <svg class="drawer-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div class="drawer-divider"></div>
+
+      <!-- Guest Actions -->
+      <div class="drawer-guest-actions" data-auth-guest style="--i: 6">
+        <button type="button" class="drawer-btn-login" data-open-login>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          <span>Log in</span>
+        </button>
+      </div>
+
+      <!-- Logged In User Actions -->
+      <div class="drawer-user-actions" data-auth-user hidden style="--i: 6">
+        <button type="button" class="drawer-btn-logout" id="mobile-logout-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Log out</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Drawer Footer -->
+    <div class="drawer-footer">
+      <span class="drawer-footer-text">Brinto MockTest Platform</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Login Modal Overlay -->
 <div class="login-overlay" id="login-overlay" aria-hidden="true">
   <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
     <button type="button" class="login-close" aria-label="Close login" data-close-login>&times;</button>
@@ -103,14 +215,126 @@ const nav = [
   </div>
 </div>
 
+<!-- Logout Confirmation Bottom Sheet / Modal -->
+<div class="logout-sheet-backdrop" id="logout-sheet-backdrop" aria-hidden="true" onclick="closeLogoutSheet()">
+  <div class="logout-sheet" id="logout-sheet" role="dialog" aria-modal="true" aria-labelledby="logout-sheet-title" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </div>
+      <div class="sheet-text">
+        <h3 id="logout-sheet-title" class="sheet-title">Confirm Logout</h3>
+        <p class="sheet-sub">Are you sure you want to log out of Brinto MockTest?</p>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="sheet-btn-cancel" id="cancel-logout-btn" onclick="closeLogoutSheet()">Cancel</button>
+      <button type="button" class="sheet-btn-confirm" id="confirm-logout-btn">Log out</button>
+    </div>
+  </div>
+</div>
+
 <script is:inline>
+  var drawerTimer = null;
+  var sheetTimer = null;
+
   function toggleMenu(btn) {
     const nav = document.getElementById('mobile-nav');
-    const open = nav.classList.toggle('open');
-    btn.setAttribute('aria-expanded', open);
-    nav.setAttribute('aria-hidden', !open);
-    btn.classList.toggle('active', open);
+    const backdrop = document.getElementById('mobile-nav-backdrop');
+    const hamburger = document.getElementById('hamburger-btn');
+    if (!nav) return;
+
+    if (drawerTimer) {
+      clearTimeout(drawerTimer);
+      drawerTimer = null;
+    }
+
+    const isOpen = nav.classList.contains('open');
+    if (isOpen) {
+      closeMenu();
+    } else {
+      nav.style.display = 'block';
+      if (backdrop) backdrop.style.display = 'block';
+
+      // Force reflow for CSS transition
+      void nav.offsetWidth;
+      if (backdrop) void backdrop.offsetWidth;
+
+      nav.classList.add('open');
+      backdrop?.classList.add('open');
+      hamburger?.classList.add('active');
+      hamburger?.setAttribute('aria-expanded', 'true');
+      nav.setAttribute('aria-hidden', 'false');
+      backdrop?.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
   }
+
+  function closeMenu() {
+    const nav = document.getElementById('mobile-nav');
+    const backdrop = document.getElementById('mobile-nav-backdrop');
+    const hamburger = document.getElementById('hamburger-btn');
+
+    if (!nav) return;
+
+    nav.classList.remove('open');
+    backdrop?.classList.remove('open');
+    hamburger?.classList.remove('active');
+    hamburger?.setAttribute('aria-expanded', 'false');
+    nav.setAttribute('aria-hidden', 'true');
+    backdrop?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+
+    if (drawerTimer) clearTimeout(drawerTimer);
+    drawerTimer = setTimeout(function() {
+      if (!nav.classList.contains('open')) {
+        nav.style.display = 'none';
+        if (backdrop) backdrop.style.display = 'none';
+      }
+    }, 350);
+  }
+
+  function openLogoutSheet() {
+    const sheetBackdrop = document.getElementById('logout-sheet-backdrop');
+    if (!sheetBackdrop) return;
+
+    if (sheetTimer) {
+      clearTimeout(sheetTimer);
+      sheetTimer = null;
+    }
+
+    sheetBackdrop.style.display = 'flex';
+    void sheetBackdrop.offsetWidth;
+
+    sheetBackdrop.classList.add('open');
+    sheetBackdrop.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeLogoutSheet() {
+    const sheetBackdrop = document.getElementById('logout-sheet-backdrop');
+    if (!sheetBackdrop) return;
+
+    sheetBackdrop.classList.remove('open');
+    sheetBackdrop.setAttribute('aria-hidden', 'true');
+
+    if (sheetTimer) clearTimeout(sheetTimer);
+    sheetTimer = setTimeout(function() {
+      if (!sheetBackdrop.classList.contains('open')) {
+        sheetBackdrop.style.display = 'none';
+      }
+    }, 350);
+  }
+
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+      closeMenu();
+    }
+  });
 </script>
 
 <script>
@@ -161,6 +385,12 @@ const nav = [
     renderAuth();
     const menu = document.getElementById('profile-menu');
     if (menu) menu.hidden = true;
+    if (typeof (window as any).closeLogoutSheet === 'function') {
+      (window as any).closeLogoutSheet();
+    }
+    if (typeof (window as any).closeMenu === 'function') {
+      (window as any).closeMenu();
+    }
   }
 
   function showError(msg: string) {
@@ -178,6 +408,9 @@ const nav = [
   }
   function openModal() {
     if (!overlay) return;
+    if (typeof (window as any).closeMenu === 'function') {
+      (window as any).closeMenu();
+    }
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
     clearError();
@@ -207,7 +440,15 @@ const nav = [
     if (e.target === overlay) closeModal();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') {
+      closeModal();
+      if (typeof (window as any).closeLogoutSheet === 'function') {
+        (window as any).closeLogoutSheet();
+      }
+      if (typeof (window as any).closeMenu === 'function') {
+        (window as any).closeMenu();
+      }
+    }
   });
 
   sendBtn?.addEventListener('click', async () => {
@@ -251,7 +492,6 @@ const nav = [
     verifyBtn.textContent = 'Verifying...';
     try {
       await confirmation.confirm(code);
-      // OTP verified with Firebase — now fetch the Brinto user profile via mobile login API.
       const auth = await loginWithMobile(currentPhone);
       if (!auth) {
         showError('No account found for this number.');
@@ -304,16 +544,34 @@ const nav = [
     }
   });
 
-  document.getElementById('logout-btn')?.addEventListener('click', logout);
-  document.getElementById('mobile-logout-btn')?.addEventListener('click', logout);
+  // Logout triggers open confirmation bottom sheet
+  function triggerLogoutPrompt(e: Event) {
+    e.preventDefault();
+    if (typeof (window as any).openLogoutSheet === 'function') {
+      (window as any).openLogoutSheet();
+    }
+  }
+
+  document.getElementById('logout-btn')?.addEventListener('click', triggerLogoutPrompt);
+  document.getElementById('mobile-logout-btn')?.addEventListener('click', triggerLogoutPrompt);
+
+  document.getElementById('confirm-logout-btn')?.addEventListener('click', logout);
+  document.getElementById('cancel-logout-btn')?.addEventListener('click', () => {
+    if (typeof (window as any).closeLogoutSheet === 'function') {
+      (window as any).closeLogoutSheet();
+    }
+  });
 
   // Initial render based on stored auth state
   renderAuth();
 
+  // Re-run renderAuth whenever hamburger button is clicked or storage updates
+  document.getElementById('hamburger-btn')?.addEventListener('click', renderAuth);
+  window.addEventListener('storage', renderAuth);
+
   // Open modal if URL has ?login=true
   if (new URLSearchParams(window.location.search).get('login') === 'true') {
     openModal();
-    // Clean up the URL search param so refreshing doesn't keep opening it
     const url = new URL(window.location.href);
     url.searchParams.delete('login');
     window.history.replaceState({}, '', url.pathname + url.search);
@@ -325,9 +583,9 @@ const nav = [
     position: sticky;
     top: 0;
     z-index: 40;
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--rule);
   }
   .bar {
@@ -347,55 +605,90 @@ const nav = [
     height: 36px;
     object-fit: contain;
   }
-  .nav-desktop { margin-left: auto; }
+  .nav-desktop {
+    margin-left: auto;
+  }
   .nav-desktop ul {
     list-style: none;
     display: flex;
-    gap: 4px;
+    gap: 6px;
     margin: 0;
     padding: 0;
   }
   .nav-desktop a {
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--ink-soft);
-    padding: 8px 14px;
-    border-radius: var(--radius-sm);
-    transition: background 0.15s, color 0.15s;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill, 999px);
+    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .nav-desktop a:hover { background: var(--surface-2); color: var(--ink); }
-  .header-cta { display: flex; gap: 10px; align-items: center; }
+  .nav-desktop a:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .nav-desktop a.active {
+    background: var(--brand-light, #FFF0F2);
+    color: var(--brand, #B00020);
+    font-weight: 700;
+  }
+  .header-cta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
   .btn-ghost {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--ink-soft);
-    padding: 8px 16px;
-    border-radius: var(--radius-pill);
+    padding: 8px 18px;
+    border-radius: var(--radius-pill, 999px);
     border: 1px solid var(--rule);
     background: transparent;
-    transition: border-color 0.15s, color 0.15s;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
-  .btn-ghost:hover { border-color: var(--ink-soft); color: var(--ink); }
+  .btn-ghost:hover {
+    border-color: var(--ink-soft);
+    color: var(--ink);
+    background: var(--surface-2);
+  }
   .btn-primary {
     font-size: 0.9rem;
     font-weight: 700;
     color: #fff;
-    padding: 9px 20px;
-    border-radius: var(--radius-pill);
+    padding: 9px 22px;
+    border-radius: var(--radius-pill, 999px);
     background: var(--brand);
-    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(176, 0, 32, 0.25);
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   }
-  .btn-primary:hover { background: var(--brand-dark); transform: translateY(-1px); }
+  .btn-primary:hover {
+    background: var(--brand-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(176, 0, 32, 0.35);
+  }
 
-  /* Hamburger */
+  /* Hamburger Toggle Button */
   .hamburger {
     display: none;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
     gap: 5px;
-    background: none;
-    border: none;
-    padding: 6px;
+    width: 42px;
+    height: 42px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm, 8px);
+    padding: 0;
     margin-left: auto;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    z-index: 41;
+  }
+  .hamburger:hover {
+    background: var(--surface-2);
+    border-color: var(--rule);
   }
   .hamburger span {
     display: block;
@@ -403,62 +696,371 @@ const nav = [
     height: 2px;
     background: var(--ink);
     border-radius: 2px;
-    transition: transform 0.2s, opacity 0.2s;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s, background-color 0.2s;
   }
-  .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-  .hamburger.active span:nth-child(2) { opacity: 0; }
-  .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .hamburger.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .hamburger.active span:nth-child(2) {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  .hamburger.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
 
-  /* Mobile nav */
+  /* --- Professional iOS / Apple Style Glass Backdrop Overlay --- */
+  .nav-mobile-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+    z-index: 98;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+  }
+  .nav-mobile-backdrop.open {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* --- Mobile Navigation Right-To-Left Slide Drawer --- */
   .nav-mobile {
     display: none;
-    background: var(--surface);
-    border-top: 1px solid var(--rule);
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 320px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--surface, #ffffff);
+    z-index: 99;
+    box-shadow: -12px 0 36px rgba(0, 0, 0, 0.18);
+    border-left: 1px solid var(--rule);
+    transform: translateX(100%);
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s;
+    overflow: hidden;
   }
-  .nav-mobile ul {
-    list-style: none;
-    margin: 0;
-    padding: 12px 24px 20px;
+  .nav-mobile.open {
+    display: block;
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .drawer-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Drawer Header */
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .drawer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .drawer-logo {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+  }
+  .drawer-brand-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-family: var(--font-display);
+    color: var(--ink);
+  }
+  .brand-accent {
+    color: var(--brand);
+    margin-left: 3px;
+  }
+  .drawer-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid var(--rule);
+    background: var(--surface-2);
+    color: var(--ink-soft);
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+  }
+  .drawer-close-btn:hover {
+    background: var(--brand-light, #FFF0F2);
+    color: var(--brand);
+    transform: rotate(90deg);
+  }
+
+  /* User Card in Drawer */
+  .drawer-user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 16px 4px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, var(--surface-2) 0%, #ffffff 100%);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md, 14px);
+  }
+  .drawer-user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(176, 0, 32, 0.2);
+  }
+  .drawer-user-info {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    overflow: hidden;
   }
-  .nav-mobile a {
-    display: block;
-    padding: 12px 0;
-    font-size: 1rem;
-    font-weight: 500;
+  .drawer-user-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .drawer-user-phone {
+    font-size: 0.8rem;
     color: var(--ink-soft);
-    border-bottom: 1px solid var(--rule);
   }
-  .nav-mobile li:last-child a { border-bottom: none; }
-  .mobile-login {
-    display: block;
+  .drawer-user-badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill, 999px);
+    background: var(--green-light, #E8F5EE);
+    color: var(--green, #1B6B3A);
+    flex-shrink: 0;
+  }
+
+  /* Drawer Body */
+  .drawer-body {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin: 0 8px 10px;
+  }
+
+  .drawer-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .drawer-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-radius: var(--radius-md, 12px);
+    background: transparent;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+  }
+  .drawer-link-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    transition: color 0.2s, transform 0.2s;
+  }
+  .drawer-link-text {
+    flex: 1;
+  }
+  .drawer-chevron {
+    color: var(--ink-muted);
+    opacity: 0.6;
+    transition: transform 0.2s, color 0.2s, opacity 0.2s;
+  }
+  .drawer-link:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .drawer-link:hover .drawer-link-icon {
+    color: var(--brand);
+    transform: scale(1.1);
+  }
+  .drawer-link:hover .drawer-chevron {
+    transform: translateX(4px);
+    opacity: 1;
+    color: var(--brand);
+  }
+
+  .drawer-link.active {
+    background: var(--brand-light, #FFF0F2);
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .drawer-link.active .drawer-link-icon {
+    color: var(--brand);
+  }
+  .drawer-link.active .drawer-chevron {
+    color: var(--brand);
+    opacity: 1;
+  }
+
+  .drawer-divider {
+    height: 1px;
+    background: var(--rule);
+    margin: 18px 8px;
+  }
+
+  /* Staggered entry animation */
+  .drawer-menu li,
+  .drawer-guest-actions,
+  .drawer-user-actions,
+  .drawer-user-card {
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: calc(0.04s * var(--i, 1) + 0.08s);
+  }
+  .nav-mobile.open .drawer-menu li,
+  .nav-mobile.open .drawer-guest-actions,
+  .nav-mobile.open .drawer-user-actions,
+  .nav-mobile.open .drawer-user-card {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Guest Actions inside drawer */
+  .drawer-guest-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .drawer-btn-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     width: 100%;
-    text-align: left;
-    padding: 12px 0;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--ink-soft) !important;
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--rule);
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-pill, 999px);
     cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
   }
-  .mobile-signup {
-    color: var(--brand) !important;
-    font-weight: 700 !important;
+  .drawer-btn-login:hover {
+    background: #e2e8f0;
+    border-color: var(--ink-soft);
+  }
+
+  /* User Logged-in Actions inside drawer */
+  .drawer-user-actions {
+    margin-top: 4px;
+  }
+  .drawer-btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-pill, 999px);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .drawer-btn-logout:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+  }
+
+  /* Drawer Footer */
+  .drawer-footer {
+    padding: 16px;
+    text-align: center;
+    border-top: 1px solid var(--rule);
+    background: var(--surface-2);
+  }
+  .drawer-footer-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-muted);
   }
 
   @media (max-width: 768px) {
-    .nav-desktop { display: none; }
-    .header-cta { display: none; }
-    .hamburger { display: flex; }
-    .nav-mobile.open { display: block; }
+    .nav-desktop {
+      display: none;
+    }
+    .header-cta {
+      display: none;
+    }
+    .hamburger {
+      display: flex;
+    }
   }
 
   /* Login modal */
-  button.btn-ghost { font-family: inherit; cursor: pointer; }
+  button.btn-ghost {
+    font-family: inherit;
+    cursor: pointer;
+  }
   .login-overlay {
     display: none;
     position: fixed;
@@ -471,7 +1073,9 @@ const nav = [
     justify-content: center;
     padding: 20px;
   }
-  .login-overlay.open { display: flex; }
+  .login-overlay.open {
+    display: flex;
+  }
   .login-modal {
     position: relative;
     width: 100%;
@@ -480,7 +1084,7 @@ const nav = [
     border-radius: var(--radius, 16px);
     border: 1px solid var(--rule);
     padding: 32px 28px 28px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
   }
   .login-close {
     position: absolute;
@@ -555,7 +1159,10 @@ const nav = [
     font-size: 0.85rem;
     color: var(--ink-soft);
   }
-  .otp-hint span { font-weight: 600; color: var(--ink); }
+  .otp-hint span {
+    font-weight: 600;
+    color: var(--ink);
+  }
   .login-submit {
     width: 100%;
     margin-top: 16px;
@@ -570,8 +1177,13 @@ const nav = [
     cursor: pointer;
     transition: background 0.15s;
   }
-  .login-submit:hover { background: var(--brand-dark); }
-  .login-submit:disabled { opacity: 0.7; cursor: default; }
+  .login-submit:hover {
+    background: var(--brand-dark);
+  }
+  .login-submit:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
   .login-link {
     width: 100%;
     margin-top: 10px;
@@ -595,12 +1207,168 @@ const nav = [
     color: #dc2626;
   }
 
-  /* Profile menu */
-  .auth-guest { display: flex; gap: 10px; align-items: center; }
-  .auth-guest[hidden] { display: none; }
-  li[data-auth-guest][hidden], li[data-auth-user][hidden] { display: none; }
-  .profile { position: relative; }
-  .profile[hidden] { display: none; }
+  /* --- Logout Confirmation Bottom Sheet --- */
+  .logout-sheet-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 105;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+  }
+  .logout-sheet-backdrop.open {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .logout-sheet {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    background: var(--surface, #ffffff);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border: 1px solid var(--rule);
+    border-bottom: none;
+    padding: 16px 24px 28px;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .logout-sheet-backdrop.open .logout-sheet {
+    transform: translateY(0);
+  }
+
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--ink-muted, #cbd5e1);
+    border-radius: 999px;
+    margin: 0 auto 18px;
+    opacity: 0.6;
+  }
+  .sheet-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .sheet-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    background: #fef2f2;
+    color: #dc2626;
+    flex-shrink: 0;
+  }
+  .sheet-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sheet-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .sheet-sub {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+  .sheet-actions {
+    display: flex;
+    gap: 12px;
+  }
+  .sheet-btn-cancel {
+    flex: 1;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--surface-2, #f1f5f9);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-pill, 999px);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .sheet-btn-cancel:hover {
+    background: #e2e8f0;
+  }
+  .sheet-btn-confirm {
+    flex: 1;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    color: #ffffff;
+    background: #dc2626;
+    border: none;
+    border-radius: var(--radius-pill, 999px);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .sheet-btn-confirm:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+  }
+
+  @media (min-width: 641px) {
+    .logout-sheet-backdrop {
+      align-items: center;
+    }
+    .logout-sheet {
+      border-radius: 20px;
+      border-bottom: 1px solid var(--rule);
+      padding: 24px;
+      transform: scale(0.95);
+    }
+    .logout-sheet-backdrop.open .logout-sheet {
+      transform: scale(1);
+    }
+    .sheet-handle {
+      display: none;
+    }
+  }
+
+  /* Profile menu & Auth Visibility Rules */
+  .auth-guest {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .auth-guest[hidden],
+  .profile[hidden],
+  .drawer-user-card[hidden],
+  .drawer-guest-actions[hidden],
+  .drawer-user-actions[hidden],
+  [data-auth-guest][hidden],
+  [data-auth-user][hidden],
+  [hidden] {
+    display: none !important;
+  }
+  li[data-auth-guest][hidden],
+  li[data-auth-user][hidden] {
+    display: none !important;
+  }
+  .profile {
+    position: relative;
+  }
   .profile-btn {
     display: flex;
     align-items: center;
@@ -611,7 +1379,10 @@ const nav = [
     cursor: pointer;
     border-radius: 999px;
   }
-  .profile-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .profile-btn:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
   .profile-avatar {
     display: flex;
     align-items: center;
@@ -633,7 +1404,7 @@ const nav = [
     background: var(--surface, #fff);
     border: 1px solid var(--rule);
     border-radius: var(--radius, 12px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.14);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
     padding: 8px;
     z-index: 60;
   }
@@ -645,8 +1416,15 @@ const nav = [
     border-bottom: 1px solid var(--rule);
     margin-bottom: 6px;
   }
-  .profile-name { font-size: 0.95rem; font-weight: 700; color: var(--ink); }
-  .profile-phone { font-size: 0.8rem; color: var(--ink-soft); }
+  .profile-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .profile-phone {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
   .profile-item {
     display: block;
     width: 100%;
@@ -661,18 +1439,17 @@ const nav = [
     border-radius: var(--radius-sm, 8px);
     cursor: pointer;
   }
-  .profile-item:hover { background: var(--surface-2); color: var(--ink); }
-  .profile-logout { color: #dc2626; }
-  .mobile-user {
-    display: block;
-    padding: 12px 0;
-    font-size: 1rem;
-    font-weight: 700;
+  .profile-item:hover {
+    background: var(--surface-2);
     color: var(--ink);
-    border-bottom: 1px solid var(--rule);
+  }
+  .profile-logout {
+    color: #dc2626;
   }
 
   @media (max-width: 768px) {
-    .profile { display: none; }
+    .profile {
+      display: none;
+    }
   }
 </style>
