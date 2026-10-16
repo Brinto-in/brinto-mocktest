@@ -26,7 +26,13 @@ const links = {
   <div class="wrap footer-inner">
     <div class="footer-brand">
       <a href="/mocktest" class="brand" aria-label="Brinto MockTest home">
-        <img src="/logo.png" alt="Brinto MockTest logo" height="36" class="logo-mark" />
+        <img
+          src="/logo.png"
+          alt="Brinto MockTest logo"
+          height="36"
+          class="logo-mark"
+          onerror="this.onerror=null;this.src='/mocktest/logo.png';"
+        />
       </a>
       <p>Free mock tests for Odisha government job aspirants. Prepare smarter with timed tests, instant analysis, and rank tracking.</p>
     </div>
@@ -72,10 +78,6 @@ const links = {
     max-width: 180px;
     object-fit: contain;
     display: block;
-  }
-    width: auto;
-    height: 36px;
-    object-fit: contain;
   }
   .footer-brand p {
     font-size: 0.88rem;

@@ -166,17 +166,22 @@ function isNavActive(href: string) {
   </div>
 </nav>
 
-<!-- Login Modal Overlay -->
+<!-- Login Bottom Sheet / Modal Overlay -->
 <div class="login-overlay" id="login-overlay" aria-hidden="true">
   <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="sheet-handle login-sheet-handle"></div>
     <button type="button" class="login-close" aria-label="Close login" data-close-login>&times;</button>
     <h2 id="login-title" class="login-title">Log in</h2>
-    <p class="login-sub">Sign in with your mobile number</p>
+    <p class="login-sub">Sign in with your mobile number to continue</p>
 
+    <!-- Step 1: Mobile Number Input -->
     <div class="login-step" data-step="phone">
       <label class="login-label" for="login-phone">Mobile number</label>
-      <div class="phone-row">
-        <span class="phone-cc">+91</span>
+      <div class="phone-row" id="phone-row-wrapper">
+        <div class="phone-cc">
+          <span class="flag-icon">🇮🇳</span>
+          <span class="cc-text">+91</span>
+        </div>
         <input
           id="login-phone"
           type="tel"
@@ -187,27 +192,69 @@ function isNavActive(href: string) {
           autocomplete="tel"
         />
       </div>
-      <button type="button" class="login-submit" id="send-otp-btn">Send OTP</button>
+      <button type="button" class="login-submit" id="send-otp-btn">
+        <span>Send OTP</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
     </div>
 
+    <!-- Step 2: Visual 6-Digit OTP Box Grid -->
     <div class="login-step" data-step="otp" hidden>
-      <label class="login-label" for="login-otp">Enter OTP</label>
-      <p class="otp-hint">We sent a 6-digit code to <span id="otp-target"></span></p>
-      <input
-        id="login-otp"
-        type="text"
-        inputmode="numeric"
-        maxlength="6"
-        placeholder="______"
-        class="login-input otp-input"
-        autocomplete="one-time-code"
-      />
-      <button type="button" class="login-submit" id="verify-otp-btn">Verify &amp; Continue</button>
-      <button type="button" class="login-link" id="change-number-btn">Change number</button>
+      <div class="otp-header">
+        <label class="login-label" for="login-otp">Enter 6-digit OTP</label>
+        <p class="otp-hint">Code sent to <span id="otp-target"></span></p>
+      </div>
+
+      <div class="otp-container" id="otp-container">
+        <input
+          id="login-otp"
+          type="tel"
+          inputmode="numeric"
+          maxlength="6"
+          class="otp-hidden-input"
+          autocomplete="one-time-code"
+        />
+        <div class="otp-grid">
+          <div class="otp-digit-box active" data-index="0"></div>
+          <div class="otp-digit-box" data-index="1"></div>
+          <div class="otp-digit-box" data-index="2"></div>
+          <div class="otp-digit-box" data-index="3"></div>
+          <div class="otp-digit-box" data-index="4"></div>
+          <div class="otp-digit-box" data-index="5"></div>
+        </div>
+      </div>
+
+      <button type="button" class="login-submit" id="verify-otp-btn">
+        <span>Verify &amp; Continue</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+
+      <div class="otp-footer">
+        <button type="button" class="login-link" id="change-number-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          <span>Change number</span>
+        </button>
+      </div>
     </div>
 
+    <!-- Step 3: Success -->
     <div class="login-step" data-step="done" hidden>
-      <p class="login-success">You&apos;re logged in.</p>
+      <div class="login-success-card">
+        <div class="success-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <p class="login-success">Logged in successfully!</p>
+      </div>
     </div>
 
     <p class="login-error" id="login-error" role="alert" hidden></p>
@@ -354,6 +401,35 @@ function isNavActive(href: string) {
   let recaptcha: RecaptchaVerifier | null = null;
   let confirmation: ConfirmationResult | null = null;
   let currentPhone = '';
+  let loginTimer: any = null;
+
+  // Visual OTP Box Grid Sync
+  function updateOtpGrid() {
+    if (!otpInput) return;
+    const digits = (otpInput.value || '').replace(/\D/g, '').slice(0, 6);
+    otpInput.value = digits;
+    const boxes = document.querySelectorAll<HTMLElement>('.otp-digit-box');
+    boxes.forEach((box, i) => {
+      const val = digits[i] || '';
+      box.textContent = val;
+      if (val) {
+        box.classList.add('filled');
+      } else {
+        box.classList.remove('filled');
+      }
+      if (i === digits.length && digits.length < 6) {
+        box.classList.add('active');
+      } else {
+        box.classList.remove('active');
+      }
+    });
+  }
+
+  otpInput?.addEventListener('input', updateOtpGrid);
+  otpInput?.addEventListener('focus', updateOtpGrid);
+  otpInput?.addEventListener('blur', () => {
+    document.querySelectorAll<HTMLElement>('.otp-digit-box').forEach(b => b.classList.remove('active'));
+  });
 
   // --- Auth UI rendering (localStorage-backed) ---
   function renderAuth() {
@@ -405,14 +481,27 @@ function isNavActive(href: string) {
     document.querySelectorAll<HTMLElement>('.login-step').forEach((el) => {
       el.hidden = el.dataset.step !== step;
     });
+    if (phoneInput) phoneInput.disabled = false;
+    if (otpInput) otpInput.disabled = false;
+    if (step === 'otp') {
+      if (otpInput) otpInput.value = '';
+      updateOtpGrid();
+    }
   }
   function openModal() {
     if (!overlay) return;
+    if (loginTimer) {
+      clearTimeout(loginTimer);
+      loginTimer = null;
+    }
     if (typeof (window as any).closeMenu === 'function') {
       (window as any).closeMenu();
     }
+    overlay.style.display = 'flex';
+    void overlay.offsetWidth;
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
     clearError();
     showStep('phone');
     phoneInput?.focus();
@@ -421,6 +510,13 @@ function isNavActive(href: string) {
     if (!overlay) return;
     overlay.classList.remove('open');
     overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (loginTimer) clearTimeout(loginTimer);
+    loginTimer = setTimeout(() => {
+      if (!overlay.classList.contains('open')) {
+        overlay.style.display = 'none';
+      }
+    }, 350);
   }
 
   function ensureRecaptcha() {
@@ -461,19 +557,27 @@ function isNavActive(href: string) {
     currentPhone = digits;
     const phoneNumber = '+91' + digits;
     sendBtn.disabled = true;
-    sendBtn.textContent = 'Sending...';
+    if (phoneInput) phoneInput.disabled = true;
+    sendBtn.innerHTML = `<span>Sending OTP...</span>`;
     try {
       const auth = getFirebaseAuth();
       confirmation = await signInWithPhoneNumber(auth, phoneNumber, ensureRecaptcha());
       if (otpTarget) otpTarget.textContent = phoneNumber;
       showStep('otp');
-      otpInput?.focus();
+      setTimeout(() => otpInput?.focus(), 100);
     } catch (err) {
       console.log('[v0] send OTP error:', err);
       showError('Could not send OTP. Please try again.');
     } finally {
       sendBtn.disabled = false;
-      sendBtn.textContent = 'Send OTP';
+      if (phoneInput) phoneInput.disabled = false;
+      sendBtn.innerHTML = `
+        <span>Send OTP</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      `;
     }
   });
 
@@ -489,7 +593,9 @@ function isNavActive(href: string) {
       return;
     }
     verifyBtn.disabled = true;
-    verifyBtn.textContent = 'Verifying...';
+    if (otpInput) otpInput.disabled = true;
+    if (changeBtn && 'disabled' in changeBtn) (changeBtn as any).disabled = true;
+    verifyBtn.innerHTML = `<span>Verifying...</span>`;
     try {
       await confirmation.confirm(code);
       const auth = await loginWithMobile(currentPhone);
@@ -513,13 +619,21 @@ function isNavActive(href: string) {
       showError('Invalid code. Please try again.');
     } finally {
       verifyBtn.disabled = false;
-      verifyBtn.textContent = 'Verify & Continue';
+      if (otpInput) otpInput.disabled = false;
+      if (changeBtn && 'disabled' in changeBtn) (changeBtn as any).disabled = false;
+      verifyBtn.innerHTML = `
+        <span>Verify &amp; Continue</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      `;
     }
   });
 
   changeBtn?.addEventListener('click', () => {
     clearError();
     if (otpInput) otpInput.value = '';
+    updateOtpGrid();
     showStep('phone');
     phoneInput?.focus();
   });
@@ -1056,7 +1170,7 @@ function isNavActive(href: string) {
     }
   }
 
-  /* Login modal */
+  /* Login Modal & Mobile Bottom Sheet */
   button.btn-ghost {
     font-family: inherit;
     cursor: pointer;
@@ -1067,144 +1181,324 @@ function isNavActive(href: string) {
     inset: 0;
     z-index: 100;
     background: rgba(15, 23, 42, 0.55);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    align-items: center;
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+    align-items: flex-end;
     justify-content: center;
-    padding: 20px;
+    padding: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
   }
   .login-overlay.open {
     display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
   .login-modal {
     position: relative;
     width: 100%;
-    max-width: 400px;
-    background: var(--surface, #fff);
-    border-radius: var(--radius, 16px);
+    max-width: 100vw;
+    background: var(--surface, #ffffff);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
     border: 1px solid var(--rule);
-    padding: 32px 28px 28px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    border-bottom: none;
+    padding: 16px 24px 28px;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .login-overlay.open .login-modal {
+    transform: translateY(0);
+  }
+  .login-sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--ink-muted, #cbd5e1);
+    border-radius: 999px;
+    margin: 0 auto 16px;
+    opacity: 0.6;
   }
   .login-close {
     position: absolute;
     top: 14px;
     right: 16px;
-    background: none;
-    border: none;
-    font-size: 1.6rem;
+    background: var(--surface-2, #f1f5f9);
+    border: 1px solid var(--rule, #e2e8f0);
+    border-radius: 999px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
     line-height: 1;
     color: var(--ink-soft);
     cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .login-close:hover {
+    background: var(--brand-light, #FFF0F2);
+    color: var(--brand, #b00020);
   }
   .login-title {
     margin: 0 0 4px;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--ink);
   }
   .login-sub {
-    margin: 0 0 20px;
-    font-size: 0.9rem;
+    margin: 0 0 18px;
+    font-size: 0.88rem;
     color: var(--ink-soft);
   }
   .login-label {
     display: block;
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink);
     margin-bottom: 8px;
   }
+
+  /* Enhanced Phone Input */
   .phone-row {
     display: flex;
-    align-items: stretch;
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-sm, 10px);
-    overflow: hidden;
+    align-items: center;
+    background: var(--surface-2, #f8fafc);
+    border: 1.5px solid var(--rule, #e2e8f0);
+    border-radius: var(--radius-md, 14px);
+    padding: 3px 6px;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s, opacity 0.2s;
+  }
+  .phone-row:focus-within {
+    border-color: var(--brand, #b00020);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(176, 0, 32, 0.12);
+  }
+  .phone-row:has(:disabled),
+  .phone-row.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    background: var(--surface-2, #f8fafc);
   }
   .phone-cc {
     display: flex;
     align-items: center;
-    padding: 0 12px;
-    background: var(--surface-2, #f1f5f9);
+    gap: 6px;
+    padding: 9px 12px;
+    background: #ffffff;
+    border-radius: var(--radius-sm, 10px);
+    border: 1px solid var(--rule, #e2e8f0);
     font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--ink-soft);
-    border-right: 1px solid var(--rule);
+    font-weight: 700;
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+  }
+  .flag-icon {
+    font-size: 1.1rem;
+    line-height: 1;
   }
   .login-input {
     width: 100%;
     padding: 12px 14px;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
     font-family: inherit;
     color: var(--ink);
     background: transparent;
     border: none;
     outline: none;
+    letter-spacing: 0.05em;
   }
-  .otp-input {
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-sm, 10px);
-    letter-spacing: 0.4em;
-    text-align: center;
-    font-weight: 600;
+  .login-input::placeholder {
+    color: var(--ink-muted, #9ca3af);
+    font-weight: 400;
+    letter-spacing: 0;
   }
-  .login-input:focus-visible,
-  .phone-row:focus-within {
-    outline: 2px solid var(--brand);
-    outline-offset: 1px;
+
+  /* Enhanced OTP Box Grid */
+  .otp-header {
+    margin-bottom: 8px;
   }
   .otp-hint {
-    margin: 0 0 10px;
+    margin: 2px 0 0;
     font-size: 0.85rem;
     color: var(--ink-soft);
   }
   .otp-hint span {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink);
   }
-  .login-submit {
+  .otp-container {
+    position: relative;
+    margin: 16px 0 18px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .otp-container:has(:disabled),
+  .otp-container.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .otp-hidden-input {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    margin-top: 16px;
-    padding: 12px;
-    font-size: 0.95rem;
+    height: 100%;
+    opacity: 0;
+    z-index: 2;
+    cursor: pointer;
+  }
+  .otp-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .otp-digit-box {
+    flex: 1;
+    height: 52px;
+    max-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: var(--surface-2, #f8fafc);
+    border: 1.5px solid var(--rule, #e2e8f0);
+    border-radius: var(--radius-md, 12px);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.15s;
+  }
+  .otp-digit-box.filled {
+    border-color: var(--brand, #b00020);
+    background: var(--brand-light, #FFF0F2);
+    color: var(--brand, #b00020);
+  }
+  .otp-digit-box.active {
+    border-color: var(--brand, #b00020);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(176, 0, 32, 0.14);
+    transform: translateY(-2px);
+  }
+
+  /* Login Submit Button */
+  .login-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 18px;
+    padding: 13px;
+    font-size: 0.98rem;
     font-weight: 700;
     font-family: inherit;
-    color: #fff;
+    color: #ffffff;
     background: var(--brand);
     border: none;
     border-radius: var(--radius-pill, 999px);
     cursor: pointer;
-    transition: background 0.15s;
+    box-shadow: 0 4px 14px rgba(176, 0, 32, 0.28);
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   }
   .login-submit:hover {
     background: var(--brand-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(176, 0, 32, 0.38);
   }
   .login-submit:disabled {
-    opacity: 0.7;
+    opacity: 0.65;
     cursor: default;
+    transform: none;
+  }
+
+  .otp-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
   }
   .login-link {
-    width: 100%;
-    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: none;
     border: none;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 600;
     color: var(--brand);
     cursor: pointer;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill, 999px);
+    transition: background 0.15s;
+  }
+  .login-link:hover {
+    background: var(--brand-light, #FFF0F2);
+  }
+
+  /* Success Card */
+  .login-success-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 10px;
+    gap: 12px;
+  }
+  .success-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 999px;
+    background: var(--green-light, #E8F5EE);
+    color: var(--green, #1B6B3A);
   }
   .login-success {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     color: var(--ink);
     text-align: center;
-    padding: 16px 0;
+    margin: 0;
   }
   .login-error {
     margin: 14px 0 0;
     font-size: 0.85rem;
     color: #dc2626;
+    text-align: center;
+  }
+
+  /* Hide reCAPTCHA badge & container */
+  #recaptcha-container,
+  .grecaptcha-badge {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  @media (min-width: 641px) {
+    .login-overlay {
+      align-items: center;
+      padding: 20px;
+    }
+    .login-modal {
+      max-width: 400px;
+      border-radius: 20px;
+      border-bottom: 1px solid var(--rule);
+      padding: 32px 28px 28px;
+      transform: scale(0.95);
+    }
+    .login-overlay.open .login-modal {
+      transform: scale(1);
+    }
+    .login-sheet-handle {
+      display: none;
+    }
   }
 
   /* --- Logout Confirmation Bottom Sheet --- */
@@ -1321,7 +1615,7 @@ function isNavActive(href: string) {
     border-radius: var(--radius-pill, 999px);
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
-    transition: background 0.15s, transform 0.1s;
+    transition: background 0.15s, transform 0.10s;
   }
   .sheet-btn-confirm:hover {
     background: #b91c1c;
