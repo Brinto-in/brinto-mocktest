@@ -1264,7 +1264,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
     <!-- ── EXAM HEADER ── -->
     <header class="exam-header" id="exam-header">
       <a href="/mocktest" class="eh-brand">
-        <img src="/logo.png" alt="Brinto logo" height="28" style="height:28px; width:auto; object-fit:contain;" />
+        <img src="/logo.png" alt="Brinto logo" height="28" style="height:28px; width:auto; object-fit:contain;" onerror="this.onerror=null;this.src='/mocktest/logo.png';" />
       </a>
       <div class="eh-title" id="eh-title">Online Mock Test</div>
       <button class="btn-fullscreen" id="btn-fullscreen" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">

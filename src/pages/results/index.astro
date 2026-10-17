@@ -1,5 +1,99 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const dummyResults = [
+  {
+    id: "res-1",
+    slug: "11",
+    exam: "OSSSC",
+    title: "OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026",
+    score: 85,
+    correct: 17,
+    wrong: 2,
+    skipped: 1,
+    totalQuestions: 20,
+    timeTaken: 1380,
+    submittedAt: "2026-03-28T10:30:00Z",
+    sections: [
+      { name: "General Knowledge", correct: 5, total: 5 },
+      { name: "Odia Language", correct: 4, total: 5 },
+      { name: "Mathematics", correct: 4, total: 5 },
+      { name: "Reasoning", correct: 4, total: 5 }
+    ]
+  },
+  {
+    id: "res-2",
+    slug: "12",
+    exam: "OPSC",
+    title: "OPSC OAS General Studies Paper-I Practice Test",
+    score: 72,
+    correct: 36,
+    wrong: 10,
+    skipped: 4,
+    totalQuestions: 50,
+    timeTaken: 2700,
+    submittedAt: "2026-03-25T14:15:00Z",
+    sections: [
+      { name: "Polity & Governance", correct: 10, total: 12 },
+      { name: "Indian History", correct: 8, total: 12 },
+      { name: "Geography & Ecology", correct: 10, total: 13 },
+      { name: "Current Affairs", correct: 8, total: 13 }
+    ]
+  },
+  {
+    id: "res-3",
+    slug: "13",
+    exam: "OSSSC",
+    title: "OSSSC Junior Assistant & LTR Teacher Full Mock Test",
+    score: 60,
+    correct: 12,
+    wrong: 5,
+    skipped: 3,
+    totalQuestions: 20,
+    timeTaken: 1500,
+    submittedAt: "2026-03-20T11:00:00Z",
+    sections: [
+      { name: "English Grammar", correct: 3, total: 5 },
+      { name: "Computer Awareness", correct: 4, total: 5 },
+      { name: "General Science", correct: 2, total: 5 },
+      { name: "Arithmetic", correct: 3, total: 5 }
+    ]
+  },
+  {
+    id: "res-4",
+    slug: "14",
+    exam: "SSC",
+    title: "SSC CGL Tier-1 General Intelligence & Awareness",
+    score: 45,
+    correct: 9,
+    wrong: 8,
+    skipped: 3,
+    totalQuestions: 20,
+    timeTaken: 1200,
+    submittedAt: "2026-03-15T09:45:00Z",
+    sections: [
+      { name: "Reasoning Ability", correct: 5, total: 10 },
+      { name: "General Awareness", correct: 4, total: 10 }
+    ]
+  },
+  {
+    id: "res-5",
+    slug: "15",
+    exam: "Railways",
+    title: "RRB NTPC CBT-1 General Mathematics & GK",
+    score: 30,
+    correct: 6,
+    wrong: 10,
+    skipped: 4,
+    totalQuestions: 20,
+    timeTaken: 1080,
+    submittedAt: "2026-03-10T16:20:00Z",
+    sections: [
+      { name: "General Science", correct: 3, total: 10 },
+      { name: "Mathematics", correct: 3, total: 10 }
+    ]
+  }
+];
 ---
 
 <BaseLayout
@@ -16,7 +110,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                     All your past test attempts and scores in one place.
                 </p>
             </div>
-            <div class="rh-stats" id="rh-stats" style="display:none">
+            <div class="rh-stats" id="rh-stats">
                 <div class="stat-card">
                     <span class="stat-n" id="st-total">0</span>
                     <span class="stat-l">Tests Taken</span>
@@ -38,7 +132,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     </section>
 
     <!-- ── FILTERS ── -->
-    <div class="wrap filter-bar" id="filter-bar" style="display:none">
+    <div class="wrap filter-bar" id="filter-bar">
         <div class="filter-tabs" id="filter-tabs">
             <button class="ft active" data-exam="All">All</button>
         </div>
@@ -55,7 +149,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     <!-- ── RESULTS LIST ── -->
     <div class="wrap results-body">
         <!-- Empty state -->
-        <div class="empty-state" id="empty-state">
+        <div class="empty-state" id="empty-state" style="display:none">
             <div class="empty-icon">📋</div>
             <h2>No tests attempted yet</h2>
             <p>Your results will appear here after you complete a mock test.</p>
@@ -63,38 +157,92 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         </div>
 
         <!-- Results grid (populated by JS) -->
-        <div class="results-grid" id="results-grid" style="display:none"></div>
+        <div class="results-grid" id="results-grid"></div>
     </div>
 </BaseLayout>
 
-<script is:inline>
-    // ── STORAGE KEY ──
-    const STORAGE_KEY = "brinto_test_results";
-
-    // ── LOAD ──
-    let allResults = [];
-    try {
-        allResults = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    } catch (e) {
-        allResults = [];
-    }
+<script define:vars={{ dummyResults }}>
+    let allResults = dummyResults;
+    let activeExam = "All";
 
     const emptyEl = document.getElementById("empty-state");
     const gridEl = document.getElementById("results-grid");
     const statsEl = document.getElementById("rh-stats");
     const filterBar = document.getElementById("filter-bar");
 
-    if (allResults.length === 0) {
-        emptyEl.style.display = "flex";
-    } else {
-        emptyEl.style.display = "none";
-        gridEl.style.display = "grid";
-        statsEl.style.display = "grid";
-        filterBar.style.display = "flex";
-        renderStats(allResults);
-        renderFilterTabs(allResults);
-        renderResults(allResults);
+    function formatAttempt(r) {
+        const totalQs = r.totalQuestions || r.total_questions || ((r.correct || 0) + (r.wrong || 0) + (r.skipped || 0)) || 1;
+        const correctCount = r.correct || 0;
+        const pct = Math.min(100, Math.max(0, Math.round((correctCount / totalQs) * 100)));
+
+        return {
+            id: r.id || r.attemptId || `att-${Math.random()}`,
+            slug: r.slug || r.testId || "11",
+            exam: r.exam || "Exam",
+            title: r.title || "Mock Test Attempt",
+            score: pct,
+            correct: correctCount,
+            wrong: r.wrong || 0,
+            skipped: r.skipped || 0,
+            totalQuestions: totalQs,
+            timeTaken: r.timeTaken || r.time_taken || 0,
+            submittedAt: r.submittedAt || r.created_at || new Date().toISOString(),
+            sections: Array.isArray(r.sections) ? r.sections : []
+        };
     }
+
+    function updateUI(results) {
+        if (!results || results.length === 0) {
+            emptyEl.style.display = "flex";
+            gridEl.style.display = "none";
+            statsEl.style.display = "none";
+            filterBar.style.display = "none";
+        } else {
+            emptyEl.style.display = "none";
+            gridEl.style.display = "grid";
+            statsEl.style.display = "grid";
+            filterBar.style.display = "flex";
+            renderStats(results);
+            renderFilterTabs(results);
+            renderResults(results);
+        }
+    }
+
+    // Initial render with fallback dummy data
+    updateUI(allResults);
+
+    // Fetch dynamic attempts from API
+    async function loadDynamicAttempts() {
+        try {
+            const token = localStorage.getItem("brinto_token") || "";
+            const guestId = localStorage.getItem("brinto_guest_id") || "";
+
+            const headers = {
+                "Accept": "*/*",
+                "X-Guest-Id": guestId,
+            };
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            const res = await fetch("https://brintoapi.brinto.in/api/mocktests/my-attempts?page=1&limit=10&section=true", {
+                headers
+            });
+
+            if (!res.ok) return;
+
+            const json = await res.json();
+            if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
+                allResults = json.data.map(formatAttempt);
+                activeExam = "All";
+                updateUI(allResults);
+            }
+        } catch (err) {
+            console.warn("Failed to fetch dynamic attempts:", err);
+        }
+    }
+
+    loadDynamicAttempts();
 
     // ── STATS ──
     function renderStats(results) {
@@ -115,14 +263,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     // ── FILTER TABS ──
-    let activeExam = "All";
     function renderFilterTabs(results) {
         const exams = ["All", ...new Set(results.map((r) => r.exam))];
         const container = document.getElementById("filter-tabs");
         container.innerHTML = "";
         exams.forEach((ex) => {
             const btn = document.createElement("button");
-            btn.className = "ft"; // + (ex === activeExam ? " active" : "");
+            btn.className = "ft" + (ex === activeExam ? " active" : "");
             btn.dataset.exam = ex;
             btn.textContent = ex;
             if (ex !== "All") {
@@ -150,7 +297,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                 : allResults.filter((r) => r.exam === activeExam);
         if (sort === "best") filtered.sort((a, b) => b.score - a.score);
         if (sort === "worst") filtered.sort((a, b) => a.score - b.score);
-        // newest is default order (already newest first from storage)
         renderResults(filtered);
     }
 
@@ -172,7 +318,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         const grid = document.getElementById("results-grid");
         grid.innerHTML = "";
 
-        results.forEach((r, idx) => {
+        results.forEach((r) => {
             const col = scoreColor(r.score);
             const circ = 2 * Math.PI * 28; // r=28
             const offset = circ - (circ * r.score) / 100;
@@ -271,14 +417,18 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .results-hero {
         background: var(--surface);
         border-bottom: 1px solid var(--rule);
-        padding: 48px 0 40px;
+        padding: 40px 0 32px;
     }
     .rh-inner {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 32px;
+        gap: 24px;
         flex-wrap: wrap;
+    }
+    .rh-text {
+        flex: 1;
+        min-width: 260px;
     }
     .rh-eyebrow {
         font-size: 0.72rem;
@@ -286,15 +436,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: var(--brand);
-        margin: 0 0 10px;
+        margin: 0 0 8px;
     }
     .rh-inner h1 {
-        font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
         color: var(--ink);
-        margin-bottom: 8px;
+        margin: 0 0 6px;
+        line-height: 1.2;
     }
     .rh-sub {
         color: var(--ink-soft);
+        font-size: 0.92rem;
         margin: 0;
     }
 
@@ -308,23 +460,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         background: var(--surface-2);
         border: 1px solid var(--rule);
         border-radius: var(--radius-md);
-        padding: 16px 20px;
+        padding: 14px 16px;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
-        min-width: 100px;
+        min-width: 90px;
     }
     .stat-n {
         font-family: var(--font-display);
-        font-size: 1.6rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: var(--ink);
         line-height: 1;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
     .stat-l {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
@@ -338,22 +490,32 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 12px;
-        padding: 24px 24px 0;
+        padding: 20px 24px 0;
     }
     .filter-tabs {
         display: flex;
-        flex-wrap: wrap;
+        align-items: center;
         gap: 8px;
+        overflow-x: auto;
+        max-width: 100%;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .filter-tabs::-webkit-scrollbar {
+        display: none;
     }
     .ft {
-        font-size: 0.84rem;
+        font-size: 0.82rem;
         font-weight: 600;
-        padding: 7px 16px;
+        padding: 6px 14px;
         border-radius: var(--radius-pill);
         border: 1.5px solid var(--rule);
         background: var(--surface);
         color: var(--ink-soft);
         cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
         transition:
             border-color 0.15s,
             color 0.15s,
@@ -372,8 +534,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 0.86rem;
+        font-size: 0.84rem;
         color: var(--ink-soft);
+        flex-shrink: 0;
     }
     select {
         border: 1px solid var(--rule);
@@ -381,14 +544,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         background: var(--surface);
         color: var(--ink);
         font-family: var(--font-body);
-        font-size: 0.86rem;
-        padding: 7px 12px;
+        font-size: 0.84rem;
+        padding: 6px 10px;
         cursor: pointer;
     }
 
     /* ── BODY ── */
     .results-body {
-        padding: 28px 24px 72px;
+        padding: 24px 24px 64px;
     }
 
     /* ── EMPTY STATE ── */
@@ -397,28 +560,30 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         flex-direction: column;
         align-items: center;
         text-align: center;
-        padding: 80px 24px;
-        gap: 16px;
+        padding: 60px 20px;
+        gap: 14px;
     }
     .empty-icon {
-        font-size: 3rem;
+        font-size: 2.8rem;
     }
     .empty-state h2 {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         color: var(--ink);
         margin: 0;
     }
     .empty-state p {
         color: var(--ink-soft);
-        max-width: 34ch;
+        font-size: 0.9rem;
+        max-width: 32ch;
+        margin: 0;
     }
     .btn-browse {
         display: inline-block;
         background: var(--brand);
         color: #fff;
         font-weight: 700;
-        font-size: 0.96rem;
-        padding: 12px 28px;
+        font-size: 0.92rem;
+        padding: 10px 24px;
         border-radius: var(--radius-pill);
         transition:
             background 0.15s,
@@ -439,10 +604,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         background: var(--surface);
         border: 1px solid var(--rule);
         border-radius: var(--radius-md);
-        padding: 20px;
+        padding: 18px;
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 14px;
         transition:
             border-color 0.15s,
             box-shadow 0.15s,
@@ -467,33 +632,34 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
     .rc-exam-tag {
         display: inline-block;
-        font-size: 0.68rem;
+        font-size: 0.65rem;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: var(--brand);
         background: var(--brand-light);
-        padding: 3px 10px;
+        padding: 2px 8px;
         border-radius: var(--radius-pill);
         border: 1px solid var(--brand-mid);
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
     .rc-title {
-        font-size: 0.96rem;
+        font-size: 0.94rem;
         font-family: var(--font-body);
         font-weight: 700;
         color: var(--ink);
         line-height: 1.35;
-        margin: 0 0 10px;
-        white-space: nowrap;
+        margin: 0 0 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
         overflow: hidden;
-        text-overflow: ellipsis;
     }
     .rc-meta {
         display: flex;
-        gap: 14px;
+        gap: 12px;
         flex-wrap: wrap;
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         color: var(--ink-muted);
     }
     .rc-date,
@@ -506,13 +672,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     /* Score ring */
     .rc-score-ring {
         position: relative;
-        width: 72px;
-        height: 72px;
+        width: 64px;
+        height: 64px;
         flex-shrink: 0;
     }
     .rc-score-ring svg {
         position: absolute;
         inset: 0;
+        width: 100%;
+        height: 100%;
     }
     .rc-score-pct {
         position: absolute;
@@ -520,7 +688,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.88rem;
+        font-size: 0.84rem;
         font-weight: 800;
         font-family: var(--font-display);
     }
@@ -529,10 +697,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .rc-breakdown {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
+        gap: 6px;
         background: var(--surface-2);
         border-radius: var(--radius-sm);
-        padding: 12px 10px;
+        padding: 10px 8px;
         border: 1px solid var(--rule);
     }
     .bd-item {
@@ -540,17 +708,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         flex-direction: column;
         align-items: center;
         text-align: center;
-        gap: 3px;
+        gap: 2px;
     }
     .bd-n {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         font-weight: 800;
     }
     .bd-l {
-        font-size: 0.65rem;
+        font-size: 0.62rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.02em;
         color: var(--ink-muted);
     }
     .bd-correct .bd-n {
@@ -570,18 +738,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .rc-sections {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
     }
     .sec-bar-row {
         display: grid;
-        grid-template-columns: 90px 1fr 36px;
+        grid-template-columns: 85px 1fr 34px;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
     }
     .sec-bar-label {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         color: var(--ink-soft);
         font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .sec-bar-track {
         height: 6px;
@@ -595,7 +766,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         transition: width 0.6s ease;
     }
     .sec-bar-pct {
-        font-size: 0.75rem;
+        font-size: 0.74rem;
         font-weight: 700;
         text-align: right;
     }
@@ -605,14 +776,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-top: 12px;
+        padding-top: 10px;
         border-top: 1px solid var(--rule);
         margin-top: auto;
     }
     .rc-rank {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
-        padding: 5px 12px;
+        padding: 4px 10px;
         border-radius: var(--radius-pill);
     }
     .rank-good {
@@ -628,10 +799,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         color: var(--brand);
     }
     .rc-retake {
-        font-size: 0.86rem;
+        font-size: 0.82rem;
         font-weight: 700;
         color: var(--brand);
-        padding: 6px 16px;
+        padding: 5px 14px;
         border-radius: var(--radius-pill);
         border: 1.5px solid var(--brand-mid);
         background: var(--brand-light);
@@ -643,27 +814,105 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
+        .results-hero {
+            padding: 28px 0 24px;
+        }
         .rh-inner {
             flex-direction: column;
-            align-items: flex-start;
+            align-items: stretch;
+            gap: 20px;
         }
         .rh-stats {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             width: 100%;
         }
         .results-grid {
             grid-template-columns: 1fr;
+            gap: 16px;
         }
     }
-    @media (max-width: 480px) {
+
+    @media (max-width: 640px) {
+        .results-hero {
+            padding: 20px 0 16px;
+        }
         .rh-stats {
             grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
         }
-        .rc-breakdown {
-            grid-template-columns: repeat(4, 1fr);
+        .stat-card {
+            padding: 12px 10px;
+            min-width: 0;
+        }
+        .stat-n {
+            font-size: 1.3rem;
+        }
+        .stat-l {
+            font-size: 0.65rem;
+        }
+        .filter-bar {
+            padding: 14px 16px 0;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .filter-tabs {
+            width: 100%;
+        }
+        .sort-wrap {
+            justify-content: space-between;
+            width: 100%;
+        }
+        .results-body {
+            padding: 16px 16px 48px;
+        }
+        .result-card {
+            padding: 14px;
+            gap: 12px;
+        }
+        .rc-score-ring {
+            width: 56px;
+            height: 56px;
+        }
+        .rc-score-pct {
+            font-size: 0.78rem;
         }
         .sec-bar-row {
-            grid-template-columns: 70px 1fr 32px;
+            grid-template-columns: 75px 1fr 32px;
+            gap: 6px;
+        }
+        .sec-bar-label {
+            font-size: 0.72rem;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .rc-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .rc-score-ring {
+            align-self: flex-start;
+        }
+        .rc-breakdown {
+            padding: 8px 4px;
+            gap: 2px;
+        }
+        .bd-n {
+            font-size: 0.9rem;
+        }
+        .bd-l {
+            font-size: 0.58rem;
+            letter-spacing: 0;
+        }
+        .rc-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        .rc-rank,
+        .rc-retake {
+            text-align: center;
         }
     }
 </style>
