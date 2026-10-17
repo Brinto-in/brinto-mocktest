@@ -576,6 +576,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         align-items: center;
         justify-content: center;
         padding: 16px;
+        overscroll-behavior: contain;
       }
       .instr-modal {
         background: var(--surface);
@@ -847,6 +848,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         align-items: center;
         justify-content: center;
         padding: 24px;
+        overscroll-behavior: contain;
       }
       .modal-overlay.open {
         display: flex;
@@ -1979,9 +1981,13 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         document.getElementById("ms-answered").textContent = answered;
         document.getElementById("ms-not-answered").textContent = notAnswered;
         document.getElementById("ms-marked").textContent = marked;
+        document.body.style.overflow = "hidden";
+        document.documentElement.style.overflow = "hidden";
         document.getElementById("submit-modal").classList.add("open");
       }
       function closeSubmitModal() {
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
         document.getElementById("submit-modal").classList.remove("open");
       }
 
@@ -2251,6 +2257,11 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       const instrCb = document.getElementById("instr-agree-cb");
       const btnStart = document.getElementById("btn-start-test");
 
+      if (instrOverlay) {
+        document.body.style.overflow = "hidden";
+        document.documentElement.style.overflow = "hidden";
+      }
+
       function applyDetailsToModal(d) {
         if (!d) return;
 
@@ -2460,7 +2471,9 @@ const { slug = "", test, questionsData = [] } = Astro.props;
           // Request Fullscreen Mode
           enterFullscreen();
 
-          // Animate out instruction overlay
+          // Animate out instruction overlay & restore scrolling
+          document.body.style.overflow = "";
+          document.documentElement.style.overflow = "";
           instrOverlay.style.transition = "opacity 0.3s";
           instrOverlay.style.opacity = "0";
           setTimeout(() => {

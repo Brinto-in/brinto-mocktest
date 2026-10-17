@@ -262,3 +262,38 @@ export async function fetchMyAttempts(page = 1, limit = 10) {
     return [];
   }
 }
+
+export async function fetchAttemptDetails(attemptId: string) {
+  try {
+    if (!attemptId) return null;
+
+    const token = getAuthToken();
+    const guestId = getGuestId();
+
+    const headers: Record<string, string> = {
+      "Accept": "*/*",
+      "User-Agent": "Mozilla/5.0 (compatible; BrintoMockTest/1.0)",
+      "X-Guest-Id": guestId,
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const url = `${API_BASE}/api/mocktests/my-attempts/${attemptId}`;
+    const res = await fetch(url, { headers });
+
+    if (!res.ok) {
+      console.error(`fetchAttemptDetails failed with status: ${res.status}`);
+      return null;
+    }
+
+    const json = await res.json();
+    if (json?.success && json?.data) {
+      return json.data;
+    }
+    return null;
+  } catch (err) {
+    console.error("Error fetching attempt details:", err);
+    return null;
+  }
+}
