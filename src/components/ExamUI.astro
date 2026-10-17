@@ -2293,12 +2293,27 @@ const { slug = "", test, questionsData = [] } = Astro.props;
           }
         }
 
-        // Difficulty pill
+        // Difficulty pill with interactive colors (Easy, Medium, Hard)
         if (d.difficulty) {
           const diffPill = document.getElementById("instr-diff-pill");
           const diffText = document.getElementById("instr-difficulty");
           if (diffPill && diffText) {
             diffText.textContent = d.difficulty;
+            const diffLower = String(d.difficulty).toLowerCase().trim();
+            if (diffLower === "easy") {
+              diffPill.style.background = "rgba(34, 197, 94, 0.2)";
+              diffPill.style.color = "#4ade80";
+              diffPill.style.border = "1px solid rgba(74, 222, 128, 0.3)";
+            } else if (diffLower === "hard") {
+              diffPill.style.background = "rgba(239, 68, 68, 0.22)";
+              diffPill.style.color = "#f87171";
+              diffPill.style.border = "1px solid rgba(248, 113, 113, 0.3)";
+            } else {
+              // Medium or default
+              diffPill.style.background = "rgba(245, 158, 11, 0.2)";
+              diffPill.style.color = "#fbbf24";
+              diffPill.style.border = "1px solid rgba(251, 191, 36, 0.3)";
+            }
             diffPill.style.display = "inline-flex";
           }
         }
