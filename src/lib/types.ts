@@ -1,15 +1,21 @@
 export interface Test {
-  id?: number;
+  id?: number | string;
   title: string;
   exam: string;
   questions: number;
   duration: number;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  attempts: number;
-  rating: number;
-  href: string;
-  isNew: boolean;
-  isFree: boolean;
+  difficulty?: 'Easy' | 'Medium' | 'Hard' | string;
+  attempts?: number;
+  rating?: number;
+  href?: string;
+  isNew?: boolean;
+  isFree?: boolean;
+  correct_marks?: number;
+  wrong_penalty?: number;
+  skipped_marks?: number;
+  total_marks?: number;
+  isVisible?: boolean;
+  created_at?: string;
 }
 
 export interface Category {

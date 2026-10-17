@@ -1,8 +1,14 @@
 ---
 export const prerender = false;
 import ExamUI from "../../components/ExamUI.astro";
+import { fetchTestDetails } from "../../lib/api";
 
 const { slug } = Astro.params;
+
+let testDetails = null;
+if (slug) {
+  testDetails = await fetchTestDetails(slug);
+}
 ---
 
-<ExamUI slug={slug} />
+<ExamUI slug={slug} test={testDetails || undefined} />

@@ -1514,9 +1514,11 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       <div class="instr-modal">
         <div class="instr-header">
           <div class="instr-exam-name" id="instr-exam-name">
-            OSSSC · Mock Test
+            {test?.exam ? `${test.exam} · Mock Test` : "OSSSC · Mock Test"}
           </div>
-          <div class="instr-test-title" id="instr-title">Mock Test</div>
+          <div class="instr-test-title" id="instr-title">
+            {test?.title || "Mock Test"}
+          </div>
           <div class="instr-meta-pills">
             <span class="instr-pill">
               <svg
@@ -1527,9 +1529,9 @@ const { slug = "", test, questionsData = [] } = Astro.props;
                 stroke-width="2"
                 viewBox="0 0 24 24"
                 ><circle cx="12" cy="12" r="10"></circle><polyline
-                  points="12 6 12 12 16 14"></polyline></svg
+                  points="12 6 12 16 14"></polyline></svg
               >
-              <span id="instr-duration">30</span> Minutes
+              <span id="instr-duration">{test?.duration || 30}</span> Minutes
             </span>
             <span class="instr-pill">
               <svg
@@ -1543,7 +1545,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
                   d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
                 ></path></svg
               >
-              <span id="instr-questions">20</span> Questions
+              <span id="instr-questions">{test?.questions || 20}</span> Questions
             </span>
             <span class="instr-pill">
               <svg
@@ -1557,9 +1559,23 @@ const { slug = "", test, questionsData = [] } = Astro.props;
                   d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                 ></path></svg
               >
-              <span id="instr-marks">20</span> Marks Total
+              <span id="instr-marks">
+                {
+                  test?.total_marks !== undefined
+                    ? test.total_marks
+                    : (test?.questions || 20) * (test?.correct_marks !== undefined ? test.correct_marks : 1)
+                }
+              </span> Marks Total
             </span>
-            <span class="instr-pill" style="background:rgba(176,0,32,0.3)">
+            <span
+              class="instr-pill"
+              id="instr-neg-pill"
+              style={
+                test?.wrong_penalty && test.wrong_penalty > 0
+                  ? "background:rgba(176,0,32,0.3)"
+                  : "background:rgba(27,107,58,0.2); color:#1b6b3a;"
+              }
+            >
               <svg
                 width="13"
                 height="13"
@@ -1575,7 +1591,40 @@ const { slug = "", test, questionsData = [] } = Astro.props;
                   x2="12.01"
                   y2="17"></line></svg
               >
-              Negative Marking
+              <span id="instr-neg-text">
+                {
+                  test?.wrong_penalty !== undefined
+                    ? test.wrong_penalty > 0
+                      ? `Negative Marking (-${test.wrong_penalty})`
+                      : "No Negative Marking"
+                    : "Negative Marking"
+                }
+              </span>
+            </span>
+            <span
+              class="instr-pill"
+              id="instr-diff-pill"
+              style={test?.difficulty ? "display:inline-flex;" : "display:none;"}
+            >
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+              </svg>
+              <span id="instr-difficulty">{test?.difficulty || ""}</span>
+            </span>
+            <span
+              class="instr-pill"
+              id="instr-attempts-pill"
+              style={test?.attempts !== undefined && test?.attempts !== null ? "display:inline-flex;" : "display:none;"}
+            >
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span id="instr-attempts">
+                {test?.attempts !== undefined && test?.attempts !== null ? `${test.attempts} Attempts` : ""}
+              </span>
             </span>
           </div>
         </div>
@@ -1643,24 +1692,35 @@ const { slug = "", test, questionsData = [] } = Astro.props;
 
           <div class="instr-section-label">Marking Scheme</div>
           <div class="instr-marking">
-            <div style="font-size:0.88rem;color:var(--ink-soft);">
-              Each question carries <strong style="color:var(--ink)"
-                >1 mark</strong
-              >. Wrong answers attract a penalty.
+            <div style="font-size:0.88rem;color:var(--ink-soft);" id="instr-marking-desc">
+              Each question carries <strong style="color:var(--ink)" id="instr-correct-text">
+                {test?.correct_marks !== undefined ? `${test.correct_marks} mark${test.correct_marks === 1 ? '' : 's'}` : "1 mark"}
+              </strong>. <span id="instr-penalty-desc">
+                {test?.wrong_penalty !== undefined ? (test.wrong_penalty > 0 ? "Wrong answers attract a penalty." : "No penalty for wrong answers.") : "Wrong answers attract a penalty."}
+              </span>
             </div>
             <div class="marking-grid">
               <div class="mg-item mg-correct">
-                <div class="mg-val">+1</div><div class="mg-label">
+                <div class="mg-val" id="instr-mg-correct">
+                  {test?.correct_marks !== undefined ? `+${test.correct_marks}` : "+1"}
+                </div>
+                <div class="mg-label">
                   Correct Answer
                 </div>
               </div>
               <div class="mg-item mg-wrong">
-                <div class="mg-val">−¼</div><div class="mg-label">
+                <div class="mg-val" id="instr-mg-wrong">
+                  {test?.wrong_penalty !== undefined ? (test.wrong_penalty > 0 ? `-${test.wrong_penalty}` : "0") : "−¼"}
+                </div>
+                <div class="mg-label">
                   Wrong Answer
                 </div>
               </div>
               <div class="mg-item mg-skip">
-                <div class="mg-val">0</div><div class="mg-label">Skipped</div>
+                <div class="mg-val" id="instr-mg-skip">
+                  {test?.skipped_marks !== undefined ? `${test.skipped_marks}` : "0"}
+                </div>
+                <div class="mg-label">Skipped</div>
               </div>
             </div>
           </div>
@@ -2180,22 +2240,115 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       const instrCb = document.getElementById("instr-agree-cb");
       const btnStart = document.getElementById("btn-start-test");
 
-      // Populate dynamic initial meta in instruction modal
-      const initialExam = `${testMeta?.exam || "Competitive Exam"} · Mock Test`;
-      const initialTitle = testMeta?.title || "Online Mock Test";
-      const initialDuration = testMeta?.duration || 30;
-      const initialQCount = testMeta?.questions || 20;
+      function applyDetailsToModal(d) {
+        if (!d) return;
 
-      const instrExamEl = document.getElementById("instr-exam-name");
-      if (instrExamEl) instrExamEl.textContent = initialExam;
-      const instrTitleEl = document.getElementById("instr-title");
-      if (instrTitleEl) instrTitleEl.textContent = initialTitle;
-      const instrDurEl = document.getElementById("instr-duration");
-      if (instrDurEl) instrDurEl.textContent = initialDuration;
-      const instrQEl = document.getElementById("instr-questions");
-      if (instrQEl) instrQEl.textContent = initialQCount;
-      const instrMarksEl = document.getElementById("instr-marks");
-      if (instrMarksEl) instrMarksEl.textContent = initialQCount;
+        const examName = d.exam ? `${d.exam} · Mock Test` : (testMeta?.exam ? `${testMeta.exam} · Mock Test` : "OSSSC · Mock Test");
+        const title = d.title || testMeta?.title || "Online Mock Test";
+        const duration = d.duration ?? testMeta?.duration ?? 30;
+        const questionsCount = d.questions ?? testMeta?.questions ?? 20;
+        const correctMarks = d.correct_marks ?? 1;
+        const wrongPenalty = d.wrong_penalty ?? 0;
+        const skippedMarks = d.skipped_marks ?? 0;
+        const totalMarks = d.total_marks ?? (questionsCount * correctMarks);
+
+        const instrExamEl = document.getElementById("instr-exam-name");
+        if (instrExamEl) instrExamEl.textContent = examName;
+
+        const instrTitleEl = document.getElementById("instr-title");
+        if (instrTitleEl) instrTitleEl.textContent = title;
+
+        const instrDurEl = document.getElementById("instr-duration");
+        if (instrDurEl) instrDurEl.textContent = duration;
+
+        const instrQEl = document.getElementById("instr-questions");
+        if (instrQEl) instrQEl.textContent = questionsCount;
+
+        const instrMarksEl = document.getElementById("instr-marks");
+        if (instrMarksEl) instrMarksEl.textContent = totalMarks;
+
+        // Negative marking pill
+        const negPill = document.getElementById("instr-neg-pill");
+        const negText = document.getElementById("instr-neg-text");
+        if (negPill && negText) {
+          if (wrongPenalty > 0) {
+            negText.textContent = `Negative Marking (-${wrongPenalty})`;
+            negPill.style.background = "rgba(176,0,32,0.3)";
+            negPill.style.color = "inherit";
+          } else {
+            negText.textContent = "No Negative Marking";
+            negPill.style.background = "rgba(27,107,58,0.2)";
+            negPill.style.color = "#1b6b3a";
+          }
+        }
+
+        // Difficulty pill
+        if (d.difficulty) {
+          const diffPill = document.getElementById("instr-diff-pill");
+          const diffText = document.getElementById("instr-difficulty");
+          if (diffPill && diffText) {
+            diffText.textContent = d.difficulty;
+            diffPill.style.display = "inline-flex";
+          }
+        }
+
+        // Attempts pill
+        if (d.attempts !== undefined && d.attempts !== null) {
+          const attPill = document.getElementById("instr-attempts-pill");
+          const attText = document.getElementById("instr-attempts");
+          if (attPill && attText) {
+            attText.textContent = `${d.attempts} Attempts`;
+            attPill.style.display = "inline-flex";
+          }
+        }
+
+        // Marking grid
+        const mgCorrect = document.getElementById("instr-mg-correct");
+        if (mgCorrect) mgCorrect.textContent = `+${correctMarks}`;
+
+        const mgWrong = document.getElementById("instr-mg-wrong");
+        if (mgWrong) mgWrong.textContent = wrongPenalty > 0 ? `-${wrongPenalty}` : "0";
+
+        const mgSkip = document.getElementById("instr-mg-skip");
+        if (mgSkip) mgSkip.textContent = `${skippedMarks}`;
+
+        const correctText = document.getElementById("instr-correct-text");
+        if (correctText) correctText.textContent = `${correctMarks} mark${correctMarks === 1 ? '' : 's'}`;
+
+        const penaltyDesc = document.getElementById("instr-penalty-desc");
+        if (penaltyDesc) {
+          penaltyDesc.textContent = wrongPenalty > 0 ? "Wrong answers attract a penalty." : "No penalty for wrong answers.";
+        }
+
+        // Header and Document title
+        const ehTitle = document.getElementById("eh-title");
+        if (ehTitle) ehTitle.textContent = title;
+        document.title = `${title} | Brinto MockTest`;
+
+        // Update timer state
+        state.totalDuration = duration * 60;
+        state.timeLeft = duration * 60;
+      }
+
+      // Initial apply if testMeta exists
+      if (testMeta) {
+        applyDetailsToModal(testMeta);
+      }
+
+      // Fetch details from API on client load
+      const testIdRaw = slug || testMeta?.id;
+      if (testIdRaw) {
+        fetch(`https://brintoapi.brinto.in/api/mocktests/${testIdRaw}/details`, {
+          headers: { "Accept": "*/*" }
+        })
+          .then((r) => r.json())
+          .then((json) => {
+            if (json?.success && json?.data) {
+              applyDetailsToModal(json.data);
+            }
+          })
+          .catch((err) => console.warn("Failed to fetch test details in modal:", err));
+      }
 
       instrCb.addEventListener("change", () => {
         btnStart.disabled = !instrCb.checked;
