@@ -677,7 +677,7 @@ const webPageJsonLd = {
             &times;
           </button>
         </header>
-        <div class="hsc-modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+        <div class="hsc-modal-body hsc-mode-modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
           <p style="color: var(--ink-soft); font-size: 0.9rem; margin: 0; line-height: 1.4;">
             Choose whether to attempt the full subject test or practice a specific chapter for <strong id="mode-subject-name" style="color: var(--ink);">Subject</strong>:
           </p>
@@ -788,6 +788,20 @@ const webPageJsonLd = {
     let testStartTime = 0;
     let currentSubjectId = 'all';
 
+    function blockScroll() {
+      document.documentElement.classList.add('modal-open');
+      document.body.classList.add('modal-open');
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function unblockScroll() {
+      document.documentElement.classList.remove('modal-open');
+      document.body.classList.remove('modal-open');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
+
     function startTest(subjectId, mode = 'full', chapterIndex = null) {
       currentSubjectId = subjectId;
       if (subjectId === 'all') {
@@ -833,7 +847,7 @@ const webPageJsonLd = {
       } else {
         modal.setAttribute('open', 'true');
       }
-      document.body.style.overflow = 'hidden';
+      blockScroll();
     }
 
     function closeTestModal() {
@@ -843,8 +857,12 @@ const webPageJsonLd = {
       } else {
         modal.removeAttribute('open');
       }
-      document.body.style.overflow = '';
+      unblockScroll();
     }
+
+    modal.addEventListener('cancel', () => {
+      unblockScroll();
+    });
 
     function startTimer() {
       if (timerInterval) clearInterval(timerInterval);
@@ -1132,7 +1150,7 @@ const webPageJsonLd = {
       } else {
         modeModal.setAttribute('open', 'true');
       }
-      document.body.style.overflow = 'hidden';
+      blockScroll();
     }
 
     function closeModeModal() {
@@ -1141,11 +1159,24 @@ const webPageJsonLd = {
       } else {
         modeModal.removeAttribute('open');
       }
-      document.body.style.overflow = '';
+      unblockScroll();
     }
 
     modeModal.addEventListener('cancel', () => {
-      document.body.style.overflow = '';
+      unblockScroll();
+    });
+
+    modeModal.addEventListener('click', (e) => {
+      const rect = modeModal.getBoundingClientRect();
+      const isInDialog = (
+        rect.top <= e.clientY &&
+        e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX &&
+        e.clientX <= rect.left + rect.width
+      );
+      if (!isInDialog) {
+        closeModeModal();
+      }
     });
 
     if (btnCloseModeModal) {
@@ -1168,23 +1199,17 @@ const webPageJsonLd = {
       subj.chapters.forEach((ch, chIdx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.style.cssText = 'background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left; width: 100%; transition: all 0.15s ease;';
-
-        btn.onmouseover = () => {
-          btn.style.borderColor = '#b00020';
-          btn.style.background = '#fff5f6';
-        };
-        btn.onmouseout = () => {
-          btn.style.borderColor = '#e5e7eb';
-          btn.style.background = '#ffffff';
-        };
+        btn.className = 'hsc-chapter-item-btn';
 
         btn.innerHTML = `
-          <div>
-            <strong style="display: block; font-size: 0.9rem; color: #111827;">${ch.unit}</strong>
-            <span style="font-size: 0.78rem; color: #4b5563;">${ch.unitOdia} • Weightage: ${ch.weightageMarks} Marks</span>
+          <div class="hsc-ch-info">
+            <strong class="hsc-ch-title">${ch.unit}</strong>
+            <span class="hsc-ch-sub">${ch.unitOdia} • Weightage: ${ch.weightageMarks} Marks</span>
           </div>
-          <span style="font-weight: 700; color: #b00020; font-size: 0.85rem;">Practice →</span>
+          <span class="hsc-ch-cta">
+            <span class="hsc-ch-cta-text">Practice</span>
+            <span class="hsc-ch-cta-icon" aria-hidden="true">→</span>
+          </span>
         `;
 
         btn.addEventListener('click', () => {
@@ -1211,12 +1236,27 @@ const webPageJsonLd = {
 </script>
 
 <style is:global>
+  /* Lock background scroll when modal is open */
+  html.modal-open,
+  body.modal-open {
+    overflow: hidden !important;
+    touch-action: none;
+    -webkit-overflow-scrolling: auto;
+  }
+
   /* ── MODE SELECTOR MODAL / BOTTOM SHEET ─────────────── */
+  .hsc-mode-modal:not([open]) {
+    display: none !important;
+  }
+  .hsc-mode-modal[open] {
+    display: flex;
+    flex-direction: column;
+  }
   .hsc-mode-modal {
     width: 94vw;
     max-width: 600px;
     height: auto;
-    max-height: 90vh;
+    max-height: 85vh;
     border: none;
     border-radius: 20px;
     padding: 0;
@@ -1229,6 +1269,20 @@ const webPageJsonLd = {
     background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(4px);
   }
+  .hsc-mode-modal .hsc-modal-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 85vh;
+    overflow: hidden;
+  }
+  .hsc-mode-modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: 32px !important;
+  }
   .hsc-sheet-handle {
     display: none;
     width: 40px;
@@ -1236,9 +1290,15 @@ const webPageJsonLd = {
     background: var(--rule);
     border-radius: 2px;
     margin: 10px auto 2px;
+    flex-shrink: 0;
   }
   @media (max-width: 768px) {
-    .hsc-mode-modal {
+    .hsc-mode-modal:not([open]) {
+      display: none !important;
+    }
+    .hsc-mode-modal[open] {
+      display: flex;
+      flex-direction: column;
       position: fixed;
       bottom: 0;
       left: 0;
@@ -1247,12 +1307,17 @@ const webPageJsonLd = {
       margin: 0;
       width: 100vw;
       max-width: 100vw;
+      height: 85vh;
       max-height: 85vh;
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
       border-top-left-radius: 24px;
       border-top-right-radius: 24px;
       animation: slideUpBottomsheet 0.25s ease-out;
+    }
+    .hsc-mode-modal .hsc-modal-container {
+      height: 100%;
+      max-height: 85vh;
     }
     .hsc-sheet-handle {
       display: block;
@@ -1272,6 +1337,7 @@ const webPageJsonLd = {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    flex-shrink: 0;
   }
   .hsc-modal-divider hr {
     flex: 1;
@@ -1282,11 +1348,12 @@ const webPageJsonLd = {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 400px;
-    overflow-y: auto;
-    padding-right: 4px;
+    overflow: visible;
+    padding-right: 2px;
+    padding-bottom: 24px;
   }
   .hsc-full-test-option-btn {
+    flex-shrink: 0;
     background: var(--brand-light);
     border: 1px solid var(--brand-mid);
     border-radius: 12px;
@@ -1335,13 +1402,14 @@ const webPageJsonLd = {
     white-space: nowrap;
   }
   .hsc-chapter-item-btn {
-    background: var(--surface);
+    background: #ffffff;
     border: 1px solid var(--rule);
     border-radius: 10px;
-    padding: 10px 14px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     cursor: pointer;
     text-align: left;
     width: 100%;
@@ -1350,6 +1418,57 @@ const webPageJsonLd = {
   .hsc-chapter-item-btn:hover {
     border-color: var(--brand);
     background: #fff5f6;
+  }
+  .hsc-ch-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  .hsc-ch-title {
+    font-size: 0.9rem;
+    color: #111827;
+    line-height: 1.35;
+  }
+  .hsc-ch-sub {
+    font-size: 0.78rem;
+    color: #4b5563;
+    line-height: 1.3;
+  }
+  .hsc-ch-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    color: #b00020;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .hsc-ch-cta-icon {
+    font-size: 1rem;
+    line-height: 1;
+    transition: transform 0.15s ease;
+  }
+  .hsc-chapter-item-btn:hover .hsc-ch-cta-icon {
+    transform: translateX(3px);
+  }
+
+  /* On small screens, hide 'Practice' text and keep only the arrow icon */
+  @media (max-width: 480px) {
+    .hsc-ch-cta-text {
+      display: none;
+    }
+    .hsc-ch-cta {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 
   @media (max-width: 640px) {
@@ -2469,6 +2588,13 @@ const webPageJsonLd = {
   }
 
   /* ── INTERACTIVE TEST RUNNER MODAL ──────────────────── */
+  .hsc-test-modal:not([open]) {
+    display: none !important;
+  }
+  .hsc-test-modal[open] {
+    display: flex;
+    flex-direction: column;
+  }
   .hsc-test-modal {
     width: 96vw;
     max-width: 1100px;

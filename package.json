@@ -25,6 +25,6 @@
   "devDependencies": {
     "@astrojs/cloudflare": "^14.4.0",
     "tsx": "^4.23.15",
-    "wrangler": "^4.151.0"
+    "wrangler": "^4.151.1"
   }
 }
