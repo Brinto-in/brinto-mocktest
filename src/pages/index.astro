@@ -152,10 +152,7 @@ try {
   <!-- ── HOW IT WORKS ───────────────────────────── -->
   <section class="section">
     <div class="wrap">
-      <div class="section-head centered">
-        <h2>How it works</h2>
-        <p class="section-sub">Three steps from zero to your exam rank.</p>
-      </div>
+      <SectionHeader title="How it works" subtitle="Three steps from zero to your exam rank." centered={true} />
       <div class="steps-row">
         {steps.map((step) => <StepCard step={step} />)}
       </div>
