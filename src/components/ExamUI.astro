@@ -1184,7 +1184,35 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         color: var(--ink);
       }
 
-      /* Mobile sidebar toggle */
+      /* Mobile sidebar backdrop & toggle */
+      .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        z-index: 35;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+      .sidebar-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .sidebar-close-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        line-height: 1;
+        color: var(--ink-muted);
+        padding: 0 4px;
+        cursor: pointer;
+      }
+      .sidebar-close-btn:hover {
+        color: var(--ink);
+      }
       .palette-toggle {
         display: none;
         position: fixed;
@@ -1230,6 +1258,9 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         }
         .sidebar.open {
           transform: translateX(0);
+        }
+        .sidebar-close-btn {
+          display: block;
         }
         .palette-toggle {
           display: flex;
@@ -1342,10 +1373,16 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         </div>
       </div>
 
+      <!-- Sidebar Backdrop -->
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
       <!-- Sidebar -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-          <h3>Question Palette</h3>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <h3 style="margin:0;">Question Palette</h3>
+            <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close palette">&times;</button>
+          </div>
           <div class="section-tabs" id="section-tabs"></div>
           <template id="section-tab-template">
             <button class="sec-tab"></button>
@@ -1947,9 +1984,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         state.current = i;
         renderQuestion();
         // Close sidebar on mobile
-        if (window.innerWidth <= 900) {
-          document.getElementById("sidebar").classList.remove("open");
-        }
+        closeSidebar();
       }
 
       function markForReview() {
@@ -2670,11 +2705,53 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       document.getElementById("submit-modal").addEventListener("click", (e) => {
         if (e.target === e.currentTarget) closeSubmitModal();
       });
+      function openSidebar() {
+        document.getElementById("sidebar")?.classList.add("open");
+        document.getElementById("sidebar-backdrop")?.classList.add("open");
+      }
+
+      function closeSidebar() {
+        document.getElementById("sidebar")?.classList.remove("open");
+        document.getElementById("sidebar-backdrop")?.classList.remove("open");
+      }
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        if (sidebar?.classList.contains("open")) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
+      }
+
       document
         .getElementById("palette-toggle")
-        .addEventListener("click", () => {
-          document.getElementById("sidebar").classList.toggle("open");
+        ?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleSidebar();
         });
+
+      document
+        .getElementById("sidebar-close-btn")
+        ?.addEventListener("click", () => {
+          closeSidebar();
+        });
+
+      document
+        .getElementById("sidebar-backdrop")
+        ?.addEventListener("click", () => {
+          closeSidebar();
+        });
+
+      document.addEventListener("click", (e) => {
+        const sidebar = document.getElementById("sidebar");
+        const paletteToggle = document.getElementById("palette-toggle");
+        if (!sidebar || !sidebar.classList.contains("open")) return;
+        const target = e.target;
+        if (!sidebar.contains(target) && (!paletteToggle || !paletteToggle.contains(target))) {
+          closeSidebar();
+        }
+      });
     </script>
   </body>
 </html>
