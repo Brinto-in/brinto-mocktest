@@ -10,6 +10,7 @@ const nav = [
   {
     href: '/mocktest/institutes',
     label: 'Institutes',
+    comingSoon: true,
     icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>`
   },
   {
@@ -20,6 +21,7 @@ const nav = [
   {
     href: '/mocktest/leaderboard',
     label: 'Leaderboard',
+    comingSoon: true,
     icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>`
   },
 ];
@@ -47,8 +49,15 @@ function isNavActive(href: string) {
           const active = isNavActive(n.href);
           return (
             <li>
-              <a href={n.href} class={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
+              <a
+                href={n.comingSoon ? undefined : n.href}
+                class={`${active ? 'active' : ''} ${n.comingSoon ? 'coming-soon-link' : ''}`}
+                aria-current={active ? 'page' : undefined}
+                aria-disabled={n.comingSoon ? 'true' : undefined}
+                style={n.comingSoon ? 'pointer-events: none; opacity: 0.65; cursor: default;' : ''}
+              >
                 {n.label}
+                {n.comingSoon && <span class="nav-soon-badge">Soon</span>}
               </a>
             </li>
           );
@@ -119,12 +128,23 @@ function isNavActive(href: string) {
           const active = isNavActive(n.href);
           return (
             <li style={`--i: ${idx + 2}`}>
-              <a href={n.href} class={active ? 'drawer-link active' : 'drawer-link'} aria-current={active ? 'page' : undefined} onclick="closeMenu()">
+              <a
+                href={n.comingSoon ? undefined : n.href}
+                class={`${active ? 'drawer-link active' : 'drawer-link'} ${n.comingSoon ? 'coming-soon-link' : ''}`}
+                aria-current={active ? 'page' : undefined}
+                aria-disabled={n.comingSoon ? 'true' : undefined}
+                style={n.comingSoon ? 'pointer-events: none; opacity: 0.65; cursor: default;' : ''}
+                onclick={n.comingSoon ? undefined : "closeMenu()"}
+              >
                 <span class="drawer-link-icon" set:html={n.icon} />
                 <span class="drawer-link-text">{n.label}</span>
-                <svg class="drawer-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
+                {n.comingSoon ? (
+                  <span class="drawer-soon-badge">Soon</span>
+                ) : (
+                  <svg class="drawer-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                )}
               </a>
             </li>
           );
@@ -744,6 +764,32 @@ function isNavActive(href: string) {
     background: var(--brand-light, #FFF0F2);
     color: var(--brand, #B00020);
     font-weight: 700;
+  }
+  .nav-soon-badge {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--surface-2);
+    color: var(--ink-muted);
+    border: 1px solid var(--rule);
+    padding: 1px 5px;
+    border-radius: var(--radius-pill);
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.03em;
+  }
+  .drawer-soon-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--surface-2);
+    color: var(--ink-muted);
+    border: 1px solid var(--rule);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.03em;
   }
   .header-cta {
     display: flex;
