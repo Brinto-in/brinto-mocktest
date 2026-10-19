@@ -1380,8 +1380,30 @@ const dummyResults = [
         .am-stats-strip {
             grid-template-columns: repeat(3, 1fr);
         }
+        .am-overlay {
+            padding: 0;
+            background: var(--surface);
+        }
         .am-modal {
-            max-height: 95vh;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            max-height: 100vh;
+            max-height: 100dvh;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+        }
+        .am-header {
+            padding: 16px;
+            padding-top: max(16px, env(safe-area-inset-top));
+        }
+        .am-q-filters {
+            padding: 10px 16px;
+        }
+        .am-body {
+            padding: 16px;
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
         }
         .rc-footer {
             flex-direction: column;
