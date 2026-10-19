@@ -186,6 +186,21 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   let searchQ = '';
   let sortBy = 'popular';
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramExam = urlParams.get('exam');
+  if (paramExam) {
+    const targetBtn = document.querySelector(`#exam-filter .filter-btn[data-exam="${paramExam}"]`);
+    if (targetBtn) {
+      document.querySelectorAll('#exam-filter .filter-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      targetBtn.classList.add('active');
+      targetBtn.setAttribute('aria-pressed', 'true');
+      activeExam = paramExam;
+    }
+  }
+
   const grid = document.getElementById('tests-grid');
   const cards = Array.from(grid.querySelectorAll('.test-card'));
   const countEl = document.getElementById('result-count');

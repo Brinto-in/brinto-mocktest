@@ -24,6 +24,7 @@ export interface Category {
   count: number;
   href: string;
   color: string;
+  active?: boolean;
 }
 
 export interface Step {
