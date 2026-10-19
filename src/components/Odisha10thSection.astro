@@ -1,4 +1,5 @@
 ---
+import SectionHeader from "./SectionHeader.astro";
 // Simple static UI component for Odisha 10th Board Students
 const subjects = [
   {
@@ -91,21 +92,13 @@ const subjects = [
 <section class="section odisha-10th-section">
   <div class="wrap">
     <!-- Header -->
-    <div class="o10-header">
-      <div class="o10-header-info">
-        <span class="o10-pill">
-          <span class="o10-pill-dot"></span>
-          🎓 BSE ODISHA CLASS 10TH (MATRIC)
-        </span>
-        <h2>Odisha 10th Board Exam Preparation</h2>
-        <p class="o10-sub">
-          Subject-wise objective practice sets, chapter MCQs & model papers tailored for BSE Odisha Class 10th Matriculation Board exams.
-        </p>
-      </div>
-      <a href="/mocktest/odisha-10th-mock-test" class="o10-see-all">
-        View all 10th tests →
-      </a>
-    </div>
+    <SectionHeader
+      pill="🎓 BSE ODISHA CLASS 10TH (MATRIC)"
+      title="Odisha 10th Board Exam Preparation"
+      subtitle="Subject-wise objective practice sets, chapter MCQs & model papers tailored for BSE Odisha Class 10th Matriculation Board exams."
+      seeAllHref="/mocktest/odisha-10th-mock-test"
+      seeAllText="View all 10th tests →"
+    />
 
     <!-- Subject Grid -->
     <div class="o10-grid">

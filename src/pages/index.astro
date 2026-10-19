@@ -8,6 +8,7 @@ import Hero from "../components/Hero.astro";
 import StatsStrip from "../components/StatsStrip.astro";
 import InstitutesSection from "../components/InstitutesSection.astro";
 import Odisha10thSection from "../components/Odisha10thSection.astro";
+import SectionHeader from "../components/SectionHeader.astro";
 
 import { fetchMockTests } from "../lib/api";
 import type { Test } from "../lib/types";
@@ -53,10 +54,7 @@ try {
   <!-- ── TRENDING TESTS ─────────────────────────── -->
   <section class="section section-alt">
     <div class="wrap">
-      <div class="section-head">
-        <h2>Trending tests</h2>
-        <a href="/mocktest/tests" class="see-all">View all →</a>
-      </div>
+      <SectionHeader title="Trending tests" seeAllHref="/mocktest/tests" seeAllText="View all →" />
       <div class="tests-grid" id="trending-tests-grid">
         {tests.map((t) => <TestCard test={t} />)}
       </div>
@@ -144,10 +142,7 @@ try {
   <!-- ── CATEGORIES ─────────────────────────────── -->
   <section class="section">
     <div class="wrap">
-      <div class="section-head">
-        <h2>Browse by exam</h2>
-        <a href="/mocktest/tests" class="see-all">See all →</a>
-      </div>
+      <SectionHeader title="Browse by exam" seeAllHref="/mocktest/tests" seeAllText="See all →" />
       <div class="cat-grid">
         {categories.map((cat) => <CategoryCard category={cat} />)}
       </div>
