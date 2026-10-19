@@ -495,20 +495,21 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       /* States */
       .pq-btn.not-visited {
         background: var(--surface-2);
-        color: var(--ink-muted);
+        color: var(--ink-soft);
         border: 1px solid var(--rule);
       }
       .pq-btn.not-answered {
-        background: #fee2e2;
-        color: #991b1b;
+        background: #dc2626;
+        color: #ffffff;
       }
       .pq-btn.answered {
-        background: var(--green-light);
-        color: var(--green);
+        background: #16a34a;
+        color: #ffffff;
       }
       .pq-btn.marked {
-        background: var(--purple-light);
-        color: var(--purple);
+        background: #f3e8ff;
+        color: #6b21a8;
+        border: 1.5px solid #a855f7;
       }
       .pq-btn.ans-marked {
         background: var(--purple);
@@ -540,6 +541,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         gap: 7px;
         font-size: 0.76rem;
         color: var(--ink-soft);
+        font-weight: 500;
       }
       .leg-dot {
         width: 16px;
@@ -552,13 +554,14 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         border: 1px solid var(--rule);
       }
       .ld-na {
-        background: #fee2e2;
+        background: #dc2626;
       }
       .ld-an {
-        background: var(--green-light);
+        background: #16a34a;
       }
       .ld-mk {
-        background: var(--purple-light);
+        background: #f3e8ff;
+        border: 1.5px solid #a855f7;
       }
       .ld-am {
         background: var(--purple);
