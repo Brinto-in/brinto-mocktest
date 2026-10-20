@@ -2,7 +2,6 @@
 export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
 import CategoryCard from "../components/CategoryCard.astro";
-import TestCard from "../components/TestCard.astro";
 import StepCard from "../components/StepCard.astro";
 import Hero from "../components/Hero.astro";
 import StatsStrip from "../components/StatsStrip.astro";
@@ -10,33 +9,10 @@ import InstitutesSection from "../components/InstitutesSection.astro";
 import Odisha10thSection from "../components/Odisha10thSection.astro";
 import Odisha10thPosterRow from "../components/Odisha10thPosterRow.astro";
 import SectionHeader from "../components/SectionHeader.astro";
+import TrendingTests from "../components/TrendingTests.astro";
 
-import { fetchMockTests } from "../lib/api";
-import type { Test } from "../lib/types";
 import { categories } from "../data/categories";
 import { steps } from "../data/steps";
-
-let tests: Test[] = [];
-
-try {
-  const items = await fetchMockTests(1, 10);
-  if (Array.isArray(items) && items.length > 0) {
-    tests = items.map((row: any) => ({
-      title: row.title || row.name,
-      exam: row.exam || row.category || "General",
-      questions: Array.isArray(row.questions) ? row.questions.length : (row.questions || 0),
-      duration: row.duration || 30,
-      difficulty: row.difficulty || "Medium",
-      attempts: row.attempts || 0,
-      rating: row.rating || 5,
-      href: `/mocktest/test/${row.id}`,
-      isNew: !!(row.isNew || row.is_new),
-      isFree: !!(row.isFree || row.is_free),
-    }));
-  }
-} catch (err) {
-  console.error("Error fetching trending tests from API service:", err);
-}
 ---
 
 <BaseLayout
@@ -54,92 +30,7 @@ try {
   <Odisha10thPosterRow />
 
   <!-- ── TRENDING TESTS ─────────────────────────── -->
-  <section class="section section-alt">
-    <div class="wrap">
-      <SectionHeader title="Trending tests" seeAllHref="/mocktest/tests" seeAllText="View all →" />
-      <div class="tests-grid" id="trending-tests-grid">
-        {tests.map((t) => <TestCard test={t} />)}
-      </div>
-    </div>
-  </section>
-
-  <script is:inline>
-    // Ensure trending tests load from API on client if edge subrequest returned empty
-    (async function() {
-      const grid = document.getElementById("trending-tests-grid");
-      if (!grid) return;
-      if (grid.querySelectorAll('.test-card').length === 0) {
-        try {
-          const res = await fetch("https://brintoapi.brinto.in/api/mocktests?page=1&limit=10", {
-            headers: {
-              "Accept": "application/json"
-            }
-          });
-          if (!res.ok) {
-            console.error("API Error: Unable to load tests (" + res.status + ")");
-            return;
-          }
-          const json = await res.json();
-          if (json?.error) {
-            console.error("API Error: " + json.error);
-            return;
-          }
-          const items = json?.data || json?.tests || (Array.isArray(json) ? json : []);
-          if (Array.isArray(items) && items.length > 0) {
-            grid.innerHTML = items.map(function(t) {
-              const diff = t.difficulty || 'Medium';
-              const diffStyles = {
-                Easy: 'color:var(--green);background:var(--green-light)',
-                Medium: 'color:var(--gold);background:var(--gold-light)',
-                Hard: 'color:var(--brand);background:var(--brand-light)'
-              };
-              const diffStyle = diffStyles[diff] || diffStyles.Medium;
-              const qCount = Array.isArray(t.questions) ? t.questions.length : (t.questions || 0);
-              const duration = t.duration || 30;
-              const attempts = (t.attempts || 0).toLocaleString('en-IN');
-              const rating = t.rating || 5;
-              const isNewBadge = (t.is_new || t.isNew) ? '<span class="badge-new">New</span>' : '';
-              const isFreeBadge = (t.is_free || t.isFree) ? '<span class="badge-free">Free</span>' : '';
-
-              return `
-                <a href="/mocktest/test/${t.id}" class="test-card">
-                  <div class="tc-top">
-                    <span class="tc-exam-tag">${t.exam || 'General'}</span>
-                    <div class="tc-badges">
-                      ${isNewBadge}
-                      ${isFreeBadge}
-                    </div>
-                  </div>
-                  <h3 class="tc-title">${t.title || t.name}</h3>
-                  <div class="tc-meta">
-                    <span>
-                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                      ${qCount} Qs
-                    </span>
-                    <span>
-                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                      ${duration} min
-                    </span>
-                    <span class="tc-diff" style="${diffStyle}">${diff}</span>
-                  </div>
-                  <div class="tc-footer">
-                    <span class="tc-attempts">
-                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                      ${attempts}
-                    </span>
-                    <span class="tc-rating">★ ${rating}</span>
-                    <span class="tc-cta">Attempt →</span>
-                  </div>
-                </a>
-              `;
-            }).join('');
-          }
-        } catch (e) {
-          console.error("Client fallback fetch failed:", e);
-        }
-      }
-    })();
-  </script>
+  <TrendingTests />
 
   <!-- ── CATEGORIES ─────────────────────────────── -->
   <section class="section">
@@ -181,7 +72,11 @@ try {
 <style>
   /* ── SECTIONS ── */
   .section {
-    padding: 72px 0;
+    padding: 56px 0;
+  }
+  /* Consecutive white sections share one gap instead of doubling it */
+  .section + .section:not(.section-alt) {
+    padding-top: 0;
   }
   .section-alt {
     background: var(--surface-2);
@@ -227,13 +122,6 @@ try {
     gap: 14px;
   }
 
-  /* ── TEST CARDS ── */
-  .tests-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-
   /* ── STEPS ── */
   .steps-row {
     display: grid;
@@ -276,8 +164,10 @@ try {
   /* ── CTA BAND ── */
   .cta-band {
     background: var(--brand);
-    padding: 64px 0;
+    padding: 48px 0;
     margin-top: 0;
+    /* Cancel the footer's top margin so the band sits flush on the footer */
+    margin-bottom: -40px;
   }
   .cta-inner {
     display: flex;
@@ -334,9 +224,6 @@ try {
     .cat-grid {
       grid-template-columns: repeat(4, 1fr);
     }
-    .tests-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
   }
   @media (max-width: 768px) {
     .hero {
@@ -347,6 +234,7 @@ try {
     }
     .steps-row {
       grid-template-columns: 1fr;
+      gap: 12px;
     }
     .cta-inner {
       flex-direction: column;
@@ -358,11 +246,8 @@ try {
     }
   }
   @media (max-width: 600px) {
-    .tests-grid {
-      grid-template-columns: 1fr;
-    }
     .section {
-      padding: 48px 0;
+      padding: 40px 0;
     }
   }
   @media (max-width: 400px) {

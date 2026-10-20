@@ -20,7 +20,7 @@ const { step } = Astro.props;
     background: var(--surface);
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
-    padding: 28px 24px;
+    padding: 24px 22px;
     position: relative;
   }
   .step-icon {
@@ -39,4 +39,8 @@ const { step } = Astro.props;
   }
   h3 { font-size: 1.1rem; color: var(--ink); margin-bottom: 10px; font-family: var(--font-body); font-weight: 700; }
   p { font-size: 0.9rem; color: var(--ink-soft); }
+
+  @media (max-width: 600px) {
+    .step-card { padding: 18px 18px; }
+  }
 </style>

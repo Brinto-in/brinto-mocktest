@@ -69,4 +69,10 @@ const active = category.active;
   }
   .cat-label { grid-area: label; font-weight: 700; font-size: 1rem; color: var(--ink); margin-top: 8px; }
   .cat-count { grid-area: count; font-size: 0.78rem; color: var(--ink-muted); }
+
+  @media (max-width: 600px) {
+    .cat-card { padding: 14px 14px; gap: 4px 0; }
+    .cat-icon { font-size: 1.3rem; }
+    .cat-label { margin-top: 4px; font-size: 0.95rem; }
+  }
 </style>
