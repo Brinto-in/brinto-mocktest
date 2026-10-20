@@ -1,0 +1,306 @@
+---
+// Hotstar "Popular Languages" style row: wide tiles in each exam's colour with
+// a big label on the left and artwork on the right. Without a category
+// `image`, the category icon is used as the artwork.
+import { categories } from "../data/categories";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<section class="section bx-section" aria-labelledby="bx-title">
+  <div class="wrap">
+    <div class="bx-head">
+      <h2 id="bx-title" class="bx-title">Browse by exam</h2>
+      <div class="bx-head-right">
+        <a href="/mocktest/tests" class="bx-see-all">See all</a>
+        <div class="bx-nav" aria-hidden="true">
+          <button type="button" class="bx-arrow" data-dir="-1" tabindex="-1">‹</button>
+          <button type="button" class="bx-arrow" data-dir="1" tabindex="-1">›</button>
+        </div>
+      </div>
+    </div>
+
+    <ul class="bx-row" data-bx-row>
+      {categories.map((cat) => {
+        const Tag = cat.active ? "a" : "div";
+        return (
+          <li class="bx-item">
+            <Tag
+              href={cat.active ? cat.href : undefined}
+              class={`bx-tile ${cat.active ? "" : "is-soon"}`}
+              style={`--tone:${cat.color};`}
+              aria-disabled={cat.active ? undefined : "true"}
+            >
+              {cat.image ? (
+                <img class="bx-img" src={`${base}${cat.image}`} alt="" loading="lazy" decoding="async" />
+              ) : (
+                <span class="bx-icon" aria-hidden="true">{cat.icon}</span>
+              )}
+
+              {!cat.active && <span class="bx-soon">Soon</span>}
+
+              <div class="bx-text">
+                <span class="bx-label">{cat.label}</span>
+                <span class="bx-sub">
+                  {cat.active
+                    ? `${cat.count} ${cat.count === 1 ? "test" : "tests"}`
+                    : "Coming soon"}
+                </span>
+              </div>
+            </Tag>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>(".bx-section").forEach((section) => {
+    const row = section.querySelector<HTMLElement>("[data-bx-row]");
+    if (!row) return;
+    const arrows = section.querySelectorAll<HTMLButtonElement>(".bx-arrow");
+
+    const update = () => {
+      const max = row.scrollWidth - row.clientWidth - 2;
+      arrows[0].disabled = row.scrollLeft <= 2;
+      arrows[1].disabled = row.scrollLeft >= max;
+      section.classList.toggle("bx-no-scroll", max <= 0);
+    };
+
+    arrows.forEach((btn) =>
+      btn.addEventListener("click", () => {
+        row.scrollBy({ left: Number(btn.dataset.dir) * row.clientWidth * 0.85, behavior: "smooth" });
+      })
+    );
+
+    row.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+  });
+</script>
+
+<style>
+  .section {
+    padding: 40px 0 44px;
+  }
+
+  /* Header */
+  .bx-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .bx-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .bx-head-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .bx-see-all {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brand);
+    white-space: nowrap;
+  }
+
+  .bx-see-all:hover {
+    text-decoration: underline;
+  }
+
+  .bx-nav {
+    display: flex;
+    gap: 6px;
+  }
+
+  .bx-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 1.3rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  }
+
+  .bx-arrow:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: #f3f4f6;
+  }
+
+  .bx-arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .bx-no-scroll .bx-nav {
+    display: none;
+  }
+
+  /* Row */
+  .bx-row {
+    --gap: 12px;
+    --cols: 4.3;
+    list-style: none;
+    margin: 0;
+    padding: 6px 0 10px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+    gap: var(--gap);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bx-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bx-item {
+    scroll-snap-align: start;
+  }
+
+  /* Tile */
+  .bx-tile {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    color: #ffffff;
+    background:
+      radial-gradient(circle at 85% 40%, rgba(255, 255, 255, 0.22), transparent 50%),
+      linear-gradient(120deg, color-mix(in srgb, var(--tone) 75%, #000) 0%, var(--tone) 100%);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  a.bx-tile:hover,
+  a.bx-tile:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  }
+
+  a.bx-tile:focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .bx-tile.is-soon {
+    filter: saturate(0.55);
+    cursor: default;
+  }
+
+  /* Artwork on the right: image fades into the tile colour like Hotstar */
+  .bx-img {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 60%;
+    object-fit: cover;
+    object-position: right center;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 45%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 45%);
+  }
+
+  .bx-icon {
+    position: absolute;
+    right: -4%;
+    bottom: -10%;
+    font-size: clamp(3.6rem, 7vw, 5.4rem);
+    line-height: 1;
+    transform: rotate(-8deg);
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+    transition: transform 0.35s ease;
+  }
+
+  a.bx-tile:hover .bx-icon {
+    transform: rotate(-4deg) scale(1.06);
+  }
+
+  /* Text on the left */
+  .bx-text {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    max-width: 68%;
+    padding: 0 0 14% 9%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .bx-label {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: clamp(1.15rem, 1.9vw, 1.6rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  .bx-sub {
+    font-size: clamp(0.78rem, 1.1vw, 0.95rem);
+    font-weight: 500;
+    opacity: 0.85;
+  }
+
+  .bx-soon {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(4px);
+  }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .bx-row { --cols: 3.3; }
+  }
+
+  @media (max-width: 768px) {
+    .section { padding: 28px 0 32px; }
+    .bx-row { --cols: 2.3; --gap: 10px; }
+    .bx-nav { display: none; }
+  }
+
+  @media (max-width: 480px) {
+    .bx-row { --cols: 1.6; --gap: 8px; }
+    .bx-icon { font-size: 3.4rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bx-tile,
+    .bx-icon {
+      transition: none;
+    }
+  }
+</style>

@@ -25,6 +25,7 @@ export interface Category {
   href: string;
   color: string;
   active?: boolean;
+  image?: string; // optional artwork for the right side of the tile (path in /public)
 }
 
 export interface Step {

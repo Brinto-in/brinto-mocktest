@@ -3,6 +3,7 @@
 // Tests without an `image` from the API get a generated gradient poster.
 import { fetchMockTests } from "../lib/api";
 import { examTone } from "../lib/examTone";
+import { testImage } from "../lib/testImages";
 import type { Test } from "../lib/types";
 
 type TrendingTest = Test & { image?: string };
@@ -22,7 +23,7 @@ try {
       href: `/mocktest/test/${row.id}`,
       isNew: !!(row.isNew || row.is_new),
       isFree: !!(row.isFree || row.is_free),
-      image: row.image || row.thumbnail || "",
+      image: testImage(row.id, row.image || row.thumbnail),
     }));
   }
 } catch (err) {
@@ -30,7 +31,7 @@ try {
 }
 ---
 
-<section class="section section-alt tt-section" aria-labelledby="tt-title">
+<section class="section tt-section" aria-labelledby="tt-title">
   <div class="wrap">
     <div class="tt-head">
       <h2 id="tt-title" class="tt-title">Top 10 Trending Tests</h2>
@@ -51,12 +52,12 @@ try {
             <span class={`tt-rank ${i === 9 ? "is-ten" : ""}`} aria-hidden="true">{i + 1}</span>
             <a
               href={t.href}
-              class="tt-card"
+              class={`tt-card ${t.image ? "has-img" : ""}`}
               style={`--tone-a:${a};--tone-b:${b};`}
               aria-label={`#${i + 1} ${t.title} – ${t.questions} questions, ${t.duration} minutes`}
             >
               {t.image ? (
-                <img class="tt-img" src={t.image} alt="" loading="lazy" decoding="async" />
+                <img class="tt-img" src={t.image} alt="" loading={i < 3 ? "eager" : "lazy"} decoding="async" />
               ) : (
                 <div class="tt-art">
                   <span class="tt-exam">{t.exam}</span>
@@ -81,6 +82,7 @@ try {
 
 <script>
   import { examTone } from "../lib/examTone";
+  import { testImage } from "../lib/testImages";
 
   const esc = (v: unknown) =>
     String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -132,14 +134,14 @@ try {
         const title = t.title || t.name;
         const qCount = Array.isArray(t.questions) ? t.questions.length : (t.questions || 0);
         const duration = t.duration || 30;
-        const image = t.image || t.thumbnail;
+        const image = testImage(t.id, t.image || t.thumbnail);
         const visual = image
           ? `<img class="tt-img" src="${esc(image)}" alt="" loading="lazy" decoding="async" />`
           : `<div class="tt-art"><span class="tt-exam">${esc(exam)}</span><span class="tt-name">${esc(title)}</span></div>`;
         return `
           <li class="tt-item">
             <span class="tt-rank${i === 9 ? " is-ten" : ""}" aria-hidden="true">${i + 1}</span>
-            <a href="/mocktest/test/${esc(t.id)}" class="tt-card" style="--tone-a:${a};--tone-b:${b};"
+            <a href="/mocktest/test/${esc(t.id)}" class="tt-card${image ? " has-img" : ""}" style="--tone-a:${a};--tone-b:${b};"
                aria-label="#${i + 1} ${esc(title)} – ${qCount} questions, ${duration} minutes">
               ${visual}
               <div class="tt-badges">
@@ -165,10 +167,8 @@ try {
 
 <style>
   .section {
-    padding: 32px 0 36px;
-  }
-  .section-alt {
-    background: var(--surface-2);
+    background: var(--surface);
+    padding: 16px 0 20px;
   }
 
   /* Header */
@@ -269,7 +269,7 @@ try {
     scroll-snap-align: start;
   }
 
-  /* Rank number: white fill with dark outline, overlapping the poster */
+  /* Rank number: white fill with brand outline, overlapping the poster */
   .tt-row :global(.tt-rank) {
     position: relative;
     z-index: 0;
@@ -279,10 +279,12 @@ try {
     line-height: 0.78;
     letter-spacing: 0;
     margin-right: calc(var(--pw) * -0.04);
-    color: #ffffff;
-    -webkit-text-stroke: 2px #9ca3af;
+    color: var(--surface);
+    -webkit-text-stroke: 2.5px var(--brand);
     paint-order: stroke fill;
-    text-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    text-shadow:
+      0 4px 12px rgba(176, 0, 32, 0.2),
+      0 8px 24px rgba(15, 23, 42, 0.08);
     user-select: none;
   }
 
@@ -297,7 +299,7 @@ try {
     z-index: 1;
     display: block;
     width: var(--pw);
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 3 / 4.5;
     border-radius: var(--radius-sm);
     overflow: hidden;
     background:
@@ -370,6 +372,12 @@ try {
     gap: 4px;
   }
 
+  /* Image posters carry their own title at the top, so badges sit above the info strip */
+  .tt-row :global(.tt-card.has-img .tt-badges) {
+    top: auto;
+    bottom: 34px;
+  }
+
   .tt-row :global(.tt-badge) {
     font-size: 0.6rem;
     font-weight: 700;
@@ -414,10 +422,10 @@ try {
   /* Responsive */
   @media (max-width: 768px) {
     .section {
-      padding: 24px 0 28px;
+      padding: 12px 0 16px;
     }
     .tt-row {
-      --pw: 140px;
+      --pw: 158px;
       gap: 10px;
     }
     .tt-nav {
@@ -425,6 +433,9 @@ try {
     }
     .tt-row :global(.tt-rank) {
       -webkit-text-stroke-width: 1.5px;
+    }
+    .tt-row :global(.tt-card) {
+      aspect-ratio: 3 / 5;
     }
     .tt-row :global(.tt-info) {
       font-size: 0.62rem;
@@ -434,8 +445,11 @@ try {
 
   @media (max-width: 480px) {
     .tt-row {
-      --pw: 118px;
+      --pw: 132px;
       gap: 8px;
+    }
+    .tt-row :global(.tt-card) {
+      aspect-ratio: 3 / 5.2;
     }
     .tt-row :global(.tt-name) {
       font-size: 0.72rem;

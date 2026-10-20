@@ -187,7 +187,7 @@ const subjects = [
 <style>
   .o10p-section {
     background: var(--surface);
-    padding: 28px 0 32px;
+    padding: 16px 0 20px;
   }
 
   /* Header */
@@ -289,7 +289,7 @@ const subjects = [
 
   .o10p-poster {
     position: relative;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 3 / 4.5;
     border-radius: var(--radius-sm);
     overflow: hidden;
     background: linear-gradient(160deg, var(--tone-a), var(--tone-b));
@@ -395,13 +395,15 @@ const subjects = [
   }
 
   @media (max-width: 768px) {
-    .o10p-section { padding: 24px 0 24px; }
+    .o10p-section { padding: 12px 0 16px; }
     .o10p-row { --cols: 3.3; --gap: 10px; }
     .o10p-nav { display: none; }
+    .o10p-poster { aspect-ratio: 3 / 5.5; }
   }
 
   @media (max-width: 480px) {
     .o10p-row { --cols: 2.4; --gap: 8px; }
+    .o10p-poster { aspect-ratio: 3 / 5.8; }
     .o10p-overlay { padding: 28px 8px 8px; }
   }
 

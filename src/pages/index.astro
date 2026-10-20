@@ -1,7 +1,6 @@
 ---
 export const prerender = false;
 import BaseLayout from "../layouts/BaseLayout.astro";
-import CategoryCard from "../components/CategoryCard.astro";
 import StepCard from "../components/StepCard.astro";
 import Hero from "../components/Hero.astro";
 import StatsStrip from "../components/StatsStrip.astro";
@@ -10,8 +9,8 @@ import Odisha10thSection from "../components/Odisha10thSection.astro";
 import Odisha10thPosterRow from "../components/Odisha10thPosterRow.astro";
 import SectionHeader from "../components/SectionHeader.astro";
 import TrendingTests from "../components/TrendingTests.astro";
+import BrowseByExam from "../components/BrowseByExam.astro";
 
-import { categories } from "../data/categories";
 import { steps } from "../data/steps";
 ---
 
@@ -33,17 +32,10 @@ import { steps } from "../data/steps";
   <TrendingTests />
 
   <!-- ── CATEGORIES ─────────────────────────────── -->
-  <section class="section">
-    <div class="wrap">
-      <SectionHeader title="Browse by exam" seeAllHref="/mocktest/tests" seeAllText="See all →" />
-      <div class="cat-grid">
-        {categories.map((cat) => <CategoryCard category={cat} />)}
-      </div>
-    </div>
-  </section>
+  <BrowseByExam />
 
   <!-- ── HOW IT WORKS ───────────────────────────── -->
-  <section class="section">
+  <section class="section how-section">
     <div class="wrap">
       <SectionHeader title="How it works" subtitle="Three steps from zero to your exam rank." centered={true} />
       <div class="steps-row">
@@ -72,10 +64,10 @@ import { steps } from "../data/steps";
 <style>
   /* ── SECTIONS ── */
   .section {
-    padding: 56px 0;
+    padding: 16px 0 20px;
   }
-  /* Consecutive white sections share one gap instead of doubling it */
-  .section + .section:not(.section-alt) {
+  /* Follows the white Browse-by-exam row, which already supplies the gap */
+  .how-section {
     padding-top: 0;
   }
   .section-alt {
@@ -115,12 +107,6 @@ import { steps } from "../data/steps";
     max-width: 48ch;
   }
 
-  /* ── CATEGORIES ── */
-  .cat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
 
   /* ── STEPS ── */
   .steps-row {
@@ -221,16 +207,10 @@ import { steps } from "../data/steps";
     .hero-card-col {
       display: none;
     }
-    .cat-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
   }
   @media (max-width: 768px) {
     .hero {
       padding: 48px 0 40px;
-    }
-    .cat-grid {
-      grid-template-columns: repeat(2, 1fr);
     }
     .steps-row {
       grid-template-columns: 1fr;
@@ -247,12 +227,7 @@ import { steps } from "../data/steps";
   }
   @media (max-width: 600px) {
     .section {
-      padding: 40px 0;
-    }
-  }
-  @media (max-width: 400px) {
-    .cat-grid {
-      grid-template-columns: repeat(2, 1fr);
+      padding: 12px 0;
     }
   }
 </style>
