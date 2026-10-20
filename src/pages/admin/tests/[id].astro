@@ -1,182 +1,37 @@
 ---
 export const prerender = false;
-
 import AdminLayout from "../../../layouts/AdminLayout.astro";
-import {
-    getTestById,
-    getQuestionsForTest,
-    createQuestion,
-    deleteQuestion,
-} from "../../../lib/queries";
 
 const { id } = Astro.params;
-const testId = parseInt(id!);
-
-let successMsg = "";
-let errorMsg = "";
-
-// ── Handle POST ──
-if (Astro.request.method === "POST") {
-    try {
-        const form = await Astro.request.formData();
-        const action = form.get("_action") as string;
-
-        if (action === "add_question") {
-            const section = (form.get("section") as string).trim();
-            const text = (form.get("text") as string).trim();
-            const explanation =
-                (form.get("explanation") as string | null)?.trim() || undefined;
-            const correctIdx = parseInt(form.get("correct") as string);
-
-            const optTexts = [0, 1, 2, 3].map((i) =>
-                (form.get(`option_${i}`) as string).trim(),
-            );
-
-            if (!section || !text || optTexts.some((o) => !o)) {
-                errorMsg =
-                    "Section, question text, and all 4 options are required.";
-            } else if (isNaN(correctIdx) || correctIdx < 0 || correctIdx > 3) {
-                errorMsg = "Please mark one option as the correct answer.";
-            } else {
-                await createQuestion({
-                    test_id: testId,
-                    section,
-                    text,
-                    explanation,
-                    options: optTexts.map((t, i) => ({
-                        text: t,
-                        is_correct: i === correctIdx,
-                    })),
-                });
-                successMsg = "Question added successfully.";
-            }
-        }
-
-        if (action === "delete_question") {
-            const qId = parseInt(form.get("question_id") as string);
-            await deleteQuestion(qId, testId);
-            successMsg = "Question deleted.";
-        }
-    } catch (e: any) {
-        errorMsg = `Error: ${e?.message}`;
-    }
-}
-
-const test = await getTestById(testId);
-if (!test) return Astro.redirect("/mocktest/admin");
-
-const questions = await getQuestionsForTest(testId);
-const sections = [...new Set(questions.map((q) => q.section))];
-const created = Astro.url.searchParams.get("created") === "1";
-
-const OPTION_KEYS = ["A", "B", "C", "D"];
-const SECTION_OPTIONS = [
-    "General Knowledge",
-    "Reasoning",
-    "Mathematics",
-    "English",
-    "Current Affairs",
-    "Odisha GK",
-    "Science",
-    "Computer",
-    "History",
-    "Geography",
-    "Polity",
-];
+const testId = id || "11";
 ---
 
-<AdminLayout title={test.title} section="tests">
+<AdminLayout title="Manage Questions" section="tests">
     <div slot="topbar-actions" style="display:flex;gap:8px">
-        <a
-            href={`/mocktest/test/${test.slug}`}
-            target="_blank"
-            class="btn btn-ghost btn-sm">↗ Preview</a
-        >
         <a href="/mocktest/admin" class="btn btn-secondary btn-sm">← All Tests</a>
     </div>
 
-    <!-- Created success banner -->
-    {
-        created && (
-            <div class="alert alert-success">
-                ✓ Test created! Now add questions below.
-            </div>
-        )
-    }
-    {successMsg && <div class="alert alert-success">✓ {successMsg}</div>}
-    {errorMsg && <div class="alert alert-error">✗ {errorMsg}</div>}
+    <div id="alert-container"></div>
 
     <!-- Test meta card -->
-    <div class="card" style="margin-bottom:24px">
-        <div
-            style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap"
-        >
+    <div class="card" id="test-meta-card" style="margin-bottom:24px; display:none;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <div>
-                <div
-                    style="display:flex;align-items:center;gap:8px;margin-bottom:6px"
-                >
-                    <span class="badge badge-exam">{test.exam}</span>
-                    <span class={`badge badge-${test.difficulty.toLowerCase()}`}
-                        >{test.difficulty}</span
-                    >
-                    {
-                        test.is_free ? (
-                            <span class="badge badge-free">Free</span>
-                        ) : null
-                    }
-                    {
-                        test.is_new ? (
-                            <span class="badge badge-new">New</span>
-                        ) : null
-                    }
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                    <span class="badge badge-exam" id="meta-exam">Exam</span>
+                    <span class="badge badge-medium" id="meta-diff">Medium</span>
                 </div>
-                <h2
-                    style="font-size:1.15rem;color:var(--ink);margin-bottom:4px"
-                >
-                    {test.title}
-                </h2>
-                <div
-                    style="font-size:0.8rem;color:var(--ink-muted);font-family:monospace"
-                >
-                    /test/{test.slug}
-                </div>
+                <h2 style="font-size:1.15rem;color:var(--ink);margin-bottom:4px" id="meta-title">Loading Test...</h2>
+                <div style="font-size:0.8rem;color:var(--ink-muted);font-family:monospace" id="meta-slug">/test/slug</div>
             </div>
             <div style="display:flex;gap:20px;text-align:center">
                 <div>
-                    <div
-                        style="font-size:1.5rem;font-weight:800;color:var(--brand)"
-                    >
-                        {questions.length}
-                    </div>
-                    <div
-                        style="font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em"
-                    >
-                        Questions
-                    </div>
+                    <div style="font-size:1.5rem;font-weight:800;color:var(--brand)" id="stat-q-len">0</div>
+                    <div style="font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em">Questions</div>
                 </div>
                 <div>
-                    <div
-                        style="font-size:1.5rem;font-weight:800;color:var(--ink)"
-                    >
-                        {test.duration}m
-                    </div>
-                    <div
-                        style="font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em"
-                    >
-                        Duration
-                    </div>
-                </div>
-                <div>
-                    <div
-                        style="font-size:1.5rem;font-weight:800;color:var(--gold)"
-                    >
-                        {sections.length}
-                    </div>
-                    <div
-                        style="font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em"
-                    >
-                        Sections
-                    </div>
+                    <div style="font-size:1.5rem;font-weight:800;color:var(--ink)" id="stat-duration">30m</div>
+                    <div style="font-size:0.7rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em">Duration</div>
                 </div>
             </div>
         </div>
@@ -185,116 +40,25 @@ const SECTION_OPTIONS = [
     <div class="page-layout">
         <!-- ── LEFT: Questions list ── -->
         <div>
-            <div
-                style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"
-            >
-                <h3
-                    style="font-size:0.9rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted)"
-                >
-                    Questions ({questions.length})
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <h3 style="font-size:0.9rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted)" id="q-header-title">
+                    Questions (0)
                 </h3>
-                {
-                    sections.length > 0 && (
-                        <div style="display:flex;gap:6px;flex-wrap:wrap">
-                            {sections.map((s) => (
-                                <span
-                                    class="badge"
-                                    style="background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--rule)"
-                                >
-                                    {s}
-                                </span>
-                            ))}
-                        </div>
-                    )
-                }
             </div>
 
-            {
-                questions.length === 0 ? (
-                    <div class="card">
-                        <div class="empty-state">
-                            <div class="empty-icon">💬</div>
-                            <p>
-                                No questions yet. Use the form to add your first
-                                question.
-                            </p>
-                        </div>
-                    </div>
-                ) : (
-                    <div>
-                        {questions.map((q, idx) => (
-                            <div class="q-card">
-                                <div class="q-card-header">
-                                    <div class="q-num">{idx + 1}</div>
-                                    <div class="q-card-text">{q.text}</div>
-                                    <span class="q-section-tag">
-                                        {q.section}
-                                    </span>
-                                    <svg
-                                        class="q-chevron"
-                                        width="16"
-                                        height="16"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <polyline points="6 9 12 15 18 9" />
-                                    </svg>
-                                </div>
-                                <div class="q-card-body">
-                                    <div class="q-options">
-                                        {(q.options ?? []).map((opt, oi) => (
-                                            <div
-                                                class={`q-opt${opt.is_correct ? " correct" : ""}`}
-                                            >
-                                                <span class="q-opt-key">
-                                                    {OPTION_KEYS[oi]}.
-                                                </span>
-                                                {opt.text}
-                                                {opt.is_correct && (
-                                                    <span style="margin-left:auto;font-size:0.72rem">
-                                                        ✓ Correct
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {q.explanation && (
-                                        <div class="q-explanation">
-                                            <strong>Explanation:</strong>{" "}
-                                            {q.explanation}
-                                        </div>
-                                    )}
-                                    <div class="q-actions">
-                                        <form
-                                            method="POST"
-                                            onsubmit="return confirm('Delete this question?')"
-                                        >
-                                            <input
-                                                type="hidden"
-                                                name="_action"
-                                                value="delete_question"
-                                            />
-                                            <input
-                                                type="hidden"
-                                                name="question_id"
-                                                value={q.id}
-                                            />
-                                            <button
-                                                type="submit"
-                                                class="btn btn-danger btn-sm"
-                                            >
-                                                Delete Question
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )
-            }
+            <div id="questions-container">
+                <div class="card" style="padding: 40px; text-align: center;">
+                    <div class="am-spinner" style="margin: 0 auto 12px; width: 32px; height: 32px; border: 3px solid var(--rule); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                    <p style="color: var(--ink-soft);">Loading questions from API...</p>
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div id="pagination-controls" style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding:12px 16px;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-sm);display:none;">
+                <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled>← Previous</button>
+                <span id="page-info" style="font-size:0.85rem;color:var(--ink-soft);font-weight:600;">Page 1</span>
+                <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled>Next →</button>
+            </div>
         </div>
 
         <!-- ── RIGHT: Add Question Form ── -->
@@ -302,106 +66,54 @@ const SECTION_OPTIONS = [
             <div class="card-header" style="margin-bottom:18px">
                 <div>
                     <div class="card-title">Add Question</div>
-                    <div class="card-sub">
-                        Fill all fields, mark correct answer
-                    </div>
+                    <div class="card-sub">Fill all fields, mark correct answer</div>
                 </div>
             </div>
 
-            <form method="POST" id="add-q-form">
-                <input type="hidden" name="_action" value="add_question" />
-
+            <form id="add-q-form">
                 <div class="form-grid" style="gap:14px">
-                    <!-- Section -->
                     <div class="form-group">
-                        <label class="form-label" for="section"
-                            >Section <span class="required">*</span></label
-                        >
+                        <label class="form-label" for="section">Section <span class="required">*</span></label>
                         <select id="section" name="section" required>
                             <option value="">Select section…</option>
-                            {
-                                SECTION_OPTIONS.map((s) => (
-                                    <option value={s}>{s}</option>
-                                ))
-                            }
+                            <option value="General Knowledge">General Knowledge</option>
+                            <option value="Reasoning">Reasoning</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="English">English</option>
+                            <option value="Current Affairs">Current Affairs</option>
+                            <option value="Odisha GK">Odisha GK</option>
+                            <option value="Science">Science</option>
+                            <option value="Computer">Computer</option>
                         </select>
                     </div>
 
-                    <!-- Question text -->
                     <div class="form-group">
-                        <label class="form-label" for="q-text"
-                            >Question <span class="required">*</span></label
-                        >
-                        <textarea
-                            id="q-text"
-                            name="text"
-                            rows={3}
-                            required
-                            placeholder="Enter the question text…"></textarea>
+                        <label class="form-label" for="q-text">Question <span class="required">*</span></label>
+                        <textarea id="q-text" name="text" rows={3} required placeholder="Enter the question text…"></textarea>
                     </div>
 
-                    <!-- Options A-D -->
                     <div class="form-group">
-                        <label class="form-label"
-                            >Options <span class="required">*</span> — mark the correct
-                            one</label
-                        >
-                        <div
-                            style="display:flex;flex-direction:column;gap:8px;margin-top:4px"
-                        >
-                            {
-                                [0, 1, 2, 3].map((i) => (
-                                    <div class="option-row">
-                                        <div class="opt-letter">
-                                            {OPTION_KEYS[i]}
-                                        </div>
-                                        <input
-                                            type="text"
-                                            name={`option_${i}`}
-                                            required
-                                            placeholder={`Option ${OPTION_KEYS[i]}`}
-                                        />
-                                        <div class="correct-radio">
-                                            <input
-                                                type="radio"
-                                                name="correct"
-                                                value={i}
-                                                id={`correct_${i}`}
-                                                required
-                                            />
-                                            <label for={`correct_${i}`}>
-                                                ✓
-                                            </label>
-                                        </div>
+                        <label class="form-label">Options <span class="required">*</span> — mark the correct one</label>
+                        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+                            {[0, 1, 2, 3].map((i) => {
+                                const KEYS = ["A", "B", "C", "D"];
+                                return (
+                                    <div style="display:flex;align-items:center;gap:8px">
+                                        <input type="radio" name="correct" value={i} required title="Mark as correct" />
+                                        <input type="text" name={`option_${i}`} required placeholder={`Option ${KEYS[i]}`} style="flex:1" />
                                     </div>
-                                ))
-                            }
-                        </div>
-                        <div class="form-hint">
-                            Click ✓ next to the correct option
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <!-- Explanation -->
                     <div class="form-group">
-                        <label class="form-label" for="explanation"
-                            >Explanation (optional)</label
-                        >
-                        <textarea
-                            id="explanation"
-                            name="explanation"
-                            rows={2}
-                            placeholder="Brief explanation shown after answer…"
-                        ></textarea>
+                        <label class="form-label" for="explanation">Explanation (optional)</label>
+                        <textarea id="explanation" name="explanation" rows={2} placeholder="Explanation for correct answer…"></textarea>
                     </div>
 
-                    <!-- Submit -->
-                    <button
-                        type="submit"
-                        class="btn btn-primary"
-                        style="width:100%"
-                    >
-                        + Add Question
+                    <button type="submit" class="btn btn-primary" style="width:100%">
+                        Add Question
                     </button>
                 </div>
             </form>
@@ -409,61 +121,197 @@ const SECTION_OPTIONS = [
     </div>
 </AdminLayout>
 
-<script is:inline>
-    // Highlight selected correct option
-    document.querySelectorAll('input[name="correct"]').forEach((radio) => {
-        radio.addEventListener("change", function () {
-            document.querySelectorAll(".option-row").forEach((row, i) => {
-                const letter = row.querySelector(".opt-letter");
-                const input = row.querySelector('input[type="text"]');
-                if (i === parseInt(this.value)) {
-                    letter.style.background = "#B00020";
-                    letter.style.color = "#fff";
-                    letter.style.borderColor = "#B00020";
-                    input.style.borderColor = "#B00020";
-                    input.style.background = "#FFF8F9";
-                } else {
-                    letter.style.background = "";
-                    letter.style.color = "";
-                    letter.style.borderColor = "";
-                    input.style.borderColor = "";
-                    input.style.background = "";
-                }
-            });
-        });
-    });
+<script is:inline define:vars={{ testId }}>
+  let currentPage = 1;
+  const limit = 20;
 
-    // Reset form styles on submit
-    document
-        .getElementById("add-q-form")
-        .addEventListener("submit", function () {
-            document.querySelectorAll(".opt-letter").forEach((el) => {
-                el.style.background = "";
-                el.style.color = "";
-                el.style.borderColor = "";
-            });
-        });
+  async function loadTestAndQuestions() {
+    const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
+    const qContainer = document.getElementById("questions-container");
+    const metaCard = document.getElementById("test-meta-card");
+    const qHeaderTitle = document.getElementById("q-header-title");
+    const prevBtn = document.getElementById("prev-page-btn");
+    const nextBtn = document.getElementById("next-page-btn");
+    const pageInfo = document.getElementById("page-info");
+    const paginationWrap = document.getElementById("pagination-controls");
+
+    try {
+      const res = await fetch(`https://brintoapi.brinto.in/api/admin/mocktests/${testId}/questions?page=${currentPage}&limit=${limit}`, {
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`API error ${res.status}: ${errorText}`);
+      }
+      const json = await res.json();
+
+      let questions = [];
+      if (Array.isArray(json)) {
+        questions = json;
+      } else if (Array.isArray(json?.questions)) {
+        questions = json.questions;
+      } else if (Array.isArray(json?.data)) {
+        questions = json.data;
+      } else if (Array.isArray(json?.data?.questions)) {
+        questions = json.data.questions;
+      } else if (json?.data && Array.isArray(json.data.data)) {
+        questions = json.data.data;
+      } else {
+        const foundArrayKey = Object.keys(json || {}).find(k => Array.isArray(json[k]));
+        if (foundArrayKey) {
+          questions = json[foundArrayKey];
+        } else if (json?.data && typeof json.data === 'object') {
+          const foundInData = Object.keys(json.data || {}).find(k => Array.isArray(json.data[k]));
+          if (foundInData) {
+            questions = json.data[foundInData];
+          }
+        }
+      }
+
+      if (!Array.isArray(questions)) {
+        questions = [];
+      }
+
+      const testInfo = json?.test || json?.data?.test || json;
+
+      metaCard.style.display = "block";
+      document.getElementById("meta-title").textContent = testInfo?.title || testInfo?.name || `Test #${testId}`;
+      document.getElementById("meta-exam").textContent = testInfo?.exam || testInfo?.category || "General";
+      document.getElementById("meta-slug").textContent = `/test/${testInfo?.slug || testId}`;
+      document.getElementById("stat-q-len").textContent = questions.length;
+      document.getElementById("stat-duration").textContent = (testInfo?.duration || 30) + "m";
+      qHeaderTitle.textContent = `Questions (Page ${currentPage})`;
+
+      if (paginationWrap) {
+        paginationWrap.style.display = "flex";
+        pageInfo.textContent = `Page ${currentPage}`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = questions.length < limit;
+      }
+
+      if (questions.length === 0) {
+        qContainer.innerHTML = `
+          <div class="card">
+              <div class="empty-state">
+                  <div class="empty-icon">💬</div>
+                  <p>No questions found on this page.</p>
+              </div>
+          </div>
+        `;
+        return;
+      }
+
+      const OPTION_KEYS = ["A", "B", "C", "D"];
+      qContainer.innerHTML = questions.map((q, idx) => {
+        const options = Array.isArray(q.options) ? q.options : [];
+        const qNum = (currentPage - 1) * limit + (idx + 1);
+        return `
+          <div class="q-card">
+              <div class="q-card-header">
+                  <div class="q-num">${qNum}</div>
+                  <div class="q-card-text">${q.text || q.question}</div>
+                  <span class="q-section-tag">${q.section || 'General'}</span>
+                  <svg class="q-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="q-card-body">
+                  <div class="q-options">
+                      ${options.map((opt, oi) => {
+                          const optText = typeof opt === 'object' && opt !== null ? (opt.text || opt.option) : opt;
+                          const isCorrect = typeof opt === 'object' && opt !== null ? (opt.is_correct || opt.isCorrect) : false;
+                          return `
+                              <div class="q-opt${isCorrect ? ' correct' : ''}">
+                                  <span class="q-opt-key">${OPTION_KEYS[oi] || (oi + 1)}.</span>
+                                  ${optText}
+                                  ${isCorrect ? '<span style="margin-left:auto;font-size:0.72rem">✓ Correct</span>' : ''}
+                              </div>
+                          `;
+                      }).join('')}
+                  </div>
+                  ${q.explanation ? `<div class="q-explanation"><strong>Explanation:</strong> ${q.explanation}</div>` : ''}
+              </div>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error("Failed to load questions:", err);
+      qContainer.innerHTML = `<div class="card" style="padding: 40px; text-align: center; color: var(--brand);">Failed to load questions from API: ${err.message}</div>`;
+      if (paginationWrap) paginationWrap.style.display = "none";
+    }
+  }
+
+  document.getElementById("prev-page-btn")?.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      loadTestAndQuestions();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  document.getElementById("next-page-btn")?.addEventListener("click", () => {
+    currentPage++;
+    loadTestAndQuestions();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  document.getElementById("add-q-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const alertContainer = document.getElementById("alert-container");
+    const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
+
+    const formData = new FormData(e.target);
+    const section = formData.get("section");
+    const text = formData.get("text");
+    const explanation = formData.get("explanation")?.trim() || undefined;
+    const correctIndex = parseInt(formData.get("correct"), 10);
+
+    const options = [0, 1, 2, 3].map(i => ({
+      text: formData.get(`option_${i}`),
+      is_correct: i === correctIndex
+    }));
+
+    const payload = {
+      section,
+      text,
+      explanation,
+      options
+    };
+
+    try {
+      const res = await fetch(`https://brintoapi.brinto.in/api/admin/mocktests/${testId}/questions`, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Failed to add question (${res.status}): ${errText}`);
+      }
+
+      alertContainer.innerHTML = `<div class="alert alert-success">✓ Question added successfully!</div>`;
+      e.target.reset();
+      loadTestAndQuestions();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error("Error adding question:", err);
+      alertContainer.innerHTML = `<div class="alert alert-error">✗ ${err.message}</div>`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  loadTestAndQuestions();
 </script>
 
-<style>
-    .page-layout {
-        display: grid;
-        grid-template-columns: 1fr 400px;
-        gap: 24px;
-        align-items: start;
-    }
-    .sticky-form {
-        position: sticky;
-        top: 76px;
-    }
-
-    @media (max-width: 1024px) {
-        .page-layout {
-            grid-template-columns: 1fr;
-        }
-        .sticky-form {
-            position: static;
-            order: -1;
-        }
-    }
+<style is:global>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 </style>
