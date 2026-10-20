@@ -8,6 +8,7 @@ const testId = id || "11";
 
 <AdminLayout title="Manage Questions" section="tests">
     <div slot="topbar-actions" style="display:flex;gap:8px">
+        <button type="button" class="btn btn-primary btn-sm" id="open-add-sheet-btn">+ Add Question</button>
         <a href="/mocktest/admin" class="btn btn-secondary btn-sm">← All Tests</a>
     </div>
 
@@ -37,39 +38,42 @@ const testId = id || "11";
         </div>
     </div>
 
-    <div class="page-layout">
-        <!-- ── LEFT: Questions list ── -->
-        <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-                <h3 style="font-size:0.9rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted)" id="q-header-title">
-                    Questions (0)
-                </h3>
-            </div>
+    <!-- Questions list (Full width) -->
+    <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <h3 style="font-size:0.9rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted)" id="q-header-title">
+                Questions (0)
+            </h3>
+        </div>
 
-            <div id="questions-container">
-                <div class="card" style="padding: 40px; text-align: center;">
-                    <div class="am-spinner" style="margin: 0 auto 12px; width: 32px; height: 32px; border: 3px solid var(--rule); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                    <p style="color: var(--ink-soft);">Loading questions from API...</p>
-                </div>
-            </div>
-
-            <!-- Pagination Controls -->
-            <div id="pagination-controls" style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding:12px 16px;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-sm);display:none;">
-                <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled>← Previous</button>
-                <span id="page-info" style="font-size:0.85rem;color:var(--ink-soft);font-weight:600;">Page 1</span>
-                <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled>Next →</button>
+        <div id="questions-container">
+            <div class="card" style="padding: 40px; text-align: center;">
+                <div class="am-spinner" style="margin: 0 auto 12px; width: 32px; height: 32px; border: 3px solid var(--rule); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <p style="color: var(--ink-soft);">Loading questions from API...</p>
             </div>
         </div>
 
-        <!-- ── RIGHT: Add Question Form ── -->
-        <div class="card sticky-form">
-            <div class="card-header" style="margin-bottom:18px">
-                <div>
-                    <div class="card-title">Add Question</div>
-                    <div class="card-sub">Fill all fields, mark correct answer</div>
-                </div>
-            </div>
+        <!-- Pagination Controls -->
+        <div id="pagination-controls" style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding:12px 16px;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-sm);display:none;">
+            <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled>← Previous</button>
+            <span id="page-info" style="font-size:0.85rem;color:var(--ink-soft);font-weight:600;">Page 1</span>
+            <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled>Next →</button>
+        </div>
+    </div>
 
+    <!-- Right Sheet Drawer Backdrop -->
+    <div class="q-sheet-backdrop" id="q-sheet-backdrop" aria-hidden="true"></div>
+
+    <!-- Right Sheet Drawer Panel (Add Question Form) -->
+    <div class="q-sheet-panel" id="q-sheet-panel" aria-hidden="true">
+        <div class="q-sheet-header">
+            <div>
+                <div class="q-sheet-title">Add Question</div>
+                <div style="font-size: 0.8rem; color: var(--ink-muted); margin-top: 2px;">Fill all fields, mark correct answer</div>
+            </div>
+            <button type="button" class="q-sheet-close" id="q-sheet-close" aria-label="Close drawer">&times;</button>
+        </div>
+        <div class="q-sheet-body">
             <form id="add-q-form">
                 <div class="form-grid" style="gap:14px">
                     <div class="form-group">
@@ -112,8 +116,8 @@ const testId = id || "11";
                         <textarea id="explanation" name="explanation" rows={2} placeholder="Explanation for correct answer…"></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width:100%">
-                        Add Question
+                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 8px;">
+                        Save Question
                     </button>
                 </div>
             </form>
@@ -243,6 +247,23 @@ const testId = id || "11";
     }
   }
 
+  // Right sheet drawer interactions
+  function openAddSheet() {
+      document.getElementById("q-sheet-panel")?.classList.add("open");
+      document.getElementById("q-sheet-backdrop")?.classList.add("open");
+      document.body.style.overflow = "hidden";
+  }
+
+  function closeAddSheet() {
+      document.getElementById("q-sheet-panel")?.classList.remove("open");
+      document.getElementById("q-sheet-backdrop")?.classList.remove("open");
+      document.body.style.overflow = "";
+  }
+
+  document.getElementById("open-add-sheet-btn")?.addEventListener("click", openAddSheet);
+  document.getElementById("q-sheet-close")?.addEventListener("click", closeAddSheet);
+  document.getElementById("q-sheet-backdrop")?.addEventListener("click", closeAddSheet);
+
   document.getElementById("prev-page-btn")?.addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -298,6 +319,7 @@ const testId = id || "11";
 
       alertContainer.innerHTML = `<div class="alert alert-success">✓ Question added successfully!</div>`;
       e.target.reset();
+      closeAddSheet();
       loadTestAndQuestions();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -313,5 +335,76 @@ const testId = id || "11";
 <style is:global>
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+
+  /* Right Sheet Drawer Styles */
+  .q-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .q-sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+  }
+  .q-sheet-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(520px, 100vw);
+      background: var(--surface);
+      border-left: 1px solid var(--rule);
+      box-shadow: -12px 0 32px rgba(15, 23, 42, 0.15);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .q-sheet-panel.open {
+      transform: translateX(0);
+  }
+  .q-sheet-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--rule);
+      background: var(--surface-2);
+  }
+  .q-sheet-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0;
+  }
+  .q-sheet-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      line-height: 1;
+      color: var(--ink-muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--r-sm);
+  }
+  .q-sheet-close:hover {
+      background: var(--rule);
+      color: var(--ink);
+  }
+  .q-sheet-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
   }
 </style>
