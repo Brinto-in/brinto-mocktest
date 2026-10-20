@@ -1,30 +1,6 @@
 ---
+export const prerender = false;
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { fetchMockTests } from '../../lib/api';
-
-let allTests: any[] = [];
-
-try {
-  const items = await fetchMockTests(1, 50);
-  if (Array.isArray(items) && items.length > 0) {
-    allTests = items.map((t: any) => ({
-      slug: String(t.id ?? t.slug ?? ""),
-      id: t.id,
-      title: t.title || t.name,
-      exam: t.exam || "General",
-      questions: Array.isArray(t.questions) ? t.questions.length : (t.questions || 0),
-      duration: t.duration || 30,
-      difficulty: t.difficulty || "Medium",
-      attempts: t.attempts || 0,
-      rating: t.rating || 5,
-      isFree: !!(t.is_free || t.isFree),
-      isNew: !!(t.is_new || t.isNew),
-      tags: [t.exam || "General"],
-    }));
-  }
-} catch (e) {
-  console.error("Error fetching mock tests for listing page:", e);
-}
 
 const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 'Police', 'General'];
 ---
@@ -68,7 +44,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
               aria-pressed={i === 0 ? 'true' : 'false'}
             >
               {e}
-              <span class="filter-count">{e === 'All' ? allTests.length : allTests.filter(t => t.exam === e).length}</span>
+              <span class="filter-count" id={`cnt-${e.toLowerCase()}`}>0</span>
             </button>
           </li>
         ))}
@@ -105,7 +81,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   <!-- Main content -->
   <div class="tests-main">
     <div class="toolbar">
-      <span class="result-count" id="result-count">{allTests.length} tests</span>
+      <span class="result-count" id="result-count">Loading tests...</span>
       <div class="sort-row">
         <label for="sort-select">Sort:</label>
         <select id="sort-select" aria-label="Sort tests">
@@ -118,55 +94,10 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     </div>
 
     <div class="tests-grid" id="tests-grid">
-      {allTests.map(t => (
-        <a
-          href={`/mocktest/test/${t.slug}`}
-          class="test-card"
-          data-exam={t.exam}
-          data-diff={t.difficulty}
-          data-duration={t.duration}
-          data-attempts={t.attempts}
-          data-rating={t.rating}
-          data-isnew={t.isNew}
-        >
-          <div class="tc-top">
-            <span class="exam-tag">{t.exam}</span>
-            <div class="badges">
-              {t.isNew && <span class="badge-new">New</span>}
-              <span class="badge-free">Free</span>
-            </div>
-          </div>
-
-          <h2 class="tc-title">{t.title}</h2>
-
-          <div class="tc-tags">
-            {t.tags.map(tag => <span class="tag">{tag}</span>)}
-          </div>
-
-          <div class="tc-meta">
-            <span class="meta-item">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-              {t.questions} Questions
-            </span>
-            <span class="meta-item">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              {t.duration} min
-            </span>
-            <span class={`diff-badge diff-${t.difficulty.toLowerCase()}`}>{t.difficulty}</span>
-          </div>
-
-          <div class="tc-footer">
-            <div class="tc-stats">
-              <span>
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                {t.attempts.toLocaleString('en-IN')}
-              </span>
-              <span class="star-rating">★ {t.rating}</span>
-            </div>
-            <span class="attempt-cta">Attempt →</span>
-          </div>
-        </a>
-      ))}
+      <div class="tests-loading" id="tests-loading" style="grid-column: 1 / -1; text-align: center; padding: 60px 0; color: var(--ink-soft);">
+        <div class="am-spinner" style="margin: 0 auto 12px; width: 32px; height: 32px; border: 3px solid var(--rule); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+        <p>Loading mock tests...</p>
+      </div>
     </div>
 
     <p class="empty-msg" id="empty-msg" style="display:none">
@@ -179,7 +110,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
 </BaseLayout>
 
 <script is:inline>
-  // ── State
+  let allTests = [];
   let activeExam = 'All';
   let activeDiff = 'All';
   let activeDur = 'All';
@@ -189,22 +120,67 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   const urlParams = new URLSearchParams(window.location.search);
   const paramExam = urlParams.get('exam');
   if (paramExam) {
-    const targetBtn = document.querySelector(`#exam-filter .filter-btn[data-exam="${paramExam}"]`);
-    if (targetBtn) {
-      document.querySelectorAll('#exam-filter .filter-btn').forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-pressed', 'false');
+    activeExam = paramExam;
+  }
+
+  async function loadTestsFromAPI() {
+    const grid = document.getElementById('tests-grid');
+    const loadingEl = document.getElementById('tests-loading');
+    const countEl = document.getElementById('result-count');
+    const emptyEl = document.getElementById('empty-msg');
+
+    try {
+      const res = await fetch("https://brintoapi.brinto.in/api/mocktests?page=1&limit=50", {
+        headers: { "Accept": "application/json" }
       });
-      targetBtn.classList.add('active');
-      targetBtn.setAttribute('aria-pressed', 'true');
-      activeExam = paramExam;
+      if (!res.ok) throw new Error("API error: " + res.status);
+      const json = await res.json();
+      const items = json?.data || json?.tests || (Array.isArray(json) ? json : []);
+
+      allTests = items.map(t => ({
+        id: t.id,
+        slug: String(t.id ?? t.slug ?? ""),
+        title: t.title || t.name,
+        exam: t.exam || t.category || "General",
+        questions: Array.isArray(t.questions) ? t.questions.length : (t.questions || 0),
+        duration: t.duration || 30,
+        difficulty: t.difficulty || "Medium",
+        attempts: t.attempts || 0,
+        rating: t.rating || 5,
+        isFree: !!(t.is_free || t.isFree),
+        isNew: !!(t.is_new || t.isNew),
+        tags: [t.exam || t.category || "General"]
+      }));
+
+      // Update exam filter button active state if paramExam was present
+      if (paramExam) {
+        document.querySelectorAll('#exam-filter .filter-btn').forEach(b => {
+          if (b.dataset.exam === paramExam) {
+            b.classList.add('active');
+            b.setAttribute('aria-pressed', 'true');
+          } else {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+          }
+        });
+      }
+
+      renderTests();
+      updateExamCounts();
+    } catch (err) {
+      console.error("Failed to load tests client-side:", err);
+      if (loadingEl) loadingEl.innerHTML = `<p style="color:var(--brand)">Failed to load tests. Please check your connection.</p>`;
     }
   }
 
-  const grid = document.getElementById('tests-grid');
-  const cards = Array.from(grid.querySelectorAll('.test-card'));
-  const countEl = document.getElementById('result-count');
-  const emptyEl = document.getElementById('empty-msg');
+  function updateExamCounts() {
+    const exams = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 'Police', 'General'];
+    exams.forEach(ex => {
+      const cnt = ex === 'All' ? allTests.length : allTests.filter(t => t.exam.toLowerCase() === ex.toLowerCase()).length;
+      const btn = document.querySelector(`#exam-filter .filter-btn[data-exam="${ex}"] .filter-count`);
+      if (btn) btn.textContent = cnt;
+    });
+  }
 
   function durMatch(duration, filter) {
     if (filter === 'All') return true;
@@ -214,40 +190,82 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     return true;
   }
 
-  function applyFilters() {
-    let visible = [];
-    cards.forEach(card => {
-      const exam = card.dataset.exam;
-      const diff = card.dataset.diff;
-      const dur = parseInt(card.dataset.duration);
-      const title = card.querySelector('.tc-title').textContent.toLowerCase();
-      const tags = Array.from(card.querySelectorAll('.tag')).map(t => t.textContent.toLowerCase()).join(' ');
+  function renderTests() {
+    const grid = document.getElementById('tests-grid');
+    const countEl = document.getElementById('result-count');
+    const emptyEl = document.getElementById('empty-msg');
 
-      const matches =
-        (activeExam === 'All' || exam === activeExam) &&
-        (activeDiff === 'All' || diff === activeDiff) &&
-        durMatch(dur, activeDur) &&
-        (searchQ === '' || title.includes(searchQ) || tags.includes(searchQ));
-
-      card.style.display = matches ? '' : 'none';
-      if (matches) visible.push(card);
+    let filtered = allTests.filter(t => {
+      const matchesExam = activeExam === 'All' || t.exam.toLowerCase() === activeExam.toLowerCase();
+      const matchesDiff = activeDiff === 'All' || t.difficulty.toLowerCase() === activeDiff.toLowerCase();
+      const matchesDur = durMatch(t.duration, activeDur);
+      const matchesSearch = searchQ === '' || t.title.toLowerCase().includes(searchQ) || t.tags.some(tag => tag.toLowerCase().includes(searchQ));
+      return matchesExam && matchesDiff && matchesDur && matchesSearch;
     });
 
-    // Sort visible cards
-    const sorted = visible.sort((a, b) => {
-      if (sortBy === 'popular') return parseInt(b.dataset.attempts) - parseInt(a.dataset.attempts);
-      if (sortBy === 'rating') return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
-      if (sortBy === 'newest') return b.dataset.isnew === 'true' ? 1 : -1;
-      if (sortBy === 'duration-asc') return parseInt(a.dataset.duration) - parseInt(b.dataset.duration);
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortBy === 'popular') return b.attempts - a.attempts;
+      if (sortBy === 'rating') return b.rating - a.rating;
+      if (sortBy === 'newest') return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
+      if (sortBy === 'duration-asc') return a.duration - b.duration;
       return 0;
     });
-    sorted.forEach(card => grid.appendChild(card));
 
-    countEl.textContent = `${visible.length} test${visible.length !== 1 ? 's' : ''}`;
-    emptyEl.style.display = visible.length === 0 ? '' : 'none';
+    countEl.textContent = `${filtered.length} test${filtered.length !== 1 ? 's' : ''}`;
+    emptyEl.style.display = filtered.length === 0 ? '' : 'none';
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(t => {
+      const diffClass = `diff-${t.difficulty.toLowerCase()}`;
+      const attemptsFormatted = (t.attempts || 0).toLocaleString('en-IN');
+      const isNewHtml = t.isNew ? '<span class="badge-new">New</span>' : '';
+      const isFreeHtml = '<span class="badge-free">Free</span>';
+
+      return `
+        <a href="/mocktest/test/${t.slug}" class="test-card">
+          <div class="tc-top">
+            <span class="exam-tag">${t.exam}</span>
+            <div class="badges">
+              ${isNewHtml}
+              ${isFreeHtml}
+            </div>
+          </div>
+          <h2 class="tc-title">${t.title}</h2>
+          <div class="tc-tags">
+            ${t.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+          </div>
+          <div class="tc-meta">
+            <span class="meta-item">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              ${t.questions} Questions
+            </span>
+            <span class="meta-item">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${t.duration} min
+            </span>
+            <span class="diff-badge ${diffClass}">${t.difficulty}</span>
+          </div>
+          <div class="tc-footer">
+            <div class="tc-stats">
+              <span>
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                ${attemptsFormatted}
+              </span>
+              <span class="star-rating">★ ${t.rating}</span>
+            </div>
+            <span class="attempt-cta">Attempt →</span>
+          </div>
+        </a>
+      `;
+    }).join('');
   }
 
-  // Filter button groups
+  // Filter handlers
   function setupFilterGroup(groupId, prop) {
     document.getElementById(groupId).addEventListener('click', e => {
       const btn = e.target.closest('.filter-btn');
@@ -261,7 +279,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
       if (prop === 'exam') activeExam = btn.dataset.exam;
       if (prop === 'diff') activeDiff = btn.dataset.diff;
       if (prop === 'dur') activeDur = btn.dataset.dur;
-      applyFilters();
+      renderTests();
     });
   }
 
@@ -271,12 +289,12 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
 
   document.getElementById('search-input').addEventListener('input', e => {
     searchQ = e.target.value.trim().toLowerCase();
-    applyFilters();
+    renderTests();
   });
 
   document.getElementById('sort-select').addEventListener('change', e => {
     sortBy = e.target.value;
-    applyFilters();
+    renderTests();
   });
 
   document.getElementById('reset-filters').addEventListener('click', () => {
@@ -290,11 +308,16 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
       b.setAttribute('aria-pressed', 'true');
     });
     document.getElementById('search-input').value = '';
-    applyFilters();
+    renderTests();
   });
+
+  loadTestsFromAPI();
 </script>
 
-<style>
+<style is:global>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
   .page-hero {
     background: var(--surface);
     border-bottom: 1px solid var(--rule);
