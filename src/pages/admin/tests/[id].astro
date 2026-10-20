@@ -68,12 +68,19 @@ const testId = id || "11";
     <div class="q-sheet-panel" id="q-sheet-panel" aria-hidden="true">
         <div class="q-sheet-header">
             <div>
-                <div class="q-sheet-title">Add Question</div>
-                <div style="font-size: 0.8rem; color: var(--ink-muted); margin-top: 2px;">Fill all fields, mark correct answer</div>
+                <div class="q-sheet-title">Add Questions</div>
+                <div style="font-size: 0.8rem; color: var(--ink-muted); margin-top: 2px;">Add single or multiple questions</div>
             </div>
             <button type="button" class="q-sheet-close" id="q-sheet-close" aria-label="Close drawer">&times;</button>
         </div>
         <div class="q-sheet-body">
+            <!-- Mode Switcher Tabs -->
+            <div style="display:flex;gap:8px;margin-bottom:4px;background:var(--surface-2);padding:4px;border-radius:var(--r-sm);">
+                <button type="button" class="btn btn-secondary btn-sm" id="tab-single-btn" style="flex:1;background:var(--surface);font-weight:700;">Single Question</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="tab-bulk-btn" style="flex:1;">Bulk JSON (Multi)</button>
+            </div>
+
+            <!-- Single Form -->
             <form id="add-q-form">
                 <div class="form-grid" style="gap:14px">
                     <div class="form-group">
@@ -121,6 +128,31 @@ const testId = id || "11";
                     </button>
                 </div>
             </form>
+
+            <!-- Bulk JSON Form -->
+            <form id="add-bulk-form" style="display:none;">
+                <div class="form-grid" style="gap:14px">
+                    <div class="form-group">
+                        <label class="form-label" for="bulk-json">Questions JSON Array <span class="required">*</span></label>
+                        <textarea id="bulk-json" name="json" rows={12} required placeholder='[
+  {
+    "section": "General Knowledge",
+    "text": "What is the capital of India?",
+    "explanation": "New Delhi is the capital.",
+    "options": [
+      { "text": "New Delhi", "is_correct": true },
+      { "text": "Mumbai", "is_correct": false }
+    ]
+  }
+]' style="font-family:monospace;font-size:0.85rem;"></textarea>
+                        <span class="form-hint" style="margin-top:4px;display:block;">Paste a valid JSON array containing multiple questions matching the API format.</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 8px;">
+                        Upload Multiple Questions
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </AdminLayout>
@@ -130,7 +162,7 @@ const testId = id || "11";
   const limit = 20;
 
   async function loadTestAndQuestions() {
-    const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
+    const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlNIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
     const qContainer = document.getElementById("questions-container");
     const metaCard = document.getElementById("test-meta-card");
     const qHeaderTitle = document.getElementById("q-header-title");
@@ -264,6 +296,30 @@ const testId = id || "11";
   document.getElementById("q-sheet-close")?.addEventListener("click", closeAddSheet);
   document.getElementById("q-sheet-backdrop")?.addEventListener("click", closeAddSheet);
 
+  // Tabs for Single vs Bulk JSON
+  const tabSingleBtn = document.getElementById("tab-single-btn");
+  const tabBulkBtn = document.getElementById("tab-bulk-btn");
+  const formSingle = document.getElementById("add-q-form");
+  const formBulk = document.getElementById("add-bulk-form");
+
+  tabSingleBtn?.addEventListener("click", () => {
+    formSingle.style.display = "block";
+    formBulk.style.display = "none";
+    tabSingleBtn.style.background = "var(--surface)";
+    tabSingleBtn.style.fontWeight = "700";
+    tabBulkBtn.style.background = "transparent";
+    tabBulkBtn.style.fontWeight = "500";
+  });
+
+  tabBulkBtn?.addEventListener("click", () => {
+    formSingle.style.display = "none";
+    formBulk.style.display = "block";
+    tabBulkBtn.style.background = "var(--surface)";
+    tabBulkBtn.style.fontWeight = "700";
+    tabSingleBtn.style.background = "transparent";
+    tabSingleBtn.style.fontWeight = "500";
+  });
+
   document.getElementById("prev-page-btn")?.addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
@@ -278,10 +334,11 @@ const testId = id || "11";
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
+  // Single Question submit
   document.getElementById("add-q-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const alertContainer = document.getElementById("alert-container");
-    const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlOIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
+    const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlNIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
 
     const formData = new FormData(e.target);
     const section = formData.get("section");
@@ -294,7 +351,7 @@ const testId = id || "11";
       is_correct: i === correctIndex
     }));
 
-    const payload = {
+    const questionObj = {
       section,
       text,
       explanation,
@@ -309,7 +366,7 @@ const testId = id || "11";
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ questions: [questionObj] })
       });
 
       if (!res.ok) {
@@ -324,6 +381,52 @@ const testId = id || "11";
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error("Error adding question:", err);
+      alertContainer.innerHTML = `<div class="alert alert-error">✗ ${err.message}</div>`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  // Bulk JSON submit
+  document.getElementById("add-bulk-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const alertContainer = document.getElementById("alert-container");
+    const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlNIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
+
+    const jsonText = document.getElementById("bulk-json").value;
+    let questionsArray;
+    try {
+      questionsArray = JSON.parse(jsonText);
+      if (!Array.isArray(questionsArray)) {
+        throw new Error("JSON must be a valid array of questions.");
+      }
+    } catch (parseErr) {
+      alertContainer.innerHTML = `<div class="alert alert-error">✗ Invalid JSON format: ${parseErr.message}</div>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://brintoapi.brinto.in/api/admin/mocktests/${testId}/questions`, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ questions: questionsArray })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Failed to add bulk questions (${res.status}): ${errText}`);
+      }
+
+      alertContainer.innerHTML = `<div class="alert alert-success">✓ Multiple questions added successfully!</div>`;
+      e.target.reset();
+      closeAddSheet();
+      loadTestAndQuestions();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error("Error adding bulk questions:", err);
       alertContainer.innerHTML = `<div class="alert alert-error">✗ ${err.message}</div>`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -358,7 +461,7 @@ const testId = id || "11";
       top: 0;
       right: 0;
       bottom: 0;
-      width: min(520px, 100vw);
+      width: min(560px, 100vw);
       background: var(--surface);
       border-left: 1px solid var(--rule);
       box-shadow: -12px 0 32px rgba(15, 23, 42, 0.15);

@@ -1,45 +1,6 @@
 ---
 export const prerender = false;
-
 import AdminLayout from "../../../layouts/AdminLayout.astro";
-import { createTest } from "../../../lib/queries";
-
-let errorMsg = "";
-
-if (Astro.request.method === "POST") {
-    try {
-        const form = await Astro.request.formData();
-        const title = (form.get("title") as string).trim();
-        const exam = (form.get("exam") as string).trim();
-        const slug = (form.get("slug") as string)
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, "-");
-        const duration = parseInt(form.get("duration") as string);
-        const difficulty = form.get("difficulty") as string;
-        const is_free = form.get("is_free") === "1" ? 1 : 0;
-        const is_new = form.get("is_new") === "1" ? 1 : 0;
-
-        if (!title || !exam || !slug || !duration) {
-            errorMsg = "Title, exam, slug and duration are required.";
-        } else {
-            const id = await createTest({
-                title,
-                exam,
-                slug,
-                duration,
-                difficulty,
-                is_free,
-                is_new,
-            });
-            return Astro.redirect(`/mocktest/admin/tests/${id}?created=1`);
-        }
-    } catch (e: any) {
-        errorMsg = e?.message?.includes("UNIQUE")
-            ? "That slug already exists. Choose a different one."
-            : `Error: ${e?.message}`;
-    }
-}
 
 const EXAMS = [
     "OSSSC",
@@ -57,125 +18,105 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 ---
 
 <AdminLayout title="Create New Test" section="tests">
-    <a slot="topbar-actions" href="/mocktest/admin" class="btn btn-secondary btn-sm"
-        >← Back</a
-    >
+    <a slot="topbar-actions" href="/mocktest/admin" class="btn btn-secondary btn-sm">← Back</a>
 
     <div class="card form-card">
         <div class="card-header">
             <div>
                 <div class="card-title">New Test</div>
                 <div class="card-sub">
-                    Fill in the test metadata. You can add questions next.
+                    Fill in the test metadata matching the API schema.
                 </div>
             </div>
         </div>
 
-        {errorMsg && <div class="alert alert-error">✗ {errorMsg}</div>}
+        <div id="alert-container"></div>
 
-        <form method="POST">
+        <form id="create-test-form">
             <div class="form-grid new-test-form">
                 <!-- Title -->
                 <div class="form-group">
-                    <label class="form-label" for="title"
-                        >Test Title <span class="required">*</span></label
-                    >
-                    <input
-                        id="title"
-                        name="title"
-                        type="text"
-                        required
-                        placeholder="e.g. Odisha Police Constable Mock Test 1"
-                        maxlength="255"
-                    />
+                    <label class="form-label" for="title">Test Title <span class="required">*</span></label>
+                    <input id="title" name="title" type="text" required placeholder="e.g. OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026" maxlength="255" />
                 </div>
 
                 <!-- Exam + Difficulty row -->
                 <div class="form-grid form-grid-2 form-row">
                     <div class="form-group">
-                        <label class="form-label" for="exam"
-                            >Exam <span class="required">*</span></label
-                        >
+                        <label class="form-label" for="exam">Exam <span class="required">*</span></label>
                         <select id="exam" name="exam" required>
                             <option value="">Select exam…</option>
                             {EXAMS.map((e) => <option value={e}>{e}</option>)}
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="difficulty"
-                            >Difficulty</label
-                        >
+                        <label class="form-label" for="difficulty">Difficulty</label>
                         <select id="difficulty" name="difficulty">
-                            {
-                                DIFFICULTIES.map((d) => (
-                                    <option value={d} selected={d === "Medium"}>
-                                        {d}
-                                    </option>
-                                ))
-                            }
+                            {DIFFICULTIES.map((d) => (
+                                <option value={d} selected={d === "Medium"}>{d}</option>
+                            ))}
                         </select>
                     </div>
                 </div>
 
-                <!-- Slug + Duration row -->
+                <!-- Duration + Questions row -->
                 <div class="form-grid form-grid-2 form-row">
                     <div class="form-group">
-                        <label class="form-label" for="slug"
-                            >URL Slug <span class="required">*</span></label
-                        >
-                        <input
-                            id="slug"
-                            name="slug"
-                            type="text"
-                            required
-                            placeholder="odisha-police-mock-1"
-                            pattern="[a-z0-9\-]+"
-                            title="Lowercase letters, numbers and hyphens only"
-                        />
-                        <span class="form-hint"
-                            >Used in URL: /mocktest/test/<strong>your-slug</strong></span
-                        >
+                        <label class="form-label" for="duration">Duration (minutes) <span class="required">*</span></label>
+                        <input id="duration" name="duration" type="number" required min="1" max="300" value="30" />
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="duration"
-                            >Duration (minutes) <span class="required">*</span
-                            ></label
-                        >
-                        <input
-                            id="duration"
-                            name="duration"
-                            type="number"
-                            required
-                            min="1"
-                            max="300"
-                            placeholder="90"
-                        />
+                        <label class="form-label" for="questions">Total Questions</label>
+                        <input id="questions" name="questions" type="number" required min="1" max="500" value="20" />
                     </div>
                 </div>
 
                 <hr class="form-divider" />
 
-                <!-- Flags -->
-                <div class="form-grid form-grid-2 form-row">
+                <!-- Marks & Penalties row -->
+                <div class="form-grid form-grid-3 form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="correct_marks">Correct Marks</label>
+                        <input id="correct_marks" name="correct_marks" type="number" step="0.5" value="1" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="wrong_penalty">Wrong Penalty</label>
+                        <input id="wrong_penalty" name="wrong_penalty" type="number" step="0.05" value="0.25" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="skipped_marks">Skipped Marks</label>
+                        <input id="skipped_marks" name="skipped_marks" type="number" step="0.5" value="0" required />
+                    </div>
+                </div>
+
+                <!-- Flags row -->
+                <div class="form-grid form-grid-3 form-row">
                     <div class="form-group">
                         <label class="form-label">Availability</label>
                         <select name="is_free">
-                            <option value="1">Free for all</option>
+                            <option value="1" selected>Free for all</option>
                             <option value="0">Premium only</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Mark as New?</label>
                         <select name="is_new">
-                            <option value="1">Yes — show "New" badge</option>
-                            <option value="0" selected>No</option>
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Is Visible?</label>
+                        <select name="isVisible">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
                         </select>
                     </div>
                 </div>
 
                 <!-- Submit -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
                         Create Test → Add Questions
                     </button>
                     <a href="/mocktest/admin" class="btn btn-ghost">Cancel</a>
@@ -186,27 +127,68 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 </AdminLayout>
 
 <script is:inline>
-    // Auto-generate slug from title
-    const titleInput = document.getElementById("title");
-    const slugInput = document.getElementById("slug");
-    let slugEdited = false;
+    document.getElementById("create-test-form")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const alertContainer = document.getElementById("alert-container");
+        const submitBtn = document.getElementById("submit-btn");
+        const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlNIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
 
-    slugInput.addEventListener("input", () => (slugEdited = true));
+        const formData = new FormData(e.target);
+        const payload = {
+            title: formData.get("title").trim(),
+            exam: formData.get("exam"),
+            duration: parseInt(formData.get("duration"), 10),
+            difficulty: formData.get("difficulty"),
+            questions: parseInt(formData.get("questions"), 10),
+            attempts: 0,
+            rating: 0,
+            is_new: parseInt(formData.get("is_new"), 10),
+            is_free: parseInt(formData.get("is_free"), 10),
+            isVisible: parseInt(formData.get("isVisible"), 10),
+            correct_marks: parseFloat(formData.get("correct_marks")),
+            wrong_penalty: parseFloat(formData.get("wrong_penalty")),
+            skipped_marks: parseFloat(formData.get("skipped_marks"))
+        };
 
-    titleInput.addEventListener("input", () => {
-        if (slugEdited) return;
-        slugInput.value = titleInput.value
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, "")
-            .replace(/\s+/g, "-")
-            .replace(/-+/g, "-")
-            .slice(0, 80);
+        try {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Creating Test...";
+
+            const res = await fetch("https://brintoapi.brinto.in/api/admin/mocktests", {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`Failed to create test (${res.status}): ${errText}`);
+            }
+
+            const json = await res.json();
+            const newId = json?.data?.id || json?.id || 11;
+
+            alertContainer.innerHTML = `<div class="alert alert-success">✓ Test created successfully! Redirecting...</div>`;
+            setTimeout(() => {
+                window.location.href = `/mocktest/admin/tests/${newId}?created=1`;
+            }, 800);
+        } catch (err) {
+            console.error("Error creating test:", err);
+            alertContainer.innerHTML = `<div class="alert alert-error">✗ ${err.message}</div>`;
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Create Test → Add Questions";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     });
 </script>
 
 <style>
     .form-card {
-        max-width: 680px;
+        max-width: 720px;
     }
     .new-test-form {
         gap: 20px;
@@ -214,9 +196,18 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
     .form-row {
         gap: 14px;
     }
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
     .form-actions {
         display: flex;
         gap: 10px;
         padding-top: 4px;
+    }
+    @media (max-width: 768px) {
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
