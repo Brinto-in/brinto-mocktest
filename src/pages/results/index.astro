@@ -1,99 +1,5 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-
-const dummyResults = [
-  {
-    id: "res-1",
-    slug: "11",
-    exam: "OSSSC",
-    title: "OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026",
-    score: 85,
-    correct: 17,
-    wrong: 2,
-    skipped: 1,
-    totalQuestions: 20,
-    timeTaken: 1380,
-    submittedAt: "2026-03-28T10:30:00Z",
-    sections: [
-      { name: "General Knowledge", correct: 5, total: 5 },
-      { name: "Odia Language", correct: 4, total: 5 },
-      { name: "Mathematics", correct: 4, total: 5 },
-      { name: "Reasoning", correct: 4, total: 5 }
-    ]
-  },
-  {
-    id: "res-2",
-    slug: "12",
-    exam: "OPSC",
-    title: "OPSC OAS General Studies Paper-I Practice Test",
-    score: 72,
-    correct: 36,
-    wrong: 10,
-    skipped: 4,
-    totalQuestions: 50,
-    timeTaken: 2700,
-    submittedAt: "2026-03-25T14:15:00Z",
-    sections: [
-      { name: "Polity & Governance", correct: 10, total: 12 },
-      { name: "Indian History", correct: 8, total: 12 },
-      { name: "Geography & Ecology", correct: 10, total: 13 },
-      { name: "Current Affairs", correct: 8, total: 13 }
-    ]
-  },
-  {
-    id: "res-3",
-    slug: "13",
-    exam: "OSSSC",
-    title: "OSSSC Junior Assistant & LTR Teacher Full Mock Test",
-    score: 60,
-    correct: 12,
-    wrong: 5,
-    skipped: 3,
-    totalQuestions: 20,
-    timeTaken: 1500,
-    submittedAt: "2026-03-20T11:00:00Z",
-    sections: [
-      { name: "English Grammar", correct: 3, total: 5 },
-      { name: "Computer Awareness", correct: 4, total: 5 },
-      { name: "General Science", correct: 2, total: 5 },
-      { name: "Arithmetic", correct: 3, total: 5 }
-    ]
-  },
-  {
-    id: "res-4",
-    slug: "14",
-    exam: "SSC",
-    title: "SSC CGL Tier-1 General Intelligence & Awareness",
-    score: 45,
-    correct: 9,
-    wrong: 8,
-    skipped: 3,
-    totalQuestions: 20,
-    timeTaken: 1200,
-    submittedAt: "2026-03-15T09:45:00Z",
-    sections: [
-      { name: "Reasoning Ability", correct: 5, total: 10 },
-      { name: "General Awareness", correct: 4, total: 10 }
-    ]
-  },
-  {
-    id: "res-5",
-    slug: "15",
-    exam: "Railways",
-    title: "RRB NTPC CBT-1 General Mathematics & GK",
-    score: 30,
-    correct: 6,
-    wrong: 10,
-    skipped: 4,
-    totalQuestions: 20,
-    timeTaken: 1080,
-    submittedAt: "2026-03-10T16:20:00Z",
-    sections: [
-      { name: "General Science", correct: 3, total: 10 },
-      { name: "Mathematics", correct: 3, total: 10 }
-    ]
-  }
-];
 ---
 
 <BaseLayout
@@ -150,10 +56,16 @@ const dummyResults = [
     <div class="wrap results-body">
         <!-- Empty state -->
         <div class="empty-state" id="empty-state" style="display:none">
-            <div class="empty-icon">📋</div>
-            <h2>No tests attempted yet</h2>
-            <p>Your results will appear here after you complete a mock test.</p>
-            <a href="/mocktest/tests" class="btn-browse">Browse Tests →</a>
+            <div class="empty-icon-wrap">
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+            </div>
+            <h2>No test attempts yet</h2>
+            <p>You haven't attempted any mock tests yet. Take your first test to track your scores, analytics, and solutions here.</p>
+            <a href="/mocktest/tests" class="btn-browse">Explore Mock Tests →</a>
         </div>
 
         <!-- Results grid (populated by JS) -->
@@ -217,8 +129,8 @@ const dummyResults = [
     </div>
 </BaseLayout>
 
-<script define:vars={{ dummyResults }}>
-    let allResults = dummyResults;
+<script>
+    let allResults = [];
     let activeExam = "All";
 
     const emptyEl = document.getElementById("empty-state");
@@ -778,22 +690,34 @@ const dummyResults = [
         flex-direction: column;
         align-items: center;
         text-align: center;
-        padding: 60px 20px;
+        padding: 64px 20px;
         gap: 14px;
     }
-    .empty-icon {
-        font-size: 2.8rem;
+    .empty-icon-wrap {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--brand-light);
+        color: var(--brand);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 4px;
+        box-shadow: 0 8px 24px rgba(176, 0, 32, 0.08);
     }
     .empty-state h2 {
-        font-size: 1.3rem;
+        font-family: var(--font-body);
+        font-size: 1.25rem;
+        font-weight: 700;
         color: var(--ink);
         margin: 0;
     }
     .empty-state p {
         color: var(--ink-soft);
         font-size: 0.9rem;
-        max-width: 32ch;
+        max-width: 38ch;
         margin: 0;
+        line-height: 1.5;
     }
     .btn-browse {
         display: inline-block;
@@ -803,9 +727,8 @@ const dummyResults = [
         font-size: 0.92rem;
         padding: 10px 24px;
         border-radius: var(--radius-pill);
-        transition:
-            background 0.15s,
-            transform 0.1s;
+        margin-top: 6px;
+        transition: background 0.15s, transform 0.1s;
     }
     .btn-browse:hover {
         background: var(--brand-dark);
