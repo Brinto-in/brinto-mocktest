@@ -1,0 +1,381 @@
+---
+// Netflix / Hotstar style poster row for Odisha 10th Board subjects.
+// Set `image` to a path in /public (e.g. "/images/odisha-10th/math.webp").
+// Recommended poster size: 600x800 (3:4 portrait). If the image file is
+// missing or fails to load, a themed gradient poster is shown instead.
+// Site is served under `base` (/mocktest), so public files need that prefix.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const subjects = [
+  {
+    id: 'math',
+    icon: '📐',
+    title: 'Mathematics',
+    odia: 'ଗଣିତ',
+    meta: '50 Qs · 45 min',
+    image: '/images/odisha-10th/math.webp',
+    tone: ['#B00020', '#6D0014'],
+    href: '/mocktest/odisha-10th-mock-test#subject-math',
+    isNew: true,
+  },
+  {
+    id: 'science',
+    icon: '🔬',
+    title: 'Science',
+    odia: 'ବିଜ୍ଞାନ',
+    meta: '50 Qs · 45 min',
+    image: '/images/odisha-10th/science.png',
+    tone: ['#0F766E', '#064E3B'],
+    href: '/mocktest/odisha-10th-mock-test#subject-science',
+    isNew: false,
+  },
+  {
+    id: 'social',
+    icon: '📜',
+    title: 'Social Science',
+    odia: 'ସାମାଜିକ ବିଜ୍ଞାନ',
+    meta: '50 Qs · 40 min',
+    image: '/images/odisha-10th/social.webp',
+    tone: ['#B45309', '#78350F'],
+    href: '/mocktest/odisha-10th-mock-test#subject-social',
+    isNew: false,
+  },
+  {
+    id: 'odia',
+    icon: '📖',
+    title: 'Odia Sahitya',
+    odia: 'ସାହିତ୍ୟ',
+    meta: '50 Qs · 40 min',
+    image: '/images/odisha-10th/odia.webp',
+    tone: ['#7C3AED', '#4C1D95'],
+    href: '/mocktest/odisha-10th-mock-test#subject-odia',
+    isNew: true,
+  },
+  {
+    id: 'english',
+    icon: '🇬🇧',
+    title: 'English',
+    odia: 'Second Language',
+    meta: '50 Qs · 40 min',
+    image: '/images/odisha-10th/english.webp',
+    tone: ['#1D4ED8', '#1E3A8A'],
+    href: '/mocktest/odisha-10th-mock-test#subject-english',
+    isNew: false,
+  },
+  {
+    id: 'sanskrit-hindi',
+    icon: '🕉️',
+    title: 'Sanskrit / Hindi',
+    odia: 'Third Language',
+    meta: '50 Qs · 40 min',
+    image: '/images/odisha-10th/sanskrit-hindi.webp',
+    tone: ['#C2410C', '#7C2D12'],
+    href: '/mocktest/odisha-10th-mock-test#subject-sanskrit-hindi',
+    isNew: false,
+  },
+];
+---
+
+<section class="section o10p-section" aria-labelledby="o10p-title">
+  <div class="wrap">
+    <div class="o10p-head">
+      <h2 id="o10p-title" class="o10p-title">Odisha 10th · Subject-wise Tests</h2>
+      <div class="o10p-head-right">
+        <a href="/mocktest/odisha-10th-mock-test" class="o10p-see-all">See all</a>
+        <div class="o10p-nav" aria-hidden="true">
+          <button type="button" class="o10p-arrow" data-dir="-1" tabindex="-1" aria-label="Scroll left">‹</button>
+          <button type="button" class="o10p-arrow" data-dir="1" tabindex="-1" aria-label="Scroll right">›</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="o10p-row" data-o10p-row>
+      {subjects.map((s) => (
+        <a
+          href={s.href}
+          class="o10p-card"
+          style={`--tone-a:${s.tone[0]};--tone-b:${s.tone[1]};`}
+          aria-label={`${s.title} mock test – ${s.meta}`}
+        >
+          <div class="o10p-poster">
+            <div class="o10p-fallback" aria-hidden="true">
+              <span class="o10p-fallback-icon">{s.icon}</span>
+            </div>
+            {s.image && (
+              <img
+                src={`${base}${s.image}`}
+                alt={`${s.title} – Odisha 10th`}
+                loading="lazy"
+                decoding="async"
+                onerror="this.remove()"
+              />
+            )}
+
+            {s.isNew && <span class="o10p-badge">NEW</span>}
+
+            <div class="o10p-overlay">
+              <span class="o10p-odia">{s.odia}</span>
+              <h3 class="o10p-name">{s.title}</h3>
+              <span class="o10p-meta">{s.meta}</span>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.o10p-section').forEach((section) => {
+    const row = section.querySelector<HTMLElement>('[data-o10p-row]');
+    if (!row) return;
+    const arrows = section.querySelectorAll<HTMLButtonElement>('.o10p-arrow');
+
+    const update = () => {
+      const max = row.scrollWidth - row.clientWidth - 2;
+      arrows[0].disabled = row.scrollLeft <= 2;
+      arrows[1].disabled = row.scrollLeft >= max;
+      section.classList.toggle('o10p-no-scroll', max <= 0);
+    };
+
+    arrows.forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const dir = Number(btn.dataset.dir);
+        row.scrollBy({ left: dir * row.clientWidth * 0.85, behavior: 'smooth' });
+      })
+    );
+
+    row.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
+</script>
+
+<style>
+  .o10p-section {
+    background: var(--surface);
+    padding: 32px 0 40px;
+  }
+
+  /* Header */
+  .o10p-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .o10p-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .o10p-head-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .o10p-see-all {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brand);
+    white-space: nowrap;
+  }
+
+  .o10p-see-all:hover {
+    text-decoration: underline;
+  }
+
+  .o10p-nav {
+    display: flex;
+    gap: 6px;
+  }
+
+  .o10p-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 1.3rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  }
+
+  .o10p-arrow:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: #f3f4f6;
+  }
+
+  .o10p-arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .o10p-no-scroll .o10p-nav {
+    display: none;
+  }
+
+  /* Row */
+  .o10p-row {
+    --gap: 12px;
+    --cols: 6;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+    gap: var(--gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0;
+    padding: 6px 0 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .o10p-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Card */
+  .o10p-card {
+    scroll-snap-align: start;
+    display: block;
+    border-radius: var(--radius-sm);
+    outline: none;
+  }
+
+  .o10p-poster {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: linear-gradient(160deg, var(--tone-a), var(--tone-b));
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .o10p-poster img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .o10p-card:hover .o10p-poster,
+  .o10p-card:focus-visible .o10p-poster {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+  }
+
+  .o10p-card:hover .o10p-poster img {
+    transform: scale(1.05);
+  }
+
+  .o10p-card:focus-visible .o10p-poster {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  /* Fallback poster (used until an image is set) */
+  .o10p-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding-bottom: 30%;
+    background:
+      radial-gradient(circle at 75% 15%, rgba(255, 255, 255, 0.22), transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(0, 0, 0, 0.25), transparent 55%);
+  }
+
+  .o10p-fallback-icon {
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+  }
+
+  /* Badge */
+  .o10p-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #ffffff;
+    background: var(--brand);
+    padding: 3px 7px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Bottom text overlay */
+  .o10p-overlay {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 36px 10px 10px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .o10p-odia {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .o10p-name {
+    font-family: var(--font-body);
+    font-size: clamp(0.85rem, 1.3vw, 1rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+
+  .o10p-meta {
+    font-size: 0.68rem;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  /* Responsive: show partial next card on smaller screens to hint scroll */
+  @media (max-width: 1100px) {
+    .o10p-row { --cols: 4.4; }
+  }
+
+  @media (max-width: 768px) {
+    .o10p-section { padding: 24px 0 28px; }
+    .o10p-row { --cols: 3.3; --gap: 10px; }
+    .o10p-nav { display: none; }
+  }
+
+  @media (max-width: 480px) {
+    .o10p-row { --cols: 2.4; --gap: 8px; }
+    .o10p-overlay { padding: 28px 8px 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .o10p-poster,
+    .o10p-poster img {
+      transition: none;
+    }
+  }
+</style>
