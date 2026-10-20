@@ -390,6 +390,16 @@ const subjects = [
   }
 
   /* Responsive: show partial next card on smaller screens to hint scroll */
+  @media (min-width: 2560px) {
+    .o10p-section { padding: 28px 0 36px; }
+    .o10p-row { --cols: 9; --gap: 20px; }
+    .o10p-head { margin-bottom: 20px; }
+  }
+
+  @media (min-width: 3840px) {
+    .o10p-row { --cols: 12; --gap: 28px; }
+  }
+
   @media (max-width: 1100px) {
     .o10p-row { --cols: 4.4; }
   }

@@ -269,6 +269,24 @@
   }
   .ss-pct { font-weight: 600; color: var(--ink); text-align: right; }
 
+  @media (min-width: 2560px) {
+    .hero { padding: 80px 0 72px; }
+    .hero-inner {
+      grid-template-columns: 1fr 600px;
+      gap: 80px;
+    }
+    .score-card { max-width: 540px; }
+  }
+
+  @media (min-width: 3840px) {
+    .hero { padding: 120px 0 100px; }
+    .hero-inner {
+      grid-template-columns: 1fr 800px;
+      gap: 120px;
+    }
+    .score-card { max-width: 720px; }
+  }
+
   @media (max-width: 1024px) {
     .hero-inner {
       grid-template-columns: 1fr;

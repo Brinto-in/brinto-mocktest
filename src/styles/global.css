@@ -36,6 +36,20 @@
   --radius-pill:  999px;
 }
 
+/* ── 4K / large screen overrides ── */
+@media (min-width: 2560px) {
+  :root {
+    --maxw: 2200px;
+    font-size: 20px;
+  }
+}
+@media (min-width: 3840px) {
+  :root {
+    --maxw: 3200px;
+    font-size: 28px;
+  }
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
