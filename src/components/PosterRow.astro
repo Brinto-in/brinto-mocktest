@@ -323,18 +323,18 @@ const rowId = `${sectionId}-row`;
 
   /* ── Responsive ── */
   @media (max-width: 1100px) {
-    .pr-section { --pr-cols: calc(var(--pr-cols) * 0.73); }
+    .pr-row { --pr-cols: 4.4; }
   }
 
   @media (max-width: 768px) {
     .pr-section { padding: 12px 0 16px; }
-    .pr-row { --gap: 10px; }
+    .pr-row { --pr-cols: 3.3; --gap: 10px; }
     .pr-nav { display: none; }
     .pr-poster { aspect-ratio: 3 / 5.5; }
   }
 
   @media (max-width: 480px) {
-    .pr-row { --gap: 8px; }
+    .pr-row { --pr-cols: 2.4; --gap: 8px; }
     .pr-poster { aspect-ratio: 3 / 5.8; }
     .pr-overlay { padding: 28px 8px 8px; }
   }
