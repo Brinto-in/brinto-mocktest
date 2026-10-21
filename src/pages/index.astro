@@ -21,6 +21,9 @@ import { steps } from "../data/steps";
   <Hero />
   <StatsStrip />
 
+  <!-- ── TRENDING TESTS ─────────────────────────── -->
+  <TrendingTests />
+
   <!-- ── INSTITUTES & TUITION TEACHERS SECTION ─────────── -->
   <!-- <InstitutesSection /> -->
 
@@ -28,16 +31,17 @@ import { steps } from "../data/steps";
   <!-- <Odisha10thSection /> -->
   <Odisha10thPosterRow />
 
-  <!-- ── TRENDING TESTS ─────────────────────────── -->
-  <TrendingTests />
-
   <!-- ── CATEGORIES ─────────────────────────────── -->
   <BrowseByExam />
 
   <!-- ── HOW IT WORKS ───────────────────────────── -->
   <section class="section how-section">
     <div class="wrap">
-      <SectionHeader title="How it works" subtitle="Three steps from zero to your exam rank." centered={true} />
+      <SectionHeader
+        title="How it works"
+        subtitle="Three steps from zero to your exam rank."
+        centered={true}
+      />
       <div class="steps-row">
         {steps.map((step) => <StepCard step={step} />)}
       </div>
@@ -106,7 +110,6 @@ import { steps } from "../data/steps";
     color: var(--ink-soft);
     max-width: 48ch;
   }
-
 
   /* ── STEPS ── */
   .steps-row {
