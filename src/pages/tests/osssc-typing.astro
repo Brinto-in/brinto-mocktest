@@ -1,0 +1,183 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import TypingTest from "../../components/TypingTest.astro";
+
+/**
+ * /mocktest/tests/osssc-typing
+ * OSSSC Typing Test page — uses the reusable TypingTest component.
+ *
+ * To change the passage: update the `passage` prop below.
+ * Duration is 10 minutes (600s) as per OSSSC norms; wpmGoal = 40 WPM.
+ */
+
+const passage = `The Odisha Sub-ordinate Staff Selection Commission conducts recruitment for various government posts in the state of Odisha. Candidates appearing for the typing test must demonstrate proficiency in English or Odia typewriting. The qualifying speed is generally forty words per minute for English and thirty words per minute for Odia. Regular practice is essential to achieve the desired speed and accuracy. Maintain a correct posture, keep your wrists relaxed, and use all ten fingers on the keyboard for efficient typing. Avoid looking at the keyboard while typing and focus on the text displayed on the screen. Speed will improve naturally with consistent daily practice sessions.`;
+---
+
+<BaseLayout
+  title="OSSSC Typing Test – Practice Online | Brinto MockTest"
+  description="Practice OSSSC English typing test online. Get live WPM, accuracy, and error count. Works on desktop and mobile with OTG or Bluetooth keyboard."
+>
+  <!-- Page header -->
+  <div class="page-header wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/mocktest">Home</a>
+      <span aria-hidden="true">›</span>
+      <a href="/mocktest/tests">OSSSC</a>
+      <span aria-hidden="true">›</span>
+      <span>Typing Test</span>
+    </nav>
+    <div class="page-meta">
+      <div class="meta-chip">⏱ 10 minutes</div>
+      <div class="meta-chip">🎯 40 WPM target</div>
+      <div class="meta-chip">🆓 Free</div>
+    </div>
+  </div>
+
+  <!-- ── Typing Test ── -->
+  <div class="tt-page-wrap wrap">
+    <TypingTest
+      testId="osssc-typing"
+      title="OSSSC Typing Test"
+      examName="OSSSC"
+      passage={passage}
+      duration={600}
+      wpmGoal={40}
+      showTips={true}
+    />
+  </div>
+
+  <!-- ── Info section below ── -->
+  <section class="info-section wrap">
+    <div class="info-grid">
+
+      <div class="info-card">
+        <h3>📋 OSSSC Typing Norms</h3>
+        <ul>
+          <li>English: <strong>40 WPM</strong> minimum</li>
+          <li>Odia: <strong>30 WPM</strong> minimum</li>
+          <li>Duration: <strong>10 minutes</strong></li>
+          <li>Accuracy must be <strong>≥ 80%</strong></li>
+          <li>Errors reduce your effective WPM</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>💡 Tips to Improve</h3>
+        <ul>
+          <li>Use all 10 fingers (touch typing)</li>
+          <li>Keep your eyes on the passage, not the keys</li>
+          <li>Sit straight — wrists level with the keyboard</li>
+          <li>Aim for accuracy first, speed follows</li>
+          <li>Practice 20–30 min daily for 2 weeks</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>📱 Mobile Setup</h3>
+        <ul>
+          <li><strong>OTG:</strong> USB keyboard + OTG adapter (Android)</li>
+          <li><strong>Bluetooth:</strong> Pair any wireless keyboard</li>
+          <li><strong>Landscape:</strong> Rotate phone for wider on-screen keys</li>
+          <li>iOS: connect via USB-C or Lightning adapter</li>
+          <li>Tap the typing area to bring up the keyboard</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── Page header ── */
+  .page-header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem; color: var(--ink-soft);
+  }
+  .breadcrumb a { color: var(--brand); }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .page-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+  .meta-chip {
+    font-size: 0.75rem; font-weight: 600;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 4px 10px;
+    color: var(--ink-soft);
+  }
+
+  /* ── Test wrapper ── */
+  .tt-page-wrap {
+    padding: 16px 24px 0;
+  }
+
+  /* Full-bleed on mobile */
+  @media (max-width: 480px) {
+    .tt-page-wrap { padding: 12px 0 0; }
+    .page-header { padding: 14px 16px 0; }
+  }
+
+  /* Remove wrap horizontal padding for landscape mobile */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .tt-page-wrap { padding: 8px 0 0; }
+    .page-header  { display: none; }
+  }
+
+  /* ── Info section ── */
+  .info-section {
+    padding: 32px 24px 48px;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 20px;
+  }
+  .info-card h3 {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 12px;
+  }
+  .info-card ul {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .info-card li {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .info-card li::before {
+    content: '›';
+    position: absolute; left: 0;
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .info-card strong { color: var(--ink); }
+
+  @media (max-width: 768px) {
+    .info-grid { grid-template-columns: 1fr; }
+    .info-section { padding: 24px 16px 36px; }
+  }
+  @media (max-height: 500px) and (orientation: landscape) {
+    .info-section { display: none; }
+  }
+</style>
+

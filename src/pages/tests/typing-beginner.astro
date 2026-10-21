@@ -1,0 +1,141 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BeginnerTypingTest from "../../components/BeginnerTypingTest.astro";
+---
+
+<BaseLayout
+  title="Beginner Typing Practice – Build Speed from Scratch | Brinto MockTest"
+  description="Free beginner typing practice — word-by-word mode, encouraging feedback, rotating tips. Perfect for OSSSC aspirants starting from zero."
+>
+  <!-- Page header -->
+  <div class="page-hd wrap">
+    <nav class="crumb" aria-label="Breadcrumb">
+      <a href="/mocktest">Home</a>
+      <span>›</span>
+      <a href="/mocktest/tests">Tests</a>
+      <span>›</span>
+      <span>Typing Beginner</span>
+    </nav>
+    <div class="chips">
+      <span class="chip chip-green">🌱 Beginner Friendly</span>
+      <span class="chip">⏱ 15 minutes</span>
+      <span class="chip">🎯 20 WPM target</span>
+      <span class="chip">🆓 Free</span>
+    </div>
+  </div>
+
+  <!-- Test -->
+  <div class="test-wrap wrap">
+    <BeginnerTypingTest
+      testId="btt-main"
+      title="Beginner Typing Practice"
+      duration={900}
+      wpmGoal={20}
+    />
+  </div>
+
+  <!-- Info section -->
+  <section class="info wrap">
+    <div class="info-grid">
+
+      <div class="info-card">
+        <h3>🎯 How it works</h3>
+        <ul>
+          <li>One word is shown at a time in the spotlight box</li>
+          <li>Type the word exactly, then press <kbd>Space</kbd> or <kbd>Enter</kbd></li>
+          <li>Wrong attempt → the box shakes, try again</li>
+          <li>Correct → moves to the next word automatically</li>
+          <li>Complete all words or finish in 15 minutes</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>🖐️ Finger placement</h3>
+        <ul>
+          <li><strong>Left:</strong> A S D F (pinky → index)</li>
+          <li><strong>Right:</strong> J K L ; (index → pinky)</li>
+          <li>Thumbs rest on the <strong>Space bar</strong></li>
+          <li>Return to home row after every key</li>
+          <li>Never look down — keep eyes on screen</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>📈 Your next steps</h3>
+        <ul>
+          <li>Reach 20 WPM here → try the full OSSSC test</li>
+          <li>Practise 15–20 min daily for 2 weeks</li>
+          <li>Speed and accuracy improve together</li>
+          <li>Common exam target: 40 WPM English</li>
+          <li><a href="/mocktest/tests/osssc-typing" class="info-link">Take the full OSSSC Typing Test →</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page-hd {
+    padding: 18px 24px 0;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .crumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .82rem; color: var(--ink-soft);
+  }
+  .crumb a { color: var(--brand); }
+  .crumb a:hover { text-decoration: underline; }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-size: .72rem; font-weight: 600;
+    background: var(--surface-2); border: 1px solid var(--rule);
+    border-radius: 20px; padding: 3px 10px; color: var(--ink-soft);
+  }
+  .chip-green { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+
+  .test-wrap { padding: 14px 24px 0; }
+
+  @media (max-width: 480px) {
+    .test-wrap { padding: 10px 0 0; }
+    .page-hd   { padding: 12px 14px 0; }
+  }
+  @media (max-height: 500px) and (orientation: landscape) {
+    .test-wrap { padding: 6px 0 0; }
+    .page-hd   { display: none; }
+    .info      { display: none; }
+  }
+
+  /* Info */
+  .info { padding: 28px 24px 48px; }
+  .info-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 14px;
+  }
+  .info-card {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: var(--radius-md); padding: 18px 20px;
+  }
+  .info-card h3 {
+    font-family: var(--font-body); font-size: .95rem; font-weight: 700;
+    color: var(--ink); margin: 0 0 10px;
+  }
+  .info-card ul  { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .info-card li  { font-size: .83rem; color: var(--ink-soft); padding-left: 14px; position: relative; line-height: 1.4; }
+  .info-card li::before { content: '›'; position: absolute; left: 0; color: var(--brand); font-weight: 700; }
+  .info-card strong { color: var(--ink); }
+  .info-card kbd {
+    background: var(--surface-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 1px 6px;
+    font-size: .75rem; font-family: 'Courier New', monospace; color: var(--ink);
+  }
+  .info-link { color: var(--brand); font-weight: 600; }
+  .info-link:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .info-grid { grid-template-columns: 1fr; }
+    .info { padding: 20px 14px 36px; }
+  }
+</style>
+

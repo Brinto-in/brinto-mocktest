@@ -1,0 +1,882 @@
+---
+/**
+ * TypingTest — reusable, fully self-contained typing test component.
+ * Light theme, mobile-first, proper landscape support.
+ */
+export interface Props {
+  testId?: string;
+  title?: string;
+  examName?: string;
+  passage?: string;
+  duration?: number;
+  wpmGoal?: number;
+  showTips?: boolean;
+}
+
+const {
+  testId = "typing-test",
+  title = "Typing Test",
+  examName = "Exam",
+  passage = `The quick brown fox jumps over the lazy dog. Practice makes a man perfect and consistent effort leads to excellence. Keep your fingers on the home row keys and develop a rhythm as you type each word carefully.`,
+  duration = 600,
+  wpmGoal = 35,
+  showTips = true,
+} = Astro.props;
+---
+
+<div
+  id={testId}
+  class="tt-root"
+  data-passage={passage}
+  data-duration={duration}
+  data-wpm-goal={wpmGoal}
+  data-exam={examName}
+>
+  <!-- ── Mobile tip banner ── -->
+  {showTips && (
+    <div class="tt-tip" id={`${testId}-tip`}>
+      <span class="tt-tip-icon">⌨️</span>
+      <p class="tt-tip-text">
+        <strong>Mobile users:</strong> Connect a keyboard via OTG or Bluetooth.
+        <button class="tt-tip-link" data-modal={`${testId}-modal`}>How to set up →</button>
+      </p>
+      <button class="tt-tip-close" data-dismiss={`${testId}-tip`} aria-label="Dismiss">✕</button>
+    </div>
+  )}
+
+  <!-- ── Top bar: title + live stats + timer ── -->
+  <div class="tt-topbar">
+    <div class="tt-topbar-left">
+      <span class="tt-exam-tag">{examName}</span>
+      <h1 class="tt-title">{title}</h1>
+    </div>
+    <div class="tt-topbar-right">
+      <div class="tt-pill tt-wpm-pill" title="Words per minute">
+        <span class="tt-pill-val" id={`${testId}-wpm`}>0</span>
+        <span class="tt-pill-lbl">WPM</span>
+      </div>
+      <div class="tt-pill tt-acc-pill" title="Accuracy">
+        <span class="tt-pill-val" id={`${testId}-acc-pill`}>100%</span>
+        <span class="tt-pill-lbl">ACC</span>
+      </div>
+      <div class="tt-timer" id={`${testId}-timer`} aria-live="polite">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id={`${testId}-timer-val`}>--:--</span>
+      </div>
+      <button class="tt-action-btn tt-start-btn" id={`${testId}-start`}>Start</button>
+      <button class="tt-action-btn tt-restart-btn" id={`${testId}-restart`} style="display:none" title="Restart">↺</button>
+    </div>
+  </div>
+
+  <!-- ── Progress bar (thin, right under topbar) ── -->
+  <div class="tt-progress-track" aria-hidden="true">
+    <div class="tt-progress-fill" id={`${testId}-bar`}></div>
+  </div>
+
+  <!-- ── Typing arena ── -->
+  <div class="tt-arena" id={`${testId}-arena`}>
+
+    <!-- Idle overlay -->
+    <div class="tt-idle" id={`${testId}-idle`}>
+      <div class="tt-idle-body">
+        <div class="tt-idle-icon">⌨️</div>
+        <p class="tt-idle-cta">Click here or press any key to start</p>
+        <p class="tt-idle-hint">Timer starts when you begin typing</p>
+      </div>
+    </div>
+
+    <!-- Passage -->
+    <div class="tt-passage-wrap">
+      <div
+        class="tt-passage"
+        id={`${testId}-passage`}
+        aria-label="Passage to type"
+        role="document"
+      ></div>
+    </div>
+
+    <!-- Invisible textarea (captures all input) -->
+    <textarea
+      class="tt-input"
+      id={`${testId}-input`}
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      tabindex="-1"
+      aria-hidden="true"
+      aria-label="Type here"
+    ></textarea>
+  </div>
+
+  <!-- ── Bottom stats strip ── -->
+  <div class="tt-statsbar">
+    <div class="tt-sstat">
+      <span class="tt-sstat-val" id={`${testId}-correct`}>0</span>
+      <span class="tt-sstat-lbl">Correct</span>
+    </div>
+    <div class="tt-sstat-sep"></div>
+    <div class="tt-sstat">
+      <span class="tt-sstat-val tt-sstat-err" id={`${testId}-errors`}>0</span>
+      <span class="tt-sstat-lbl">Errors</span>
+    </div>
+    <div class="tt-sstat-sep"></div>
+    <div class="tt-sstat">
+      <span class="tt-sstat-val" id={`${testId}-progress`}>0%</span>
+      <span class="tt-sstat-lbl">Progress</span>
+    </div>
+    <div class="tt-sstat-sep"></div>
+    <div class="tt-sstat">
+      <span class="tt-sstat-val" id={`${testId}-acc`}>100%</span>
+      <span class="tt-sstat-lbl">Accuracy</span>
+    </div>
+  </div>
+
+  <!-- ── Result screen ── -->
+  <div class="tt-result" id={`${testId}-result`} style="display:none" role="dialog" aria-label="Test results">
+    <div class="tt-result-card">
+      <div class="tt-result-top">
+        <span class="tt-result-emoji" id={`${testId}-res-icon`}>🎉</span>
+        <div>
+          <h2 class="tt-result-title" id={`${testId}-res-title`}>Test Complete!</h2>
+          <p class="tt-result-sub"  id={`${testId}-res-sub`}></p>
+        </div>
+      </div>
+      <div class="tt-result-grid">
+        <div class="tt-rstat tt-rstat-wpm">
+          <span class="tt-rstat-val" id={`${testId}-res-wpm`}>0</span>
+          <span class="tt-rstat-lbl">WPM</span>
+        </div>
+        <div class="tt-rstat">
+          <span class="tt-rstat-val" id={`${testId}-res-acc`}>0%</span>
+          <span class="tt-rstat-lbl">Accuracy</span>
+        </div>
+        <div class="tt-rstat">
+          <span class="tt-rstat-val" id={`${testId}-res-correct`}>0</span>
+          <span class="tt-rstat-lbl">Correct</span>
+        </div>
+        <div class="tt-rstat">
+          <span class="tt-rstat-val tt-sstat-err" id={`${testId}-res-errors`}>0</span>
+          <span class="tt-rstat-lbl">Errors</span>
+        </div>
+      </div>
+      <div class="tt-result-actions">
+        <button class="tt-res-btn tt-res-btn-primary" id={`${testId}-retry`}>↺ Try Again</button>
+        <a href="/mocktest/tests" class="tt-res-btn tt-res-btn-ghost">← All Tests</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mobile keyboard setup modal ── -->
+  <div class="tt-modal" id={`${testId}-modal`} style="display:none" role="dialog" aria-modal="true" aria-label="Keyboard setup guide">
+    <div class="tt-modal-bg" data-modal-close={`${testId}-modal`}></div>
+    <div class="tt-modal-sheet">
+      <div class="tt-modal-handle"></div>
+      <div class="tt-modal-hd">
+        <h3>⌨️ Keyboard Setup for Mobile</h3>
+        <button class="tt-modal-x" data-modal-close={`${testId}-modal`} aria-label="Close">✕</button>
+      </div>
+      <div class="tt-modal-bd">
+        <div class="tt-setup-row">
+          <div class="tt-setup-num">1</div>
+          <div>
+            <h4>🔌 OTG USB Keyboard (Android)</h4>
+            <p>Use a <strong>USB OTG adapter</strong> to connect any USB keyboard. Plug in → auto-detected. Works on most Android devices.</p>
+            <a href="https://www.google.com/search?q=USB+OTG+adapter+for+android+keyboard" target="_blank" rel="noopener" class="tt-setup-link">Find OTG adapters →</a>
+          </div>
+        </div>
+        <div class="tt-setup-row">
+          <div class="tt-setup-num">2</div>
+          <div>
+            <h4>📡 Bluetooth Keyboard</h4>
+            <p>Go to <strong>Settings → Bluetooth → Pair new device</strong> and connect any Bluetooth keyboard. Works on both Android and iOS.</p>
+          </div>
+        </div>
+        <div class="tt-setup-row">
+          <div class="tt-setup-num">3</div>
+          <div>
+            <h4>📱 On-Screen Keyboard</h4>
+            <p>Tap the typing area to open your virtual keyboard. Use <strong>landscape mode</strong> (rotate your phone) for a wider key layout.</p>
+          </div>
+        </div>
+        <div class="tt-setup-tip">
+          💡 <strong>Pro tip:</strong> Enable auto-rotate in quick settings, then rotate to landscape for the best on-screen typing experience.
+        </div>
+        <button class="tt-res-btn tt-res-btn-primary tt-modal-done" data-modal-close={`${testId}-modal`}>Got it, let's type!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  document.querySelectorAll<HTMLElement>('.tt-root').forEach(init);
+
+  function init(root: HTMLElement) {
+    const id      = root.id;
+    const passage = root.dataset.passage ?? '';
+    const dur     = parseInt(root.dataset.duration  ?? '600', 10);
+    const goal    = parseInt(root.dataset.wpmGoal   ?? '35',  10);
+
+    // refs
+    const $ = (sel: string) => root.querySelector<HTMLElement>(sel)!;
+    const passageEl  = $(`#${id}-passage`);
+    const inputEl    = root.querySelector<HTMLTextAreaElement>(`#${id}-input`)!;
+    const idleEl     = $(`#${id}-idle`);
+    const arenaEl    = $(`#${id}-arena`);
+    const timerVal   = $(`#${id}-timer-val`);
+    const timerWrap  = $(`#${id}-timer`);
+    const wpmEl      = $(`#${id}-wpm`);
+    const accPillEl  = $(`#${id}-acc-pill`);
+    const accEl      = $(`#${id}-acc`);
+    const correctEl  = $(`#${id}-correct`);
+    const errorsEl   = $(`#${id}-errors`);
+    const progressEl = $(`#${id}-progress`);
+    const barEl      = $(`#${id}-bar`);
+    const startBtn   = root.querySelector<HTMLButtonElement>(`#${id}-start`)!;
+    const restartBtn = root.querySelector<HTMLButtonElement>(`#${id}-restart`)!;
+    const resultEl   = $(`#${id}-result`);
+    const retryBtn   = root.querySelector<HTMLButtonElement>(`#${id}-retry`)!;
+    const resIcon    = $(`#${id}-res-icon`);
+    const resTitle   = $(`#${id}-res-title`);
+    const resSub     = $(`#${id}-res-sub`);
+    const resWpm     = $(`#${id}-res-wpm`);
+    const resAcc     = $(`#${id}-res-acc`);
+    const resCorrect = $(`#${id}-res-correct`);
+    const resErrors  = $(`#${id}-res-errors`);
+
+    // state
+    let state: 'idle'|'running'|'finished' = 'idle';
+    let pos = 0, correct = 0, errors = 0;
+    let startTime = 0, remaining = dur, raf = 0;
+    let charSpans: HTMLSpanElement[] = [];
+    let lastLen = 0;
+
+    // build spans
+    function build() {
+      passageEl.innerHTML = '';
+      charSpans = [...passage].map(ch => {
+        const s = document.createElement('span');
+        s.className = 'tt-ch';
+        s.textContent = ch === ' ' ? '\u00A0' : ch;
+        passageEl.appendChild(s);
+        return s;
+      });
+      charSpans[0]?.classList.add('tt-cur');
+    }
+
+    function fmt(s: number) {
+      return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+    }
+
+    function wpm() {
+      if (!startTime) return 0;
+      const mins = (Date.now() - startTime) / 60000;
+      return mins > 0 ? Math.round((correct / 5) / mins) : 0;
+    }
+
+    function accuracy() {
+      const t = correct + errors;
+      return t === 0 ? 100 : Math.round((correct / t) * 100);
+    }
+
+    function draw() {
+      const w = wpm(), a = accuracy();
+      const pct = Math.round((pos / passage.length) * 100);
+      if (state === 'running') remaining = Math.max(0, dur - (Date.now() - startTime) / 1000);
+
+      wpmEl.textContent      = String(w);
+      accPillEl.textContent  = `${a}%`;
+      accEl.textContent      = `${a}%`;
+      correctEl.textContent  = String(correct);
+      errorsEl.textContent   = String(errors);
+      progressEl.textContent = `${pct}%`;
+      barEl.style.width      = `${pct}%`;
+      timerVal.textContent   = fmt(remaining);
+
+      timerWrap.classList.toggle('tt-warn',   remaining < 60 && remaining >= 30);
+      timerWrap.classList.toggle('tt-danger', remaining < 30);
+    }
+
+    function tick() {
+      if (state !== 'running') return;
+      draw();
+      if (remaining <= 0) { finish(); return; }
+      raf = requestAnimationFrame(tick);
+    }
+
+    function scrollToCursor(idx: number) {
+      charSpans[idx]?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+
+    function typeChar(ch: string) {
+      if (state !== 'running' || pos >= passage.length) return;
+      const span = charSpans[pos];
+      span.classList.remove('tt-cur');
+      if (ch === passage[pos]) { span.classList.add('tt-ok'); correct++; }
+      else                     { span.classList.add('tt-err'); errors++; }
+      pos++;
+      if (pos < passage.length) {
+        charSpans[pos].classList.add('tt-cur');
+        if (pos % 12 === 0) scrollToCursor(pos);
+      }
+      draw();
+      if (pos >= passage.length) finish();
+    }
+
+    function backspace() {
+      if (state !== 'running' || pos === 0) return;
+      charSpans[pos]?.classList.remove('tt-cur');
+      pos--;
+      const s = charSpans[pos];
+      const wasOk = s.classList.contains('tt-ok');
+      s.classList.remove('tt-ok', 'tt-err');
+      s.classList.add('tt-cur');
+      if (wasOk) correct = Math.max(0, correct - 1);
+      else       errors  = Math.max(0, errors  - 1);
+      draw();
+    }
+
+    function start() {
+      if (state !== 'idle') return;
+      state = 'running'; startTime = Date.now();
+      idleEl.classList.add('tt-hidden');
+      startBtn.style.display   = 'none';
+      restartBtn.style.display = '';
+      root.classList.add('tt-running');
+      inputEl.removeAttribute('aria-hidden');
+      inputEl.tabIndex = 0;
+      inputEl.focus();
+      raf = requestAnimationFrame(tick);
+    }
+
+    function finish() {
+      cancelAnimationFrame(raf);
+      state = 'finished'; remaining = 0; draw();
+      inputEl.blur(); inputEl.setAttribute('aria-hidden','true');
+      root.classList.remove('tt-running');
+
+      const w = wpm(), a = accuracy(), pass = w >= goal && a >= 80;
+      resIcon.textContent  = pass ? '🎉' : '💪';
+      resTitle.textContent = pass ? 'Test Passed!' : 'Keep Practising!';
+      resSub.textContent   = pass
+        ? `You hit ${w} WPM with ${a}% accuracy — above the ${goal} WPM target!`
+        : `You typed ${w} WPM. Target is ${goal} WPM. Keep practising!`;
+      resWpm.textContent     = String(w);
+      resAcc.textContent     = `${a}%`;
+      resCorrect.textContent = String(correct);
+      resErrors.textContent  = String(errors);
+      resultEl.style.display = '';
+      restartBtn.style.display = 'none';
+    }
+
+    function reset() {
+      cancelAnimationFrame(raf);
+      state = 'idle'; pos = 0; correct = 0; errors = 0;
+      startTime = 0; remaining = dur; lastLen = 0;
+      inputEl.value = ''; inputEl.setAttribute('aria-hidden','true'); inputEl.tabIndex = -1;
+      root.classList.remove('tt-running');
+      idleEl.classList.remove('tt-hidden');
+      startBtn.style.display = ''; restartBtn.style.display = 'none';
+      resultEl.style.display = 'none';
+      build(); draw(); timerVal.textContent = fmt(dur); wpmEl.textContent = '0';
+    }
+
+    // Input events
+    inputEl.addEventListener('keydown', e => { if (e.key === 'Backspace') { e.preventDefault(); backspace(); } });
+    inputEl.addEventListener('input', () => {
+      const v = inputEl.value, nl = v.length;
+      if (nl > lastLen) [...v.slice(lastLen)].forEach(typeChar);
+      else for (let i=0;i<lastLen-nl;i++) backspace();
+      lastLen = nl;
+      if (v.length > passage.length + 5) inputEl.value = v.slice(0, passage.length + 5);
+    });
+    inputEl.addEventListener('paste', e => e.preventDefault());
+
+    // Arena click
+    arenaEl.addEventListener('click', () => {
+      if (state === 'idle') start();
+      else if (state === 'running') inputEl.focus();
+    });
+
+    // Global keydown to start
+    document.addEventListener('keydown', e => {
+      if (state === 'idle' && !root.contains(document.activeElement)) {
+        if (e.key.length === 1 || e.key === 'Enter') { start(); if (e.key.length===1) typeChar(e.key); }
+      }
+    });
+
+    startBtn.addEventListener('click', start);
+    restartBtn.addEventListener('click', reset);
+    retryBtn.addEventListener('click', reset);
+
+    // Tip dismiss
+    root.querySelectorAll<HTMLElement>('[data-dismiss]').forEach(el => {
+      el.addEventListener('click', () => {
+        const tip = root.querySelector<HTMLElement>(`#${el.dataset.dismiss}`);
+        if (tip) { tip.style.opacity='0'; tip.style.transform='translateY(-6px)'; setTimeout(()=>tip.remove(),300); }
+      });
+    });
+
+    // Modal open
+    root.querySelectorAll<HTMLElement>('[data-modal]').forEach(el => {
+      el.addEventListener('click', () => {
+        const m = root.querySelector<HTMLElement>(`#${el.dataset.modal}`);
+        if (m) { m.style.display=''; requestAnimationFrame(()=>m.classList.add('tt-open')); }
+      });
+    });
+
+    // Modal close
+    root.querySelectorAll<HTMLElement>('[data-modal-close]').forEach(el => {
+      el.addEventListener('click', () => {
+        const m = root.querySelector<HTMLElement>(`#${el.dataset.modalClose}`);
+        if (m) { m.classList.remove('tt-open'); setTimeout(()=>m.style.display='none',300); }
+      });
+    });
+
+    build(); draw(); timerVal.textContent = fmt(dur);
+  }
+})();
+</script>
+
+<style>
+/* ════════════════════════════════════
+   Root
+════════════════════════════════════ */
+.tt-root {
+  --tt-brand:   var(--brand, #B00020);
+  --tt-ink:     var(--ink, #1a1410);
+  --tt-muted:   #9ca3af;
+  --tt-sub:     var(--ink-soft, #4b5563);
+  --tt-surface: var(--surface, #fff);
+  --tt-surf2:   var(--surface-2, #f8fafc);
+  --tt-border:  var(--rule, #e5e7eb);
+  --tt-ok:      #16a34a;
+  --tt-ng:      #dc2626;
+  --tt-ng-bg:   rgba(220,38,38,0.09);
+  --tt-radius:  12px;
+
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* height driven by the arena passage */
+}
+
+/* ── Tip ── */
+.tt-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fffbeb;
+  border-bottom: 1px solid #fde68a;
+  padding: 9px 16px;
+  transition: opacity .25s, transform .25s;
+}
+.tt-tip-icon { font-size: 1rem; flex-shrink: 0; }
+.tt-tip-text {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #92400e;
+  margin: 0;
+  line-height: 1.4;
+}
+.tt-tip-text strong { color: #78350f; }
+.tt-tip-link {
+  background: none; border: none; padding: 0; margin-left: 4px;
+  color: var(--tt-brand); font-size: 0.8rem; font-weight: 600;
+  cursor: pointer;
+}
+.tt-tip-link:hover { text-decoration: underline; }
+.tt-tip-close {
+  background: none; border: none; padding: 3px 6px;
+  color: #a16207; cursor: pointer; font-size: 0.8rem;
+  border-radius: 4px; flex-shrink: 0;
+}
+.tt-tip-close:hover { background: #fef3c7; }
+
+/* ── Top bar ── */
+.tt-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--tt-border);
+  background: var(--tt-surface);
+  flex-shrink: 0;
+}
+.tt-topbar-left  { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tt-topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.tt-exam-tag {
+  font-size: 0.65rem; font-weight: 800;
+  letter-spacing: .07em; text-transform: uppercase;
+  background: var(--brand-light, #fff0f2);
+  color: var(--tt-brand);
+  border: 1px solid var(--brand-mid, #f5c6ce);
+  padding: 2px 8px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.tt-title {
+  font-family: var(--font-body, sans-serif);
+  font-size: clamp(.85rem, 1.6vw, 1.05rem);
+  font-weight: 700; color: var(--tt-ink); margin: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Pills */
+.tt-pill {
+  display: flex; align-items: baseline; gap: 4px;
+  background: var(--tt-surf2);
+  border: 1px solid var(--tt-border);
+  border-radius: 20px; padding: 4px 10px;
+}
+.tt-pill-val { font-size: .88rem; font-weight: 700; color: var(--tt-ink); font-family: var(--font-body,sans-serif); }
+.tt-pill-lbl { font-size: .62rem; font-weight: 600; color: var(--tt-muted); letter-spacing: .04em; text-transform: uppercase; }
+
+/* Timer */
+.tt-timer {
+  display: flex; align-items: center; gap: 5px;
+  font-size: .85rem; font-weight: 700;
+  color: var(--tt-sub);
+  font-family: 'Courier New', monospace;
+  min-width: 54px;
+}
+.tt-timer svg { flex-shrink: 0; }
+.tt-warn   { color: #d97706; }
+.tt-danger { color: var(--tt-ng); animation: tt-pulse 1s infinite; }
+@keyframes tt-pulse { 0%,100% { opacity:1; } 50% { opacity:.55; } }
+
+/* Action buttons */
+.tt-action-btn {
+  font-size: .82rem; font-weight: 700;
+  padding: 7px 16px; border-radius: 8px; border: none; cursor: pointer;
+  transition: transform .1s, opacity .15s;
+  font-family: var(--font-body, sans-serif);
+}
+.tt-start-btn   { background: var(--tt-brand); color: #fff; }
+.tt-restart-btn { background: var(--tt-surf2); color: var(--tt-sub); border: 1px solid var(--tt-border); }
+.tt-action-btn:hover { transform: translateY(-1px); opacity: .9; }
+
+/* ── Progress track ── */
+.tt-progress-track { height: 3px; background: var(--tt-border); flex-shrink: 0; }
+.tt-progress-fill  {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--tt-brand), #f87171);
+  transition: width .25s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── Arena ── */
+.tt-arena {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  cursor: text;
+  min-height: 220px;
+}
+
+/* Idle overlay */
+.tt-idle {
+  position: absolute; inset: 0; z-index: 10;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .25s, visibility .25s;
+}
+.tt-idle.tt-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.tt-idle-body { text-align: center; padding: 16px; }
+.tt-idle-icon { font-size: 2.6rem; margin-bottom: 10px; }
+.tt-idle-cta  { font-size: .95rem; font-weight: 600; color: var(--tt-ink); margin: 0 0 5px; }
+.tt-idle-hint { font-size: .78rem; color: var(--tt-muted); margin: 0; }
+
+/* Passage */
+.tt-passage-wrap {
+  flex: 1; overflow-y: auto; padding: 24px 24px 16px;
+  scrollbar-width: thin; scrollbar-color: var(--tt-border) transparent;
+}
+.tt-passage-wrap::-webkit-scrollbar { width: 4px; }
+.tt-passage-wrap::-webkit-scrollbar-thumb { background: var(--tt-border); border-radius: 4px; }
+
+.tt-passage {
+  font-family: var(--font-body, sans-serif);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  line-height: 2.1;
+  color: var(--tt-muted);
+  letter-spacing: .015em;
+  word-break: break-word;
+  user-select: none;
+}
+
+/* Characters */
+:global(.tt-ch)     { position: relative; transition: color .06s; }
+:global(.tt-ch.tt-ok)  { color: var(--tt-ok); }
+:global(.tt-ch.tt-err) { color: var(--tt-ng); background: var(--tt-ng-bg); border-radius: 2px; }
+:global(.tt-ch.tt-cur) { color: var(--tt-ink); }
+:global(.tt-ch.tt-cur::before) {
+  content: '';
+  position: absolute; left: 0; top: 15%; bottom: 15%;
+  width: 2px; background: var(--tt-brand); border-radius: 2px;
+  animation: tt-blink 1s step-end infinite;
+}
+@keyframes tt-blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+/* Hidden input */
+.tt-input {
+  position: absolute; opacity: 0; width: 1px; height: 1px;
+  top: 0; left: 0; resize: none; border: none; outline: none;
+  padding: 0; margin: 0; font-size: 16px; pointer-events: none;
+}
+.tt-running .tt-input { pointer-events: auto; }
+
+/* ── Bottom stats ── */
+.tt-statsbar {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0; padding: 10px 20px;
+  border-top: 1px solid var(--tt-border);
+  background: var(--tt-surf2);
+  flex-shrink: 0;
+}
+.tt-sstat {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 0 18px;
+}
+.tt-sstat-val  { font-size: 1rem; font-weight: 700; color: var(--tt-ink); line-height: 1; }
+.tt-sstat-lbl  { font-size: .6rem; color: var(--tt-muted); letter-spacing: .05em; text-transform: uppercase; }
+.tt-sstat-err  { color: var(--tt-ng); }
+.tt-sstat-sep  { width: 1px; height: 26px; background: var(--tt-border); flex-shrink: 0; }
+
+/* ── Result ── */
+.tt-result {
+  position: absolute; inset: 0; z-index: 20;
+  background: rgba(255,255,255,.95);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; overflow-y: auto;
+  animation: tt-in .35s ease;
+}
+@keyframes tt-in { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:none} }
+
+.tt-result-card {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: 14px;
+  padding: 28px 24px;
+  max-width: 440px; width: 100%;
+  box-shadow: 0 8px 32px rgba(0,0,0,.08);
+}
+.tt-result-top {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+}
+.tt-result-emoji { font-size: 2.4rem; flex-shrink: 0; }
+.tt-result-title {
+  font-family: var(--font-body,sans-serif);
+  font-size: 1.25rem; font-weight: 800; color: var(--tt-ink); margin: 0 0 4px;
+}
+.tt-result-sub { font-size: .82rem; color: var(--tt-sub); margin: 0; line-height: 1.5; }
+
+.tt-result-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 20px;
+}
+.tt-rstat {
+  background: var(--tt-surf2); border: 1px solid var(--tt-border);
+  border-radius: 10px; padding: 12px 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.tt-rstat-wpm { border-color: var(--brand-mid,#f5c6ce); background: var(--brand-light,#fff0f2); }
+.tt-rstat-val { font-size: 1.3rem; font-weight: 700; color: var(--tt-ink); line-height: 1; }
+.tt-rstat-wpm .tt-rstat-val { color: var(--tt-brand); }
+.tt-rstat-lbl { font-size: .58rem; color: var(--tt-muted); letter-spacing: .05em; text-transform: uppercase; }
+
+.tt-result-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.tt-res-btn {
+  flex: 1; text-align: center; font-family: var(--font-body,sans-serif);
+  font-size: .88rem; font-weight: 700; padding: 11px 18px;
+  border-radius: 8px; border: none; cursor: pointer;
+  transition: transform .1s, opacity .15s; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+}
+.tt-res-btn:hover { transform: translateY(-1px); opacity: .9; }
+.tt-res-btn-primary { background: var(--tt-brand); color: #fff; }
+.tt-res-btn-ghost   { background: var(--tt-surf2); color: var(--tt-sub); border: 1px solid var(--tt-border); }
+
+/* ── Modal / bottom sheet ── */
+.tt-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.tt-modal-bg {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(3px);
+  opacity: 0; transition: opacity .3s;
+}
+.tt-open .tt-modal-bg { opacity: 1; }
+.tt-modal-sheet {
+  position: relative; background: var(--tt-surface);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--tt-border);
+  max-height: 85vh; overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform .35s cubic-bezier(.32,.72,0,1);
+}
+.tt-open .tt-modal-sheet { transform: translateY(0); }
+.tt-modal-handle {
+  width: 36px; height: 4px; background: var(--tt-border);
+  border-radius: 2px; margin: 12px auto 0;
+}
+.tt-modal-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--tt-border);
+}
+.tt-modal-hd h3 {
+  font-size: .95rem; font-weight: 700; color: var(--tt-ink); margin: 0;
+  font-family: var(--font-body,sans-serif);
+}
+.tt-modal-x {
+  background: none; border: none; color: var(--tt-muted);
+  font-size: .9rem; cursor: pointer; padding: 4px 8px; border-radius: 4px;
+}
+.tt-modal-x:hover { background: var(--tt-surf2); color: var(--tt-ink); }
+.tt-modal-bd { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+.tt-setup-row {
+  display: flex; gap: 12px;
+  background: var(--tt-surf2); border: 1px solid var(--tt-border);
+  border-radius: 10px; padding: 14px;
+}
+.tt-setup-num {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  background: var(--brand-light,#fff0f2); color: var(--tt-brand);
+  font-size: .78rem; font-weight: 800; display: grid; place-items: center;
+  border: 1px solid var(--brand-mid,#f5c6ce);
+}
+.tt-setup-row h4 {
+  font-size: .88rem; font-weight: 700; color: var(--tt-ink);
+  margin: 0 0 4px; font-family: var(--font-body,sans-serif);
+}
+.tt-setup-row p { font-size: .8rem; color: var(--tt-sub); margin: 0; line-height: 1.5; }
+.tt-setup-link {
+  font-size: .75rem; color: var(--tt-brand); font-weight: 600;
+  display: inline-block; margin-top: 5px;
+}
+.tt-setup-link:hover { text-decoration: underline; }
+.tt-setup-tip {
+  background: #fffbeb; border: 1px solid #fde68a;
+  border-radius: 8px; padding: 11px 14px;
+  font-size: .8rem; color: #92400e; line-height: 1.5;
+}
+.tt-modal-done { width: 100%; }
+
+/* ════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════ */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .tt-topbar { padding: 10px 14px; gap: 8px; }
+  .tt-title  { font-size: .85rem; }
+  .tt-passage-wrap { padding: 16px 14px 12px; }
+  .tt-passage { font-size: .97rem; line-height: 2; }
+  .tt-sstat   { padding: 0 12px; }
+  .tt-pill    { padding: 3px 8px; }
+  .tt-pill-val { font-size: .8rem; }
+  .tt-timer  { font-size: .78rem; min-width: 46px; }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+  .tt-root   { border-radius: 8px; }
+  .tt-topbar { padding: 9px 12px; flex-wrap: wrap; }
+  .tt-topbar-left { order: 1; }
+  .tt-topbar-right { order: 2; }
+  /* Hide acc pill — it's in stats bar */
+  .tt-acc-pill { display: none; }
+  .tt-exam-tag { font-size: .58rem; }
+  .tt-passage  { font-size: .92rem; line-height: 1.95; }
+  .tt-passage-wrap { padding: 12px 12px 10px; }
+  .tt-sstat { padding: 0 8px; }
+  .tt-sstat-val { font-size: .9rem; }
+  /* Result: 2-col grid */
+  .tt-result-grid { grid-template-columns: repeat(2,1fr); }
+  .tt-result-card { padding: 20px 16px; }
+  .tt-result-title { font-size: 1.1rem; }
+  .tt-result-emoji { font-size: 1.8rem; }
+}
+
+/* Very small */
+@media (max-width: 360px) {
+  .tt-statsbar { overflow-x: auto; justify-content: flex-start; }
+  .tt-action-btn { padding: 6px 12px; font-size: .75rem; }
+}
+
+/* ── Mobile Landscape ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .tt-root {
+    min-height: 100dvh;
+    border-radius: 0;
+    border: none;
+    /* Single compact column, no fixed height issues */
+  }
+
+  /* Tip hidden in landscape to save space */
+  .tt-tip { display: none; }
+
+  /* Topbar: even more compact */
+  .tt-topbar {
+    padding: 7px 14px;
+    flex-wrap: nowrap;
+  }
+  .tt-title    { font-size: .78rem; }
+  .tt-exam-tag { display: none; }
+  .tt-pill     { padding: 2px 7px; }
+  .tt-pill-val { font-size: .75rem; }
+  .tt-pill-lbl { display: none; }
+  .tt-timer    { font-size: .72rem; min-width: 40px; }
+  .tt-action-btn { padding: 5px 12px; font-size: .75rem; }
+
+  /* Arena: shrink passage area */
+  .tt-arena { min-height: 0; }
+  .tt-passage-wrap { padding: 10px 14px 6px; max-height: calc(100dvh - 130px); overflow-y: auto; }
+  .tt-passage { font-size: .86rem; line-height: 1.8; }
+
+  /* Idle overlay compact */
+  .tt-idle-icon { font-size: 1.8rem; margin-bottom: 6px; }
+  .tt-idle-cta  { font-size: .82rem; }
+  .tt-idle-hint { font-size: .7rem; }
+
+  /* Stats bar: horizontal compact */
+  .tt-statsbar { padding: 6px 14px; }
+  .tt-sstat    { padding: 0 8px; }
+  .tt-sstat-val { font-size: .85rem; }
+  .tt-sstat-lbl { font-size: .55rem; }
+  .tt-sstat-sep { height: 20px; }
+
+  /* Result: full-screen */
+  .tt-result { align-items: flex-start; overflow-y: auto; padding: 12px; }
+  .tt-result-card { padding: 14px 14px; }
+  .tt-result-top  { gap: 10px; margin-bottom: 12px; }
+  .tt-result-emoji { font-size: 1.6rem; }
+  .tt-result-title { font-size: 1rem; }
+  .tt-result-sub   { font-size: .75rem; }
+  .tt-result-grid  { grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 12px; }
+  .tt-rstat-val    { font-size: 1.1rem; }
+  .tt-res-btn      { padding: 9px 14px; font-size: .8rem; }
+}
+
+/* 4K */
+@media (min-width: 2560px) {
+  .tt-root { border-radius: 16px; }
+  .tt-passage { font-size: 1.5rem; line-height: 2.3; }
+  .tt-sstat-val { font-size: 1.3rem; }
+  .tt-action-btn { font-size: 1rem; padding: 10px 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-progress-fill, .tt-idle, .tt-result { transition: none; animation: none; }
+}
+</style>
