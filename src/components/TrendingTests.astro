@@ -4,9 +4,10 @@
 import { fetchMockTests } from "../lib/api";
 import { examTone } from "../lib/examTone";
 import { testImage } from "../lib/testImages";
+import { withStaticTrending } from "../lib/staticTrending";
 import type { Test } from "../lib/types";
 
-type TrendingTest = Test & { image?: string };
+type TrendingTest = Test & { image?: string; info?: string; comingSoon?: boolean };
 
 let tests: TrendingTest[] = [];
 
@@ -29,6 +30,20 @@ try {
 } catch (err) {
   console.error("Error fetching trending tests from API service:", err);
 }
+
+tests = withStaticTrending<TrendingTest>(tests, (s) => ({
+  title: s.title,
+  exam: s.exam,
+  questions: 0,
+  duration: 0,
+  info: s.info,
+  comingSoon: s.comingSoon,
+  href: s.comingSoon ? undefined : s.href,
+  image: testImage(s.id),
+}));
+
+// Removes a missing poster image so the generated art underneath shows instead
+const IMG_FALLBACK = "this.closest('.tt-card')?.classList.remove('has-img');this.remove()";
 ---
 
 <section class="section tt-section" aria-labelledby="tt-title">
@@ -47,32 +62,36 @@ try {
     <ol class="tt-row" id="trending-tests-grid">
       {tests.map((t, i) => {
         const [a, b] = examTone(t.exam);
+        const Tag = t.comingSoon ? "div" : "a";
         return (
           <li class="tt-item">
             <span class={`tt-rank ${i === 9 ? "is-ten" : ""}`} aria-hidden="true">{i + 1}</span>
-            <a
-              href={t.href}
-              class={`tt-card ${t.image ? "has-img" : ""}`}
+            <Tag
+              href={t.comingSoon ? undefined : t.href}
+              class={`tt-card ${t.image ? "has-img" : ""} ${t.comingSoon ? "is-soon" : ""}`}
               style={`--tone-a:${a};--tone-b:${b};`}
-              aria-label={`#${i + 1} ${t.title} – ${t.questions} questions, ${t.duration} minutes`}
+              aria-label={t.comingSoon
+                ? `#${i + 1} ${t.title} – coming soon`
+                : `#${i + 1} ${t.title} – ${t.questions} questions, ${t.duration} minutes`}
+              aria-disabled={t.comingSoon ? "true" : undefined}
             >
-              {t.image ? (
-                <img class="tt-img" src={t.image} alt="" loading={i < 3 ? "eager" : "lazy"} decoding="async" />
-              ) : (
-                <div class="tt-art">
-                  <span class="tt-exam">{t.exam}</span>
-                  <span class="tt-name">{t.title}</span>
-                </div>
+              <div class="tt-art">
+                <span class="tt-exam">{t.exam}</span>
+                <span class="tt-name">{t.title}</span>
+              </div>
+              {t.image && (
+                <img class="tt-img" src={t.image} alt="" loading={i < 3 ? "eager" : "lazy"} decoding="async" onerror={IMG_FALLBACK} />
               )}
               <div class="tt-badges">
+                {t.comingSoon && <span class="tt-badge tt-badge-soon">SOON</span>}
                 {t.isNew && <span class="tt-badge tt-badge-new">NEW</span>}
                 {t.isFree && <span class="tt-badge tt-badge-free">FREE</span>}
               </div>
               <div class="tt-info">
-                <span>{t.questions} Qs · {t.duration} min</span>
-                <span class="tt-diff">{t.difficulty}</span>
+                <span>{t.info ?? `${t.questions} Qs · ${t.duration} min`}</span>
+                <span class="tt-diff">{t.comingSoon ? "Coming soon" : t.difficulty}</span>
               </div>
-            </a>
+            </Tag>
           </li>
         );
       })}
@@ -83,6 +102,9 @@ try {
 <script>
   import { examTone } from "../lib/examTone";
   import { testImage } from "../lib/testImages";
+  import { withStaticTrending } from "../lib/staticTrending";
+
+  const IMG_FALLBACK = "this.closest('.tt-card')?.classList.remove('has-img');this.remove()";
 
   const esc = (v: unknown) =>
     String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -111,7 +133,7 @@ try {
 
   // Ensure trending tests load from API on client if edge subrequest returned empty
   async function loadFallback() {
-    if (!row || row.querySelector(".tt-item")) return;
+    if (!row || row.querySelector(".tt-card:not(.is-soon)")) return;
     try {
       const res = await fetch("https://brintoapi.brinto.in/api/mocktests?page=1&limit=10", {
         headers: { Accept: "application/json" },
@@ -128,31 +150,38 @@ try {
       const items = json?.data || json?.tests || (Array.isArray(json) ? json : []);
       if (!Array.isArray(items) || items.length === 0) return;
 
-      row.innerHTML = items.slice(0, 10).map((t: any, i: number) => {
+      const list = withStaticTrending<any>(items.slice(0, 10), (s) => ({ ...s, static: true }));
+
+      row.innerHTML = list.map((t: any, i: number) => {
         const exam = t.exam || t.category || "General";
         const [a, b] = examTone(exam);
         const title = t.title || t.name;
         const qCount = Array.isArray(t.questions) ? t.questions.length : (t.questions || 0);
         const duration = t.duration || 30;
-        const image = testImage(t.id, t.image || t.thumbnail);
-        const visual = image
-          ? `<img class="tt-img" src="${esc(image)}" alt="" loading="lazy" decoding="async" />`
-          : `<div class="tt-art"><span class="tt-exam">${esc(exam)}</span><span class="tt-name">${esc(title)}</span></div>`;
+        const image = t.static ? testImage(t.id) : testImage(t.id, t.image || t.thumbnail);
+        const soon = !!t.comingSoon;
+        const tag = soon ? "div" : "a";
+        const href = soon ? "" : ` href="${esc(t.static ? t.href : `/mocktest/test/${t.id}`)}"`;
+        const label = soon
+          ? `#${i + 1} ${esc(title)} – coming soon`
+          : `#${i + 1} ${esc(title)} – ${qCount} questions, ${duration} minutes`;
         return `
           <li class="tt-item">
             <span class="tt-rank${i === 9 ? " is-ten" : ""}" aria-hidden="true">${i + 1}</span>
-            <a href="/mocktest/test/${esc(t.id)}" class="tt-card${image ? " has-img" : ""}" style="--tone-a:${a};--tone-b:${b};"
-               aria-label="#${i + 1} ${esc(title)} – ${qCount} questions, ${duration} minutes">
-              ${visual}
+            <${tag}${href} class="tt-card${image ? " has-img" : ""}${soon ? " is-soon" : ""}" style="--tone-a:${a};--tone-b:${b};"
+               aria-label="${label}"${soon ? ' aria-disabled="true"' : ""}>
+              <div class="tt-art"><span class="tt-exam">${esc(exam)}</span><span class="tt-name">${esc(title)}</span></div>
+              ${image ? `<img class="tt-img" src="${esc(image)}" alt="" loading="lazy" decoding="async" onerror="${IMG_FALLBACK}" />` : ""}
               <div class="tt-badges">
+                ${soon ? '<span class="tt-badge tt-badge-soon">SOON</span>' : ""}
                 ${t.is_new || t.isNew ? '<span class="tt-badge tt-badge-new">NEW</span>' : ""}
                 ${t.is_free || t.isFree ? '<span class="tt-badge tt-badge-free">FREE</span>' : ""}
               </div>
               <div class="tt-info">
-                <span>${qCount} Qs · ${duration} min</span>
-                <span class="tt-diff">${esc(t.difficulty || "Medium")}</span>
+                <span>${esc(t.info ?? `${qCount} Qs · ${duration} min`)}</span>
+                <span class="tt-diff">${soon ? "Coming soon" : esc(t.difficulty || "Medium")}</span>
               </div>
-            </a>
+            </${tag}>
           </li>`;
       }).join("");
       row.dispatchEvent(new Event("scroll"));
@@ -390,6 +419,26 @@ try {
   .tt-row :global(.tt-badge-new) {
     background: var(--brand);
     color: #ffffff;
+  }
+
+  .tt-row :global(.tt-badge-soon) {
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--ink);
+  }
+
+  /* Coming-soon cards: not clickable, slightly muted, no hover lift */
+  .tt-row :global(.tt-card.is-soon) {
+    cursor: default;
+  }
+
+  .tt-row :global(.tt-card.is-soon:hover) {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+  }
+
+  .tt-row :global(.tt-card.is-soon .tt-img),
+  .tt-row :global(.tt-card.is-soon .tt-art) {
+    filter: saturate(0.7);
   }
 
   .tt-row :global(.tt-badge-free) {
