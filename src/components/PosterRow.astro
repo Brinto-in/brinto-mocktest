@@ -1,0 +1,347 @@
+---
+/**
+ * PosterRow — reusable Netflix/Hotstar-style poster card row.
+ *
+ * Props:
+ *   sectionId  – unique id used for aria-labelledby (required, no spaces)
+ *   title      – section heading text
+ *   seeAllHref – optional "See all" link; omit to hide the link
+ *   items      – array of PosterItem (see type below)
+ *   cols       – default visible columns on desktop (default: 6)
+ *
+ * PosterItem shape:
+ *   id        – unique string key
+ *   title     – card title (bold bottom line)
+ *   sub?      – optional subtitle line above the title (smaller, muted)
+ *   meta?     – optional meta line below title (e.g. "50 Qs · 45 min")
+ *   icon?     – emoji shown as fallback art
+ *   image?    – absolute public path (e.g. "/images/foo.webp") — shown over gradient
+ *   tone      – [colorA, colorB] for the gradient background
+ *   href      – link target
+ *   isNew?    – shows a NEW badge when true
+ *   badge?    – custom badge label (overrides isNew text, keeps brand colour)
+ */
+
+export interface PosterItem {
+  id: string;
+  title: string;
+  sub?: string;
+  meta?: string;
+  icon?: string;
+  image?: string;
+  tone: [string, string];
+  href: string;
+  isNew?: boolean;
+  badge?: string;
+}
+
+export interface Props {
+  sectionId: string;
+  title: string;
+  seeAllHref?: string;
+  items: PosterItem[];
+  cols?: number;
+}
+
+const { sectionId, title, seeAllHref, items, cols = 6 } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const rowId = `${sectionId}-row`;
+---
+
+<section class="pr-section" aria-labelledby={sectionId} style={`--pr-cols:${cols};`}>
+  <div class="wrap">
+    <div class="pr-head">
+      <h2 id={sectionId} class="pr-title">{title}</h2>
+      <div class="pr-head-right">
+        {seeAllHref && <a href={seeAllHref} class="pr-see-all">See all</a>}
+        <div class="pr-nav" aria-hidden="true">
+          <button type="button" class="pr-arrow" data-dir="-1" tabindex="-1" aria-label="Scroll left">‹</button>
+          <button type="button" class="pr-arrow" data-dir="1"  tabindex="-1" aria-label="Scroll right">›</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pr-row" data-pr-row id={rowId}>
+      {items.map((item) => (
+        <a
+          href={item.href}
+          class="pr-card"
+          style={`--tone-a:${item.tone[0]};--tone-b:${item.tone[1]};`}
+          aria-label={[item.title, item.meta].filter(Boolean).join(' – ')}
+        >
+          <div class="pr-poster">
+            {/* Gradient + radial highlight fallback */}
+            <div class="pr-fallback" aria-hidden="true">
+              {item.icon && <span class="pr-fallback-icon">{item.icon}</span>}
+            </div>
+
+            {/* Optional real image (removes itself on error) */}
+            {item.image && (
+              <img
+                src={`${base}${item.image}`}
+                alt={item.title}
+                loading="lazy"
+                decoding="async"
+                onerror="this.remove()"
+              />
+            )}
+
+            {/* Badge */}
+            {(item.isNew || item.badge) && (
+              <span class="pr-badge">{item.badge ?? 'NEW'}</span>
+            )}
+
+            {/* Bottom text overlay */}
+            <div class="pr-overlay">
+              {item.sub  && <span class="pr-sub">{item.sub}</span>}
+              <h3 class="pr-name">{item.title}</h3>
+              {item.meta && <span class="pr-meta">{item.meta}</span>}
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.pr-section').forEach((section) => {
+    const row = section.querySelector<HTMLElement>('[data-pr-row]');
+    if (!row) return;
+    const arrows = section.querySelectorAll<HTMLButtonElement>('.pr-arrow');
+
+    const update = () => {
+      const max = row.scrollWidth - row.clientWidth - 2;
+      arrows[0].disabled = row.scrollLeft <= 2;
+      arrows[1].disabled = row.scrollLeft >= max;
+      section.classList.toggle('pr-no-scroll', max <= 0);
+    };
+
+    arrows.forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const dir = Number(btn.dataset.dir);
+        row.scrollBy({ left: dir * row.clientWidth * 0.85, behavior: 'smooth' });
+      })
+    );
+
+    row.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
+</script>
+
+<style>
+  .pr-section {
+    background: var(--surface);
+    padding: 16px 0 20px;
+  }
+
+  /* ── Header ── */
+  .pr-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .pr-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .pr-head-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .pr-see-all {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brand);
+    white-space: nowrap;
+  }
+  .pr-see-all:hover { text-decoration: underline; }
+
+  .pr-nav { display: flex; gap: 6px; }
+
+  .pr-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 1.3rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  }
+  .pr-arrow:hover:not(:disabled) { border-color: var(--ink); background: #f3f4f6; }
+  .pr-arrow:disabled { opacity: 0.35; cursor: default; }
+  .pr-no-scroll .pr-nav { display: none; }
+
+  /* ── Row / grid ── */
+  .pr-row {
+    --gap: 12px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - (var(--pr-cols) - 1) * var(--gap)) / var(--pr-cols));
+    gap: var(--gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 6px 0 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pr-row::-webkit-scrollbar { display: none; }
+
+  /* ── Card ── */
+  .pr-card {
+    scroll-snap-align: start;
+    display: block;
+    border-radius: var(--radius-sm);
+    outline: none;
+  }
+
+  .pr-poster {
+    position: relative;
+    aspect-ratio: 3 / 4.5;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: linear-gradient(160deg, var(--tone-a), var(--tone-b));
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .pr-poster img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .pr-card:hover .pr-poster,
+  .pr-card:focus-visible .pr-poster {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+  }
+
+  .pr-card:hover .pr-poster img { transform: scale(1.05); }
+
+  .pr-card:focus-visible .pr-poster {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  /* Gradient highlight + icon fallback */
+  .pr-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding-bottom: 30%;
+    background:
+      radial-gradient(circle at 75% 15%, rgba(255, 255, 255, 0.22), transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(0, 0, 0, 0.25), transparent 55%);
+  }
+
+  .pr-fallback-icon {
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+  }
+
+  /* Badge */
+  .pr-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #ffffff;
+    background: var(--brand);
+    padding: 3px 7px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Bottom text overlay */
+  .pr-overlay {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 36px 10px 10px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pr-sub {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pr-name {
+    font-family: var(--font-body);
+    font-size: clamp(0.85rem, 1.3vw, 1rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+
+  .pr-meta {
+    font-size: 0.68rem;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  /* ── 4K ── */
+  @media (min-width: 2560px) {
+    .pr-section { padding: 28px 0 36px; }
+    .pr-row { --gap: 20px; }
+    .pr-head { margin-bottom: 20px; }
+  }
+  @media (min-width: 3840px) {
+    .pr-row { --gap: 28px; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1100px) {
+    .pr-section { --pr-cols: calc(var(--pr-cols) * 0.73); }
+  }
+
+  @media (max-width: 768px) {
+    .pr-section { padding: 12px 0 16px; }
+    .pr-row { --gap: 10px; }
+    .pr-nav { display: none; }
+    .pr-poster { aspect-ratio: 3 / 5.5; }
+  }
+
+  @media (max-width: 480px) {
+    .pr-row { --gap: 8px; }
+    .pr-poster { aspect-ratio: 3 / 5.8; }
+    .pr-overlay { padding: 28px 8px 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pr-poster,
+    .pr-poster img { transition: none; }
+  }
+</style>
+
