@@ -12,7 +12,7 @@ export const ossscItems: PosterItem[] = [
     sub: "OSSSC",
     meta: "100 Qs + Typing · 120 min",
     tone: ["#7C3AED", "#4C1D95"],
-    href: "#",
+    href: "/mocktest/osssc/test/11",
     image: "/images/osssc-combo.png",
     isNew: true,
   },

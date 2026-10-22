@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+import ExamUI from "../../../components/ExamUI.astro";
+import { fetchTestDetails } from "../../../lib/api";
+
+const testId = "11";
+
+let testDetails = null;
+testDetails = await fetchTestDetails(testId);
+---
+
+<ExamUI slug={testId} test={testDetails || undefined} />
+
