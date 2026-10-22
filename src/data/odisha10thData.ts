@@ -14,379 +14,9 @@ export interface Question {
   topic?: string;
 }
 
-export interface SubjectModule {
-  id: string;
-  code: string;
-  name: string;
-  nameOdia: string;
-  paperType: string;
-  icon: string;
-  badge: string;
-  accentColor: string;
-  gradient: string;
-  description: string;
-  descriptionOdia: string;
-  subStreams: string[];
-  totalMarks: number;
-  mcqMarks: number;
-  subjectiveMarks: number;
-  durationMinutes: number;
-  questionCount: number;
-  attempts: string;
-  rating: string;
-  isPopular?: boolean;
-  chapters: {
-    unit: string;
-    unitOdia: string;
-    weightageMarks: number;
-    topics: string[];
-  }[];
-}
-
-export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
-  {
-    id: 'english',
-    code: 'SLE',
-    name: 'Second Language English',
-    nameOdia: 'ଇଂରାଜୀ (Second Language English)',
-    paperType: 'Paper II - Second Language',
-    icon: '🇬🇧',
-    badge: 'Essential',
-    accentColor: '#2563EB',
-    gradient: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
-    description: 'Textbook chapters, poetry comprehension, non-detailed study and comprehensive grammar (Prepositions, Tenses, Voice).',
-    descriptionOdia: 'All Things Bright & Beautiful, Letter to God, High School ପ୍ରବନ୍ଧ ଓ English Grammar MCQ ସେଟ୍।',
-    subStreams: ['Prose & Poetry', 'Non-Detailed Stories', 'English Grammar'],
-    totalMarks: 100,
-    mcqMarks: 50,
-    subjectiveMarks: 50,
-    durationMinutes: 45,
-    questionCount: 50,
-    attempts: '24.1k',
-    rating: '4.7',
-    isPopular: false,
-    chapters: [
-      {
-        unit: 'Prose & Poetry',
-        unitOdia: 'Prose & Poetry',
-        weightageMarks: 25,
-        topics: [
-          'All Things Bright and Beautiful (C.F. Alexander)',
-          'A Letter to God (G.L. Fuentes)',
-          'At the High School (M.K. Gandhi)',
-          'The Solitary Reaper (William Wordsworth)',
-          'Village Song (Sarojini Naidu)',
-          'From the Post Office (A Tiger in the House & The Beggar)',
-        ],
-      },
-      {
-        unit: 'English Grammar & Vocabulary',
-        unitOdia: 'English Grammar',
-        weightageMarks: 25,
-        topics: [
-          'Subject-Verb Agreement (Concord)',
-          'Prepositions & Phrasal Verbs',
-          'Tense Forms & Conditionals',
-          'Active and Passive Voice Transformation',
-          'Direct and Indirect Speech (Reported Speech)',
-          'Noun Clauses & Relative Clauses',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'odia',
-    code: 'FLO',
-    name: 'First Language Odia',
-    nameOdia: 'ସାହିତ୍ୟ ସିନ୍ଧୁ (ଓଡ଼ିଆ)',
-    paperType: 'Paper I - First Language',
-    icon: '📖',
-    badge: 'Mother Tongue',
-    accentColor: '#7C3AED',
-    gradient: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)',
-    description: 'Sahitya Sindhu prose, poetry, one-act play and Odia Vyakarana (ସମାସ, ଛନ୍ଦ, ରୂଢ଼ି, କୃଦନ୍ତ) objective MCQ tests.',
-    descriptionOdia: 'ସାହିତ୍ୟ ସିନ୍ଧୁର ଗଦ୍ୟ, ପଦ୍ୟ, ଏକାଙ୍କିକା ଏବଂ ମାଧ୍ୟମିକ ଓଡ଼ିଆ ବ୍ୟାକରଣର ଅଧ୍ୟାୟ ଭିତ୍ତିକ ପ୍ରଶ୍ନପତ୍ର।',
-    subStreams: ['Sahitya (ଗଦ୍ୟ ଓ ପଦ୍ୟ)', 'Ekankika (ଏକାଙ୍କିକା)', 'Vyakarana (ବ୍ୟାକରଣ)'],
-    totalMarks: 100,
-    mcqMarks: 50,
-    subjectiveMarks: 50,
-    durationMinutes: 45,
-    questionCount: 50,
-    attempts: '31.2k',
-    rating: '4.9',
-    isPopular: true,
-    chapters: [
-      {
-        unit: 'Sahitya: Padya & Gadya (ପଦ୍ୟ ଓ ଗଦ୍ୟ)',
-        unitOdia: 'ସାହିତ୍ୟ: ପଦ୍ୟ ଓ ଗଦ୍ୟ',
-        weightageMarks: 25,
-        topics: [
-          'ବନ୍ଦେ ଉତ୍କଳ ଜନନୀ - କାନ୍ତକବି ଲକ୍ଷ୍ମୀକାନ୍ତ ମହାପାତ୍ର',
-          'ରାଘବଙ୍କ ଲଙ୍କାଯାତ୍ରା ଅନୁକୂଳ - ଉପେନ୍ଦ୍ର ଭଞ୍ଜ',
-          'ଚିଲିକାରେ ସାୟନ୍ତନ ଦୃଶ୍ୟ - ରାଧାନାଥ ରାୟ',
-          'ମଙ୍ଗଳେ ଅଇଲା ଉଷା - ଗଙ୍ଗାଧର ମେହେର',
-          'ସର୍ବଂସହା ମାଟି - ବିଦ୍ୟୁତ୍ପ୍ରଭା ଦେବୀ',
-          'ଜନ୍ମଭୂମି - ଡକ୍ଟର କୃଷ୍ଣଚନ୍ଦ୍ର ପାଣିଗ୍ରାହୀ',
-          'କାଠ - ବିଜୟ କୃଷ୍ଣ ମହାନ୍ତି',
-        ],
-      },
-      {
-        unit: 'Odia Vyakarana (ମାଧ୍ୟମିକ ବ୍ୟାକରଣ)',
-        unitOdia: 'ଓଡ଼ିଆ ବ୍ୟାକରଣ',
-        weightageMarks: 25,
-        topics: [
-          'ବାକ୍ୟ ବିଚାର (ସରଳ, ଯୌଗିକ, ଜଟିଳ ଓ ମିଶ୍ର ବାକ୍ୟ)',
-          'ସମାସ (ତତ୍ପୁରୁଷ, କର୍ମଧାରୟ, ଦ୍ୱନ୍ଦ୍ୱ, ବହୁବ୍ରୀହି, ଦ୍ୱିଗୁ)',
-          'କୃଦନ୍ତ ଓ ତଦ୍ଧିତ ପଦ',
-          'ରୂଢ଼ି ଓ ଲୋକବାଣୀ (Popular Odia Idioms & Proverbs)',
-          'ଛନ୍ଦ ଓ ଅଳଙ୍କାର (ଉପମା, ରୂପକ, ଉତ୍ପ୍ରେକ୍ଷା)',
-          'ଶବ୍ଦ ବିଧି ଓ ଅଶୁଦ୍ଧି ସଂଶୋଧନ (Spelling & Grammatical Corrections)',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'math',
-    code: 'MTH',
-    name: 'Mathematics',
-    nameOdia: 'ଗଣିତ',
-    paperType: 'Paper IV - Compulsory',
-    icon: '📐',
-    badge: 'High Scoring',
-    accentColor: '#D9381E',
-    gradient: 'linear-gradient(135deg, #FFF1F0 0%, #FFE4E6 100%)',
-    description: 'Covers Odisha Class 10 Mathematics chapters: ସରଳ ସହସମୀକରଣ, ଦ୍ଵିଘାତ ସମୀକରଣ, ସମ୍ଭାବ୍ୟତା, ସମାନ୍ତର ପ୍ରଗତି, ପରିସଂଖ୍ୟାନ & ସଡ଼କ ସୁରକ୍ଷା ଶିକ୍ଷା.',
-    descriptionOdia: 'ସରଳ ସହସମୀକରଣ, ଦ୍ଵିଘାତ ସମୀକରଣ, ସମ୍ଭାବ୍ୟତା, ସମାନ୍ତର ପ୍ରଗତି, ପରିସଂଖ୍ୟାନ ଏବଂ ସଡ଼କ ସୁରକ୍ଷା ଶିକ୍ଷା।',
-    subStreams: ['ସରଳ ସହସମୀକରଣ', 'ଦ୍ଵିଘାତ ସମୀକରଣ', 'ସମ୍ଭାବ୍ୟତା', 'ସମାନ୍ତର ପ୍ରଗତି'],
-    totalMarks: 100,
-    mcqMarks: 50,
-    subjectiveMarks: 50,
-    durationMinutes: 45,
-    questionCount: 50,
-    attempts: '28.4k',
-    rating: '4.9',
-    isPopular: true,
-    chapters: [
-      {
-        unit: 'ସରଳ ସହସମୀକରଣ',
-        unitOdia: 'Linear Simultaneous Equations',
-        weightageMarks: 10,
-        topics: ['ସରଳ ସହସମୀକରଣ', 'Linear Simultaneous Equations', 'ସମୀକରଣ ପ୍ରଣାଳୀ'],
-      },
-      {
-        unit: 'ଦ୍ଵିଘାତ ସମୀକରଣ',
-        unitOdia: 'Quadratic Equations',
-        weightageMarks: 10,
-        topics: ['ଦ୍ଵିଘାତ ସମୀକରଣ', 'Quadratic Equations', 'ପ୍ରଭେଦକ'],
-      },
-      {
-        unit: 'ସମ୍ଭାବ୍ୟତା',
-        unitOdia: 'Probability',
-        weightageMarks: 6,
-        topics: ['ସମ୍ଭାବ୍ୟତା', 'Probability'],
-      },
-      {
-        unit: 'ସମାନ୍ତର ପ୍ରଗତି',
-        unitOdia: 'Arithmetic Progression (AP)',
-        weightageMarks: 9,
-        topics: ['ସମାନ୍ତର ପ୍ରଗତି', 'Arithmetic Progression', 'AP'],
-      },
-      {
-        unit: 'ପରିସଂଖ୍ୟାନ',
-        unitOdia: 'Statistics',
-        weightageMarks: 11,
-        topics: ['ପରିସଂଖ୍ୟାନ', 'Statistics', 'ମାଧ୍ୟମାନ'],
-      },
-      {
-        unit: 'ସଡ଼କ ସୁରକ୍ଷା ଶିକ୍ଷା',
-        unitOdia: 'Road Safety Education',
-        weightageMarks: 4,
-        topics: ['ସଡ଼କ ସୁରକ୍ଷା ଶିକ୍ଷା', 'Road Safety'],
-      },
-    ],
-  },
-  {
-    id: 'science',
-    code: 'GSC',
-    name: 'General Science',
-    nameOdia: 'ସାଧାରଣ ବିଜ୍ଞାନ',
-    paperType: 'Paper V - Compulsory',
-    icon: '🔬',
-    badge: 'Core Subject',
-    accentColor: '#0D9488',
-    gradient: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-    description: 'Split into Physical Science (SCP - ଭୌତିକ ବିଜ୍ଞାନ) & Life Science (SCL - ଜୀବ ବିଜ୍ଞାନ), each carrying 25 objective marks.',
-    descriptionOdia: 'ଭୌତିକ ବିଜ୍ଞାନ (SCP - ୨୫ ନମ୍ବର) ଏବଂ ଜୀବ ବିଜ୍ଞାନ (SCL - ୨୫ ନମ୍ବର) ର ସମନ୍ୱିତ ପ୍ରଶ୍ନପତ୍ର।',
-    subStreams: ['Physical Science (SCP)', 'Life Science (SCL)'],
-    totalMarks: 100,
-    mcqMarks: 50,
-    subjectiveMarks: 50,
-    durationMinutes: 45,
-    questionCount: 50,
-    attempts: '26.9k',
-    rating: '4.8',
-    isPopular: true,
-    chapters: [
-      {
-        unit: 'Physical Science (ଭୌତିକ ବିଜ୍ଞାନ - SCP)',
-        unitOdia: 'ଭୌତିକ ବିଜ୍ଞାନ (SCP)',
-        weightageMarks: 25,
-        topics: [
-          'ରାସାୟନିକ ପ୍ରତିକ୍ରିୟା ଓ ସମୀକରଣ (Chemical Reactions & Equations)',
-          'ଅମ୍ଳ, କ୍ଷାରକ ଓ ଲବଣ (Acids, Bases & Salts)',
-          'ଧାତୁ ଓ ଅଧାତୁ (Metals & Non-Metals)',
-          'କାର୍ବନ ଓ ଏହାର ଯୌଗିକ (Carbon & Its Compounds)',
-          'ଆଲୋକ: ପ୍ରତିଫଳନ ଓ ପ୍ରତିସରଣ (Light: Reflection & Refraction)',
-          'ମାନବ ଚକ୍ଷୁ ଓ ବର୍ଣ୍ଣବିଭବ୍ (Human Eye & Colorful World)',
-          'ବିଦ୍ୟୁତ୍ ଓ ବିଦ୍ୟୁତ୍ ଚୁମ୍ବକୀୟ ପ୍ରଭାବ (Electricity & Magnetic Effects)',
-          'ଶକ୍ତିର ଉତ୍ସ (Sources of Energy)',
-        ],
-      },
-      {
-        unit: 'Life Science (ଜୀବ ବିଜ୍ଞାନ - SCL)',
-        unitOdia: 'ଜୀବ ବିଜ୍ଞାନ (SCL)',
-        weightageMarks: 25,
-        topics: [
-          'ପୋଷଣ (Nutrition - ଆଲୋକଶ୍ଳେଷଣ ଓ ହଜମ)',
-          'ଶ୍ୱସନ (Respiration - ବାୟୁ ଉପଜୀବୀ ଓ ଅପଜୀବୀ)',
-          'ପରିବହନ ଓ ସଞ୍ଚାଳନ (Transportation & Blood Circulation)',
-          'ରେଚନ (Excretion - ବୃକ୍କକ ଓ ନେଫ୍ରନ୍)',
-          'ନିୟନ୍ତ୍ରଣ ଓ ସମନ୍ୱୟ (Control & Coordination - ସ୍ନାୟୁତନ୍ତ୍ର ଓ ହରମୋନ୍)',
-          'ପ୍ରଜନନ (Reproduction in Plants & Animals)',
-          'ବଂଶାନୁକ୍ରମ ଓ ଜୈବ ବିବର୍ତ୍ତନ (Heredity & Evolution)',
-          'ଆମ ପରିବେଶ ଓ ପ୍ରାକୃତିକ ସମ୍ପଦ ପରିଚାଳନା (Environment & Natural Resources)',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'social',
-    code: 'SSC',
-    name: 'Social Science',
-    nameOdia: 'ସାମାଜିକ ବିଜ୍ଞାନ',
-    paperType: 'Paper VI - Compulsory',
-    icon: '📜',
-    badge: 'Comprehensive',
-    accentColor: '#D97706',
-    gradient: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
-    description: 'Covers History & Political Science (25 MCQs) along with Geography & Economics (25 MCQs) for BSE Odisha 10th.',
-    descriptionOdia: 'ଇତିହାସ ଓ ରାଜନୀତି ବିଜ୍ଞାନ (୨୫ ନମ୍ବର) ଏବଂ ଭୂଗୋଳ ଓ ଅର୍ଥନୀତି (୨୫ ନମ୍ବର) ର ସମ୍ପୂର୍ଣ୍ଣ ସିଲାବସ୍।',
-    subStreams: ['History & Civics (ଇତିହାସ)', 'Geography & Economics (ଭୂଗୋଳ)'],
-    totalMarks: 100,
-    mcqMarks: 50,
-    subjectiveMarks: 50,
-    durationMinutes: 45,
-    questionCount: 50,
-    attempts: '21.5k',
-    rating: '4.8',
-    isPopular: false,
-    chapters: [
-      {
-        unit: 'History & Political Science (ଇତିହାସ ଓ ରାଜନୀତି)',
-        unitOdia: 'ଇତିହାସ ଓ ରାଜନୀତି ବିଜ୍ଞାନ',
-        weightageMarks: 25,
-        topics: [
-          'ଭାରତରେ ଜାତୀୟ ଆନ୍ଦୋଳନ ଓ ଗାନ୍ଧୀଜୀ (National Movement & Gandhi)',
-          'ଓଡ଼ିଶାରେ ଅସହଯୋଗ ଓ ସ୍ୱାଧୀନତା ସଂଗ୍ରାମ (Freedom Struggle in Odisha)',
-          'ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ଭାରତ ଓ ଓଡ଼ିଶାର ବିକାଶ (Post-Independence India)',
-          'ଭାରତର ସମ୍ବିଧାନ, ମୌଳିକ କର୍ତ୍ତବ୍ୟ ଓ ଅଧିକାର (Constitution & Rights)',
-          'ଭାରତୀୟ ଗଣତନ୍ତ୍ର ଓ ନିର୍ବାଚନ ପ୍ରକ୍ରିୟା (Elections & Democracy)',
-          'ଭାରତର ବୈଦେଶିକ ନୀତି (India Foreign Policy)',
-        ],
-      },
-      {
-        unit: 'Geography & Economics (ଭୂଗୋଳ ଓ ଅର୍ଥନୀତି)',
-        unitOdia: 'ଭୂଗୋଳ ଓ ଅର୍ଥନୀତି',
-        weightageMarks: 25,
-        topics: [
-          'ସମ୍ବଳ: ବିକାଶ ଓ ସଂରକ୍ଷଣ (Resources & Conservation)',
-          'ବନ, ବନ୍ୟପ୍ରାଣୀ ଓ ଜଳ ସମ୍ବଳ (Forest, Wildlife & Water)',
-          'ଭାରତରେ କୃଷି ଓ ଖଣିଜ ସମ୍ବଳ (Agriculture & Minerals)',
-          'ଶକ୍ତି ସମ୍ବଳ ଓ ବିନିର୍ମାଣ ଉଦ୍ୟୋଗ (Energy & Industries)',
-          'ଅର୍ଥନୈତିକ ବିକାଶ ଓ ଉଦାରୀକରଣ (Economic Development & Liberalisation)',
-          'ଖାଉଟି ସଚେତନତା (Consumer Awareness)',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'hindi',
-    code: 'TLH',
-    name: 'Third Language Hindi',
-    nameOdia: 'ତୃତୀୟ ଭାଷା ହିନ୍ଦୀ',
-    paperType: 'Paper III - Third Language',
-    icon: '🇮🇳',
-    badge: 'Third Language',
-    accentColor: '#059669',
-    gradient: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
-    description: 'Objective mock tests for Third Language Hindi (ହିନ୍ଦୀ ସୌରଭ).',
-    descriptionOdia: 'ତୃତୀୟ ଭାଷା ହିନ୍ଦୀ ଗଦ୍ୟ, ପଦ୍ୟ, ବ୍ୟାକରଣ ଓ ଶବ୍ଦାର୍ଥ ପ୍ରଶ୍ନପତ୍ର।',
-    subStreams: ['Hindi (ହିନ୍ଦୀ)'],
-    totalMarks: 100,
-    mcqMarks: 50,
-    subjectiveMarks: 50,
-    durationMinutes: 45,
-    questionCount: 50,
-    attempts: '15.2k',
-    rating: '4.8',
-    isPopular: false,
-    chapters: [
-      {
-        unit: 'Third Language Hindi (ହିନ୍ଦୀ)',
-        unitOdia: 'ହିନ୍ଦୀ ବିଭାଗ',
-        weightageMarks: 50,
-        topics: [
-          'अनमोल वाणी (कबीरदास व सूरदास)',
-          'मनुष्यता (मैथिलीशरण गुप्त)',
-          'मधुर भाषण (गुलाब राय)',
-          'गिल्लू (महादेवी वर्मा)',
-          'हिन्दी व्याकरण: संज्ञा, सर्वनाम, विशेषण, क्रिया',
-          'काल ও वाच्य',
-          'विलोम शब्द ଓ ପର୍ଯ୍ୟାୟବାଚୀ ଶବ୍ଦ',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'sanskrit',
-    code: 'TLS',
-    name: 'Third Language Sanskrit',
-    nameOdia: 'ତୃତୀୟ ଭାଷା ସଂସ୍କୃତ',
-    paperType: 'Paper III - Third Language',
-    icon: '🕉️',
-    badge: 'Third Language',
-    accentColor: '#10B981',
-    gradient: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
-    description: 'Objective mock tests for Third Language Sanskrit (ସଂସ୍କୃତ ମଞ୍ଜରୀ).',
-    descriptionOdia: 'ତୃତୀୟ ଭାଷା ସଂସ୍କୃତ ଗଦ୍ୟ, ପଦ୍ୟ, ଶବ୍ଦରୂପ, ଧାତୁରୂପ ଓ ବ୍ୟାକରଣ ପ୍ରଶ୍ନପତ୍ର।',
-    subStreams: ['Sanskrit (ସଂସ୍କୃତ)'],
-    totalMarks: 100,
-    mcqMarks: 50,
-    subjectiveMarks: 50,
-    durationMinutes: 45,
-    questionCount: 50,
-    attempts: '14.6k',
-    rating: '4.8',
-    isPopular: false,
-    chapters: [
-      {
-        unit: 'Third Language Sanskrit (ସଂସ୍କୃତ)',
-        unitOdia: 'ସଂସ୍କୃତ ବିଭାଗ',
-        weightageMarks: 50,
-        topics: [
-          'ଶ୍ରୀରାମସ୍ୟ ପିତୃଭକ୍ତିଃ (ଗଦ୍ୟ)',
-          'ଯକ୍ଷପ୍ରଶ୍ନଃ (ଗଦ୍ୟ)',
-          'ସ୍ୱାମୀ ବିବେକାନନ୍ଦଃ (ଗଦ୍ୟ)',
-          'ଶିଶୁବାତ୍ସଲ୍ୟମ୍ (ପଦ୍ୟ)',
-          'ସଂସ୍କୃତ ବ୍ୟାକରଣ: ଶବ୍ଦରୂପ (ବାଳକ, ଲତା, ନଦୀ, ଫଳ)',
-          'ଧାତୁରୂପ (ଭୂ, ପଠ୍, ଗମ୍ - ଲଟ୍, ଲୋଟ୍, ଲଙ୍ଗ, ବିଧିଲିଙ୍ଗ, ଲୃଟ୍)',
-          'ସନ୍ଧି ଓ ସମାସ',
-          'କାରକ ଓ ବିଭକ୍ତି ପ୍ରୟୋଗ',
-        ],
-      },
-    ],
-  },
-];
+// Subjects & chapters now live in src/lib/odisha/hsc/10/subjects.ts (re-exported for existing imports).
+export { ODISHA_10TH_SUBJECTS } from '../lib/odisha/hsc/10/subjects';
+export type { SubjectModule, Chapter } from '../lib/odisha/hsc/10/subjects';
 
 // Rich static questions for interactive test simulation across all subjects
 export const ODISHA_10TH_QUESTIONS: Question[] = [
@@ -477,7 +107,7 @@ export const ODISHA_10TH_QUESTIONS: Question[] = [
   // ── SCIENCE (GSC - SCP & SCL) ──
   {
     id: 7,
-    subjectId: 'science',
+    subjectId: 'scp',
     section: 'Physical Science (SCP)',
     topic: 'ରାସାୟନିକ ପ୍ରତିକ୍ରିୟା',
     text: 'When zinc reacts with dilute sulphuric acid (H2SO4), which gas is liberated?',
@@ -494,7 +124,7 @@ export const ODISHA_10TH_QUESTIONS: Question[] = [
   },
   {
     id: 8,
-    subjectId: 'science',
+    subjectId: 'scp',
     section: 'Physical Science (SCP)',
     topic: 'ଆଲୋକ: ପ୍ରତିଫଳନ',
     text: 'What type of mirror is primarily used by dentists to view enlarged images of patients’ teeth?',
@@ -511,7 +141,7 @@ export const ODISHA_10TH_QUESTIONS: Question[] = [
   },
   {
     id: 9,
-    subjectId: 'science',
+    subjectId: 'scl',
     section: 'Life Science (SCL)',
     topic: 'ପୋଷଣ (Nutrition)',
     text: 'In human digestive system, which enzyme present in saliva begins the breakdown of starch into maltose?',
@@ -528,7 +158,7 @@ export const ODISHA_10TH_QUESTIONS: Question[] = [
   },
   {
     id: 10,
-    subjectId: 'science',
+    subjectId: 'scl',
     section: 'Life Science (SCL)',
     topic: 'ରେଚନ (Excretion)',
     text: 'What is the structural and functional unit of the human kidney?',
@@ -631,7 +261,7 @@ export const ODISHA_10TH_QUESTIONS: Question[] = [
   // ── SOCIAL SCIENCE (SSC) ──
   {
     id: 16,
-    subjectId: 'social',
+    subjectId: 'hps',
     section: 'History (ଇତିହାସ)',
     topic: 'ଓଡ଼ିଶାରେ ସ୍ୱାଧୀନତା ଆନ୍ଦୋଳନ',
     text: 'Which tragic incident in Bhadrak district during the Quit India Movement 1942 is hailed as the "Raktatirtha" (Blood Pilgrimage) of Odisha?',
@@ -648,7 +278,7 @@ export const ODISHA_10TH_QUESTIONS: Question[] = [
   },
   {
     id: 17,
-    subjectId: 'social',
+    subjectId: 'gec',
     section: 'Geography (ଭୂଗୋଳ)',
     topic: 'ଭାରତର ଖଣିଜ ସମ୍ବଳ',
     text: 'Which mineral deposit is Odisha the largest producer of in India, accounting for over 50% of the country’s total reserves?',
