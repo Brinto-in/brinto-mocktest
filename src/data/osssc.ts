@@ -6,6 +6,17 @@ export const OSSSC_PAGE = "/mocktest/osssc";
 // Shared by the home page OSSSC row and the OSSSC page.
 export const ossscItems: PosterItem[] = [
   {
+    id: "osssc-combo",
+    icon: "⚡",
+    title: "MCQ + Typing Combo",
+    sub: "OSSSC",
+    meta: "100 Qs + Typing · 120 min",
+    tone: ["#7C3AED", "#4C1D95"],
+    href: "#",
+    image: "/images/osssc-combo.png",
+    isNew: true,
+  },
+  {
     id: "osssc-mcq",
     icon: "📝",
     title: "MCQ Test",
