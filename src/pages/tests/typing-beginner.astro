@@ -165,10 +165,10 @@ import GAdRails from "../../components/GAdRails.astro";
     .page-body {
       grid-template-columns: 1fr 300px;
       gap: 28px;
-      align-items: start;
     }
     .sidebar-column {
       display: block; /* block, NOT flex — so sticky works on children */
+      align-self: stretch; /* stretches full height of grid row so sticky has scroll room */
     }
   }
 

@@ -2,6 +2,8 @@
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import TypingTest from "../../components/TypingTest.astro";
+import GAd from "../../components/GAd.astro";
+import GAdRails from "../../components/GAdRails.astro";
 
 /**
  * /mocktest/tests/osssc-typing
@@ -34,6 +36,9 @@ try {
   title="OSSSC Typing Test – Practice Online | Brinto MockTest"
   description="Practice OSSSC English typing test online. Get live WPM, accuracy, and error count. Works on desktop and mobile with OTG or Bluetooth keyboard."
 >
+  <!-- Sticky side-rail ads (wide screens only) -->
+  <GAdRails />
+
   <!-- Page header -->
   <div class="page-header wrap">
     <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -50,65 +55,88 @@ try {
     </div>
   </div>
 
-  <!-- ── Typing Test ── -->
-  <div class="tt-page-wrap wrap">
-    <TypingTest
-      testId="osssc-typing"
-      title="OSSSC Typing Test"
-      examName="OSSSC"
-      passage={passage}
-      duration={1800}
-      wpmGoal={40}
-      showTips={true}
-      apiUrl="https://brintoapi.brinto.in/api/mocktest-passages?test_name=Odisha%20RI%20Typing%20Test"
-      trackBackspaces={true}
-    />
+  <!-- Test + Sidebar Ads layout -->
+  <div class="page-body wrap">
+    <main class="main-column">
+      <div class="test-wrap">
+        <TypingTest
+          testId="osssc-typing"
+          title="OSSSC Typing Test"
+          examName="OSSSC"
+          passage={passage}
+          duration={1800}
+          wpmGoal={40}
+          showTips={true}
+          apiUrl="https://brintoapi.brinto.in/api/mocktest-passages?test_name=Odisha%20RI%20Typing%20Test"
+          trackBackspaces={true}
+        />
+      </div>
+
+      <!-- In-flow ad: below test on mobile / tablet (hidden on desktop) -->
+      <div class="ad-slot ad-slot-mid">
+        <GAd sizes={{ mobile: "320x100", tablet: "728x90", desktop: null }} />
+      </div>
+
+      <!-- ── Info section below ── -->
+      <section class="info-section">
+        <div class="info-grid">
+          <div class="info-card">
+            <h3>📋 OSSSC Typing Norms</h3>
+            <ul>
+              <li>English: <strong>40 WPM</strong> minimum</li>
+              <li>Odia: <strong>30 WPM</strong> minimum</li>
+              <li>Duration: <strong>30 minutes</strong></li>
+              <li>Accuracy must be <strong>≥ 80%</strong></li>
+              <li>Errors reduce your effective WPM</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>💡 Tips to Improve</h3>
+            <ul>
+              <li>Use all 10 fingers (touch typing)</li>
+              <li>Keep your eyes on the passage, not the keys</li>
+              <li>Sit straight — wrists level with the keyboard</li>
+              <li>Aim for accuracy first, speed follows</li>
+              <li>Practice 20–30 min daily for 2 weeks</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>📱 Mobile Setup</h3>
+            <ul>
+              <li><strong>OTG:</strong> USB keyboard + OTG adapter (Android)</li>
+              <li><strong>Bluetooth:</strong> Pair any wireless keyboard</li>
+              <li><strong>Landscape:</strong> Rotate phone for wider on-screen keys</li>
+              <li>iOS: connect via USB-C or Lightning adapter</li>
+              <li>Tap the typing area to bring up the keyboard</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Sidebar with sticky 2nd ad on desktop -->
+    <aside class="sidebar-column" aria-label="Sidebar Advertisements">
+      <div class="sidebar-ad">
+        <GAd size="300x250" />
+      </div>
+      <div class="sidebar-ad sidebar-ad-sticky">
+        <GAd size="300x600" />
+      </div>
+    </aside>
   </div>
 
-  <!-- ── Info section below ── -->
-  <section class="info-section wrap">
-    <div class="info-grid">
-
-      <div class="info-card">
-        <h3>📋 OSSSC Typing Norms</h3>
-        <ul>
-          <li>English: <strong>40 WPM</strong> minimum</li>
-          <li>Odia: <strong>30 WPM</strong> minimum</li>
-          <li>Duration: <strong>30 minutes</strong></li>
-          <li>Accuracy must be <strong>≥ 80%</strong></li>
-          <li>Errors reduce your effective WPM</li>
-        </ul>
-      </div>
-
-      <div class="info-card">
-        <h3>💡 Tips to Improve</h3>
-        <ul>
-          <li>Use all 10 fingers (touch typing)</li>
-          <li>Keep your eyes on the passage, not the keys</li>
-          <li>Sit straight — wrists level with the keyboard</li>
-          <li>Aim for accuracy first, speed follows</li>
-          <li>Practice 20–30 min daily for 2 weeks</li>
-        </ul>
-      </div>
-
-      <div class="info-card">
-        <h3>📱 Mobile Setup</h3>
-        <ul>
-          <li><strong>OTG:</strong> USB keyboard + OTG adapter (Android)</li>
-          <li><strong>Bluetooth:</strong> Pair any wireless keyboard</li>
-          <li><strong>Landscape:</strong> Rotate phone for wider on-screen keys</li>
-          <li>iOS: connect via USB-C or Lightning adapter</li>
-          <li>Tap the typing area to bring up the keyboard</li>
-        </ul>
-      </div>
-    </div>
-  </section>
+  <!-- Ad: end of page (all devices) -->
+  <div class="ad-slot ad-slot-end wrap">
+    <GAd sizes={{ mobile: "300x250", tablet: "728x90", desktop: "728x90" }} />
+  </div>
 </BaseLayout>
 
 <style>
   /* ── Page header ── */
   .page-header {
-    padding: 20px 24px 0;
+    padding: 18px 24px 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -131,26 +159,82 @@ try {
     color: var(--ink-soft);
   }
 
-  /* ── Test wrapper ── */
-  .tt-page-wrap {
-    padding: 16px 24px 0;
+  /* Responsive body grid: test + sidebar */
+  .page-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 
-  /* Full-bleed on mobile */
+  .main-column {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .test-wrap { padding: 14px 0 0; }
+
+  /* Sidebar: hidden on mobile, block on desktop */
+  .sidebar-column {
+    display: none;
+    width: 300px;
+  }
+
+  .sidebar-ad {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  /* 2nd ad is sticky — sticks to viewport as user scrolls */
+  .sidebar-ad-sticky {
+    position: sticky;
+    top: 84px;
+    z-index: 10;
+    margin-bottom: 0;
+  }
+
+  /* Desktop layout with sidebar */
+  @media (min-width: 1024px) {
+    .page-body {
+      grid-template-columns: 1fr 300px;
+      gap: 28px;
+    }
+    .sidebar-column {
+      display: block; /* block, NOT flex — so sticky works on children */
+      align-self: stretch; /* stretch to full grid height so sticky has scroll room */
+    }
+  }
+
   @media (max-width: 480px) {
-    .tt-page-wrap { padding: 12px 0 0; }
-    .page-header { padding: 14px 16px 0; }
+    .test-wrap { padding: 10px 0 0; }
+    .page-header { padding: 12px 14px 0; }
   }
 
-  /* Remove wrap horizontal padding for landscape mobile */
   @media (max-height: 500px) and (orientation: landscape) {
-    .tt-page-wrap { padding: 8px 0 0; }
+    .test-wrap { padding: 6px 0 0; }
     .page-header  { display: none; }
+    .info-section { display: none; }
+    .ad-slot      { display: none; }
+    .sidebar-column { display: none !important; }
+  }
+
+  /* Ads */
+  .ad-slot { padding: 8px 0 0; }
+  .ad-slot-end { padding: 8px 24px 40px; }
+  .ad-slot-mid {
+    display: block;
+  }
+  @media (min-width: 1024px) {
+    .ad-slot-mid {
+      display: none;
+    }
   }
 
   /* ── Info section ── */
   .info-section {
-    padding: 32px 24px 48px;
+    padding: 8px 0 16px;
   }
   .info-grid {
     display: grid;
@@ -192,10 +276,7 @@ try {
 
   @media (max-width: 768px) {
     .info-grid { grid-template-columns: 1fr; }
-    .info-section { padding: 24px 16px 36px; }
-  }
-  @media (max-height: 500px) and (orientation: landscape) {
-    .info-section { display: none; }
+    .info-section { padding: 20px 14px 36px; }
   }
 </style>
 
