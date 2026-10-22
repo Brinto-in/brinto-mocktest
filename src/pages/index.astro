@@ -11,45 +11,9 @@ import SectionHeader from "../components/SectionHeader.astro";
 import TrendingTests from "../components/TrendingTests.astro";
 import BrowseByExam from "../components/BrowseByExam.astro";
 import PosterRow from "../components/PosterRow.astro";
-import type { PosterItem } from "../components/PosterRow.astro";
 
 import { steps } from "../data/steps";
-
-const ossscItems: PosterItem[] = [
-  {
-    id: "osssc-mcq",
-    icon: "📝",
-    title: "MCQ Test",
-    sub: "OSSSC",
-    meta: "100 Qs · 90 min",
-    image: "/images/osssc.png",
-    tone: ["#B00020", "#6D0014"],
-    href: "/mocktest/test/11",
-    isNew: true,
-  },
-  {
-    id: "osssc-typing",
-    icon: "⌨️",
-    title: "Typing Test",
-    sub: "OSSSC",
-    meta: "10 min · Speed & Accuracy",
-    image: "/images/osssc-typing.png",
-    tone: ["#1D4ED8", "#1E3A8A"],
-    href: "/mocktest/tests/osssc-typing",
-    isNew: false,
-  },
-  {
-    id: "typing-beginner",
-    icon: "🌱",
-    title: "Typing Beginner",
-    sub: "Practice",
-    meta: "Start from scratch · Free",
-    image: "/images/typing-beginner.png",
-    tone: ["#15803D", "#14532D"],
-    href: "/mocktest/tests/typing-beginner",
-    isNew: true,
-  },
-];
+import { ossscItems, OSSSC_PAGE } from "../data/osssc";
 ---
 
 <BaseLayout
@@ -63,7 +27,7 @@ const ossscItems: PosterItem[] = [
   <PosterRow
     sectionId="osssc-row"
     title="OSSSC"
-    seeAllHref="/mocktest/tests/osssc"
+    seeAllHref={OSSSC_PAGE}
     items={ossscItems}
     cols={6}
   />

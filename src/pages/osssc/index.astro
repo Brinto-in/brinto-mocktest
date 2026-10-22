@@ -1,0 +1,182 @@
+---
+export const prerender = false;
+/**
+ * /mocktest/osssc — OSSSC landing page.
+ * Practice cards come from src/data/osssc.ts (shared with the home page);
+ * any OSSSC tests from the API that aren't already listed are added after them.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PosterRow from "../../components/PosterRow.astro";
+import type { PosterItem } from "../../components/PosterRow.astro";
+import StepCard from "../../components/StepCard.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import OssscHero from "../../components/osssc/OssscHero.astro";
+import OssscPosts from "../../components/osssc/OssscPosts.astro";
+
+import { ossscItems, ossscSteps } from "../../data/osssc";
+import { fetchMockTests } from "../../lib/api";
+import { examTone } from "../../lib/examTone";
+import { testImagePath } from "../../lib/testImages";
+
+let apiItems: PosterItem[] = [];
+
+try {
+  const rows = await fetchMockTests(1, 50);
+  const listed = new Set(ossscItems.map((i) => i.href));
+  apiItems = (Array.isArray(rows) ? rows : [])
+    .filter((r: any) => String(r.exam || r.category || "").toUpperCase() === "OSSSC")
+    .map((r: any): PosterItem => {
+      const qCount = Array.isArray(r.questions) ? r.questions.length : (r.questions || 0);
+      return {
+        id: `api-${r.id}`,
+        title: r.title || r.name,
+        sub: "OSSSC",
+        meta: `${qCount} Qs · ${r.duration || 30} min`,
+        image: testImagePath(r.id),
+        tone: examTone("OSSSC"),
+        href: `/mocktest/test/${r.id}`,
+        isNew: !!(r.isNew || r.is_new),
+      };
+    })
+    .filter((item) => !listed.has(item.href));
+} catch (err) {
+  console.error("Error fetching OSSSC tests:", err);
+}
+
+const allTests = [...ossscItems, ...apiItems];
+---
+
+<BaseLayout
+  title="OSSSC Mock Test 2026 & Typing Test – Free Online Practice"
+  description="Free OSSSC mock tests and typing practice for Revenue Inspector, ARI, Amin, ICDS Supervisor, VAW and Junior Assistant posts. Timed MCQ tests, live typing speed, instant results."
+  image="/images/osssc.png"
+>
+  <OssscHero />
+
+  <!-- ── TESTS ─────────────────────────────────── -->
+  <PosterRow sectionId="osssc-tests" title="OSSSC tests & practice" items={allTests} cols={6} />
+
+  <!-- ── POSTS COVERED ─────────────────────────── -->
+  <OssscPosts />
+
+  <!-- ── HOW TO PREPARE ────────────────────────── -->
+  <section class="section">
+    <div class="wrap">
+      <SectionHeader
+        title="How to prepare for OSSSC"
+        subtitle="Three steps from first attempt to exam-ready."
+        centered={true}
+      />
+      <div class="steps-row">
+        {ossscSteps.map((step) => <StepCard step={step} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA BANNER ────────────────────────────── -->
+  <section class="cta-band">
+    <div class="wrap cta-inner">
+      <div>
+        <h2>Start your OSSSC practice today.</h2>
+        <p>Free mock test and typing practice — no signup required to attempt.</p>
+      </div>
+      <div class="cta-btns">
+        <a href="/mocktest/test/11" class="cta-btn-primary">Start MCQ mock test</a>
+        <a href="/mocktest/tests/osssc-typing" class="cta-btn-ghost">Practise typing →</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Same section, steps and CTA styles as the home page */
+  .section {
+    padding: 32px 0 48px;
+  }
+
+  .steps-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .cta-band {
+    background: var(--brand);
+    padding: 48px 0;
+    /* Cancel the footer's top margin so the band sits flush on the footer */
+    margin-bottom: -40px;
+  }
+
+  .cta-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .cta-band h2 {
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .cta-band p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+  }
+
+  .cta-btns {
+    display: flex;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .cta-btn-primary {
+    font-weight: 700;
+    color: var(--brand);
+    background: #fff;
+    padding: 14px 28px;
+    border-radius: var(--radius-pill);
+    font-size: 0.98rem;
+    transition: transform 0.1s;
+  }
+
+  .cta-btn-primary:hover {
+    transform: translateY(-1px);
+  }
+
+  .cta-btn-ghost {
+    font-weight: 600;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    padding: 14px 28px;
+    border-radius: var(--radius-pill);
+    font-size: 0.98rem;
+    transition: border-color 0.15s;
+  }
+
+  .cta-btn-ghost:hover {
+    border-color: #fff;
+  }
+
+  @media (max-width: 768px) {
+    .steps-row {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .cta-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+    .cta-btns {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .section {
+      padding: 24px 0 36px;
+    }
+  }
+</style>

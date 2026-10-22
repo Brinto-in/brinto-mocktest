@@ -12,3 +12,8 @@ export function testImage(id: unknown, apiImage?: string): string {
   const path = images[String(id)];
   return path ? `${base}${path}` : "";
 }
+
+// Same lookup without the base, for components that add the base themselves (PosterRow).
+export function testImagePath(id: unknown): string {
+  return images[String(id)] ?? "";
+}

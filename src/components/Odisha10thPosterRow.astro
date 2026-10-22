@@ -269,8 +269,10 @@ const subjects = [
     gap: var(--gap);
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: 0;
-    padding: 6px 0 10px;
+    /* Extra room so hover shadows aren't clipped; negative margin keeps layout unchanged */
+    padding: 6px 14px 28px;
+    margin: 0 -14px -18px;
+    scroll-padding-inline: 14px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -310,7 +312,7 @@ const subjects = [
   .o10p-card:hover .o10p-poster,
   .o10p-card:focus-visible .o10p-poster {
     transform: translateY(-4px);
-    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+    box-shadow: 0 12px 22px -8px rgba(15, 23, 42, 0.32);
   }
 
   .o10p-card:hover .o10p-poster img {
