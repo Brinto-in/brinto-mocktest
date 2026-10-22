@@ -1795,9 +1795,16 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
             body: JSON.stringify({ testId: parsedId }),
           });
           const sessData = await sessRes.json();
-          if (sessData?.success && sessData?.data?.id) {
-            sessionId = sessData.data.id;
+          if (sessData?.success && sessData?.data) {
+            if (sessData.data.id) {
+              sessionId = sessData.data.id;
+            }
+            if (sessData.data.guestId) {
+              localStorage.setItem("brinto_guest_id", sessData.data.guestId);
+            }
           }
+
+          const currentGuestId = localStorage.getItem("brinto_guest_id") || guestId;
 
           // Step 2: Fetch questions using session_id
           const qUrl = sessionId
@@ -1806,6 +1813,7 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           const qRes = await fetch(qUrl, {
             headers: {
               Accept: "*/*",
+              "X-Guest-Id": currentGuestId,
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
           });
