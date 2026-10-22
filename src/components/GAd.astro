@@ -1,0 +1,214 @@
+---
+/**
+ * GAd — reusable, responsive Google AdSense unit.
+ *
+ * Fixed-size AdSense units can't stretch, so this picks one unit per screen size
+ * when the page loads and reserves its space up front (no layout jump).
+ *
+ * Usage:
+ *   <GAd size="300x250" />                                         one size everywhere
+ *   <GAd sizes={{ mobile: "320x100", desktop: "728x90" }} />       swap by screen size
+ *   <GAd sizes={{ mobile: null, desktop: "160x600" }} />           hide on phones
+ *
+ * Breakpoints (src/lib/ads.ts): mobile < 768px ≤ tablet < 1024px ≤ desktop.
+ * A missing breakpoint falls back to the next smaller one (tablet → mobile, desktop → tablet).
+ * Units with an empty slot ID in AD_UNITS are skipped.
+ *
+ * In `npm run dev` every ad shows a dashed placeholder with its size and slot, even when
+ * AdSense doesn't fill it, so you can see where ads sit. Production hides unfilled ads.
+ */
+import { AD_CLIENT, AD_UNITS, type AdSizeKey } from "../lib/ads";
+
+type SizeOrNone = AdSizeKey | null;
+
+interface Props {
+  size?: AdSizeKey;
+  sizes?: { mobile?: SizeOrNone; tablet?: SizeOrNone; desktop?: SizeOrNone };
+  label?: boolean; // small "Advertisement" caption (default: true)
+  class?: string;
+}
+
+const { size, sizes, label = true, class: className } = Astro.props;
+
+// Resolve one unit per breakpoint, inheriting from the smaller breakpoint when unset.
+const mobile: SizeOrNone = sizes ? (sizes.mobile ?? null) : (size ?? null);
+const tablet: SizeOrNone = sizes ? (sizes.tablet !== undefined ? sizes.tablet : mobile) : mobile;
+const desktop: SizeOrNone = sizes ? (sizes.desktop !== undefined ? sizes.desktop : tablet) : tablet;
+
+const unit = (key: SizeOrNone) => {
+  const u = key ? AD_UNITS[key] : null;
+  return u && u.slot ? { key, slot: u.slot, width: u.width, height: u.height } : null;
+};
+const plan = { mobile: unit(mobile), tablet: unit(tablet), desktop: unit(desktop) };
+
+// Nothing to show at any size → render nothing.
+const hasAny = plan.mobile || plan.tablet || plan.desktop;
+
+// Space reserved per breakpoint (0 = hidden there).
+const isDev = import.meta.env.DEV;
+
+const vars = (["mobile", "tablet", "desktop"] as const)
+  .map((bp) => {
+    const u = plan[bp];
+    return `--gad-${bp}-w:${u ? u.width : 0}px;--gad-${bp}-h:${u ? u.height : 0}px;--gad-${bp}-d:${u ? "flex" : "none"};`;
+  })
+  .join("");
+---
+
+{hasAny && (
+  <div
+    class:list={["gad", { "gad-dev": isDev }, className]}
+    style={vars}
+    data-gad={JSON.stringify(plan)}
+    data-gad-client={AD_CLIENT}
+    data-gad-test={isDev ? "on" : undefined}
+  >
+    {(label || isDev) && <span class="gad-label">Advertisement</span>}
+    <div class="gad-box">
+      {isDev && <span class="gad-dev-info" aria-hidden="true"></span>}
+    </div>
+  </div>
+)}
+
+<script>
+  import { AD_BREAKPOINTS } from "../lib/ads";
+
+  type Unit = { key: string; slot: string; width: number; height: number } | null;
+  type W = Window & { adsbygoogle?: unknown[] };
+
+  // Load the AdSense library once if the page doesn't already include it.
+  function ensureLoader(client: string) {
+    if (document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]')) return;
+    const s = document.createElement("script");
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
+    document.head.appendChild(s);
+  }
+
+  function currentBreakpoint() {
+    const w = window.innerWidth;
+    if (w >= AD_BREAKPOINTS.desktop) return "desktop";
+    if (w >= AD_BREAKPOINTS.tablet) return "tablet";
+    return "mobile";
+  }
+
+  function fill(el: HTMLElement) {
+    if (el.dataset.gadDone) return;
+    el.dataset.gadDone = "1";
+
+    const plan = JSON.parse(el.dataset.gad || "{}") as Record<string, Unit>;
+    const unit = plan[currentBreakpoint()];
+    if (!unit) return; // hidden at this size (CSS already collapses it)
+
+    const devInfo = el.querySelector<HTMLElement>(".gad-dev-info");
+    if (devInfo) devInfo.textContent = `${unit.width} × ${unit.height} · slot ${unit.slot}`;
+
+    const client = el.dataset.gadClient!;
+    ensureLoader(client);
+
+    const ins = document.createElement("ins");
+    ins.className = "adsbygoogle";
+    ins.style.display = "inline-block";
+    ins.style.width = `${unit.width}px`;
+    ins.style.height = `${unit.height}px`;
+    ins.dataset.adClient = client;
+    ins.dataset.adSlot = unit.slot;
+    if (el.dataset.gadTest) ins.dataset.adtest = el.dataset.gadTest;
+    el.querySelector(".gad-box")!.appendChild(ins);
+
+    try {
+      ((window as W).adsbygoogle = (window as W).adsbygoogle || []).push({});
+    } catch (err) {
+      console.warn("AdSense push failed:", err);
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>(".gad").forEach(fill);
+</script>
+
+<style>
+  .gad {
+    /* mobile first; tablet and desktop override below */
+    --gad-w: var(--gad-mobile-w);
+    --gad-h: var(--gad-mobile-h);
+    display: var(--gad-mobile-d);
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 16px auto;
+    max-width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .gad {
+      --gad-w: var(--gad-tablet-w);
+      --gad-h: var(--gad-tablet-h);
+      display: var(--gad-tablet-d);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .gad {
+      --gad-w: var(--gad-desktop-w);
+      --gad-h: var(--gad-desktop-h);
+      display: var(--gad-desktop-d);
+    }
+  }
+
+  /* AdSense marks slots it couldn't fill; hide the whole block (label + reserved space).
+     Not in dev, where the placeholder should stay visible. */
+  .gad:not(.gad-dev):has(ins[data-ad-status="unfilled"]) {
+    display: none;
+  }
+
+  /* Dev placeholder: dashed outline + size/slot text; keep the space even if AdSense collapses it */
+  .gad-dev .gad-box {
+    position: relative;
+    height: var(--gad-h) !important;
+    border: 1.5px dashed #f59e0b;
+    background: repeating-linear-gradient(45deg, #fffbeb, #fffbeb 10px, #fef3c7 10px, #fef3c7 20px);
+  }
+
+  .gad-dev .gad-box :global(ins) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .gad-dev-info {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #92400e;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .gad-dev .gad-label {
+    color: #b45309;
+  }
+
+  .gad-label {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted, #9ca3af);
+  }
+
+  /* Reserved space = the unit's exact size, so nothing jumps when the ad loads */
+  .gad-box {
+    width: var(--gad-w);
+    height: var(--gad-h);
+    max-width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    background: var(--surface-2, #f8fafc);
+    border-radius: 4px;
+  }
+</style>

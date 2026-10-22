@@ -2,6 +2,7 @@
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import BeginnerTypingTest from "../../components/BeginnerTypingTest.astro";
+import GAd from "../../components/GAd.astro";
 ---
 
 <BaseLayout
@@ -33,6 +34,11 @@ import BeginnerTypingTest from "../../components/BeginnerTypingTest.astro";
       duration={900}
       wpmGoal={20}
     />
+  </div>
+
+  <!-- Ad: below the test, away from the typing box -->
+  <div class="ad-slot wrap">
+    <GAd sizes={{ mobile: "320x100", desktop: "728x90" }} />
   </div>
 
   <!-- Info section -->
@@ -73,6 +79,11 @@ import BeginnerTypingTest from "../../components/BeginnerTypingTest.astro";
       </div>
     </div>
   </section>
+
+  <!-- Ad: end of page -->
+  <div class="ad-slot ad-slot-end wrap">
+    <GAd size="300x250" />
+  </div>
 </BaseLayout>
 
 <style>
@@ -106,10 +117,15 @@ import BeginnerTypingTest from "../../components/BeginnerTypingTest.astro";
     .test-wrap { padding: 6px 0 0; }
     .page-hd   { display: none; }
     .info      { display: none; }
+    .ad-slot   { display: none; }
   }
 
+  /* Ads */
+  .ad-slot { padding: 8px 24px 0; }
+  .ad-slot-end { padding: 0 24px 40px; }
+
   /* Info */
-  .info { padding: 28px 24px 48px; }
+  .info { padding: 20px 24px 24px; }
   .info-grid {
     display: grid; grid-template-columns: repeat(3,1fr); gap: 14px;
   }
