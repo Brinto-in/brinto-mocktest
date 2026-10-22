@@ -200,7 +200,8 @@ const { slug = "", test, questionsData = [] } = Astro.props;
 
       /* ── QUESTION PANEL ── */
       .question-panel {
-        padding: 28px 32px;
+        /* bottom space so the fixed action bar never covers the last option */
+        padding: 28px 32px 96px;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
@@ -351,13 +352,22 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         display: block;
       }
 
-      /* Action row */
+      /* Action row — fixed to the bottom of the screen like the mobile bar,
+         spanning the question column only (the palette sidebar is 300px wide). */
       .action-row {
         display: flex;
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
-        padding-top: 8px;
+        position: fixed;
+        left: 0;
+        right: 300px;
+        bottom: 0;
+        z-index: 20;
+        padding: 14px 32px;
+        background: var(--surface);
+        border-top: 1px solid var(--rule);
+        box-shadow: 0 -6px 16px rgba(26, 20, 16, 0.05);
       }
       .btn-mark {
         display: flex;
