@@ -11,6 +11,7 @@ export interface Props {
   duration?: number;
   wpmGoal?: number;
   showTips?: boolean;
+  apiUrl?: string;
 }
 
 const {
@@ -21,6 +22,7 @@ const {
   duration = 600,
   wpmGoal = 35,
   showTips = true,
+  apiUrl = "",
 } = Astro.props;
 ---
 
@@ -31,6 +33,7 @@ const {
   data-duration={duration}
   data-wpm-goal={wpmGoal}
   data-exam={examName}
+  data-api-url={apiUrl}
 >
   <!-- ── Mobile tip banner ── -->
   {showTips && (
@@ -214,9 +217,10 @@ const {
 
   function init(root: HTMLElement) {
     const id      = root.id;
-    const passage = root.dataset.passage ?? '';
+    let passage   = root.dataset.passage ?? '';
     const dur     = parseInt(root.dataset.duration  ?? '600', 10);
     const goal    = parseInt(root.dataset.wpmGoal   ?? '35',  10);
+    const apiUrl  = root.dataset.apiUrl || '';
 
     // refs
     const $ = (sel: string) => root.querySelector<HTMLElement>(sel)!;
@@ -251,6 +255,37 @@ const {
     let startTime = 0, remaining = dur, raf = 0;
     let charSpans: HTMLSpanElement[] = [];
     let lastLen = 0;
+    let isFetching = false;
+
+    // Fetch passage from API if configured
+    async function fetchPassage() {
+      if (!apiUrl || isFetching) return;
+      isFetching = true;
+      startBtn.classList.add('tt-btn-loading');
+      restartBtn.classList.add('tt-btn-loading');
+      startBtn.disabled = true;
+      restartBtn.disabled = true;
+
+      try {
+        const res = await fetch(apiUrl, { headers: { Accept: '*/*' } });
+        if (res.ok) {
+          const json = await res.json();
+          const newPassage = json?.data?.passage_text || json?.passage_text;
+          if (newPassage && typeof newPassage === 'string') {
+            passage = newPassage;
+            root.dataset.passage = newPassage;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch passage from API:', e);
+      } finally {
+        isFetching = false;
+        startBtn.classList.remove('tt-btn-loading');
+        restartBtn.classList.remove('tt-btn-loading');
+        startBtn.disabled = false;
+        restartBtn.disabled = false;
+      }
+    }
 
     // build spans
     function build() {
@@ -337,8 +372,13 @@ const {
       draw();
     }
 
-    function start() {
-      if (state !== 'idle') return;
+    async function start() {
+      if (state !== 'idle' || isFetching) return;
+      if (apiUrl) {
+        await fetchPassage();
+        build();
+        draw();
+      }
       state = 'running'; startTime = Date.now();
       idleEl.classList.add('tt-hidden');
       startBtn.style.display   = 'none';
@@ -370,7 +410,7 @@ const {
       restartBtn.style.display = 'none';
     }
 
-    function reset() {
+    async function reset() {
       cancelAnimationFrame(raf);
       state = 'idle'; pos = 0; correct = 0; errors = 0;
       startTime = 0; remaining = dur; lastLen = 0;
@@ -379,6 +419,9 @@ const {
       idleEl.classList.remove('tt-hidden');
       startBtn.style.display = ''; restartBtn.style.display = 'none';
       resultEl.style.display = 'none';
+      if (apiUrl) {
+        await fetchPassage();
+      }
       build(); draw(); timerVal.textContent = fmt(dur); wpmEl.textContent = '0';
     }
 
@@ -560,6 +603,32 @@ const {
 .tt-start-btn   { background: var(--tt-brand); color: #fff; }
 .tt-restart-btn { background: var(--tt-surf2); color: var(--tt-sub); border: 1px solid var(--tt-border); }
 .tt-action-btn:hover { transform: translateY(-1px); opacity: .9; }
+
+/* Loading spinner animation on action button */
+.tt-btn-loading {
+  position: relative;
+  pointer-events: none;
+  color: transparent !important;
+}
+.tt-btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  top: calc(50% - 7px);
+  left: calc(50% - 7px);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: tt-btn-spin 0.65s linear infinite;
+}
+.tt-restart-btn.tt-btn-loading::after {
+  border-color: rgba(75, 85, 99, 0.3);
+  border-top-color: var(--tt-sub);
+}
+@keyframes tt-btn-spin {
+  to { transform: rotate(360deg); }
+}
 
 /* ── Progress track ── */
 .tt-progress-track { height: 3px; background: var(--tt-border); flex-shrink: 0; }
