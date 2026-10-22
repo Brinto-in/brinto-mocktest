@@ -1,0 +1,191 @@
+---
+/**
+ * GAdRails — sticky ad rails in the empty space beside the page content (wide screens only).
+ *
+ * Usage (anywhere inside the page, e.g. right after the opening <BaseLayout>):
+ *   <GAdRails />                                   both sides, 300×600 if it fits, else 160×600
+ *   <GAdRails side="right" />                      right rail only
+ *   <GAdRails sizes={["160x600"]} />               only the narrow skyscraper
+ *
+ * On load it measures the gap beside the content (.wrap max width) and picks the first size that
+ * fits with breathing room. If none fits — laptops, tablets, phones — nothing is requested or shown.
+ * Rails stay in view while scrolling (below the header) and stop at the end of the page content,
+ * so they never cover the footer. In `npm run dev` they show the same dashed placeholder as <GAd>.
+ */
+import { AD_CLIENT, AD_UNITS, type AdSizeKey } from "../lib/ads";
+
+interface Props {
+  side?: "both" | "left" | "right";
+  sizes?: AdSizeKey[]; // tried in order, widest first
+  top?: number; // distance from the top of the screen while scrolling (px)
+  label?: boolean;
+}
+
+const { side = "both", sizes = ["300x600", "160x600"], top = 96, label = true } = Astro.props;
+
+const units = sizes
+  .map((key) => ({ key, ...AD_UNITS[key] }))
+  .filter((u) => u.slot);
+const sides = side === "both" ? (["left", "right"] as const) : ([side] as const);
+const isDev = import.meta.env.DEV;
+---
+
+{units.length > 0 && (
+  <div
+    class:list={["gad-rails", { "gad-dev": isDev }]}
+    style={`--rail-top:${top}px;`}
+    data-units={JSON.stringify(units)}
+    data-client={AD_CLIENT}
+    data-test={isDev ? "on" : undefined}
+  >
+    {sides.map((s) => (
+      <aside class={`gad-rail gad-rail-${s}`} data-side={s} aria-label="Advertisement">
+        <div class="gad-rail-inner">
+          {(label || isDev) && <span class="gad-label">Advertisement</span>}
+          <div class="gad-box">
+            {isDev && <span class="gad-dev-info"></span>}
+          </div>
+        </div>
+      </aside>
+    ))}
+  </div>
+)}
+
+<script>
+  import { renderAd } from "../lib/adsClient";
+
+  type Unit = { key: string; slot: string; width: number; height: number };
+  const GAP = 16; // space between the rail and the content, and the screen edge
+
+  function contentWidth() {
+    const maxw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--maxw")) || 1180;
+    return Math.min(window.innerWidth, maxw);
+  }
+
+  function setup(root: HTMLElement) {
+    const units = JSON.parse(root.dataset.units || "[]") as Unit[];
+    const top = parseFloat(getComputedStyle(root).getPropertyValue("--rail-top")) || 96;
+    const gutter = (window.innerWidth - contentWidth()) / 2;
+
+    // First size that fits beside the content and in the window height
+    const unit = units.find((u) => u.width + GAP * 2 <= gutter && u.height + top + 40 <= window.innerHeight);
+    if (!unit) return; // not enough room: request nothing, show nothing
+
+    // Rails span the page content so sticky stops before the footer
+    const host = root.parentElement;
+    if (host && getComputedStyle(host).position === "static") host.style.position = "relative";
+
+    root.style.setProperty("--rail-w", `${unit.width}px`);
+    root.style.setProperty("--rail-h", `${unit.height}px`);
+    root.classList.add("is-on");
+
+    root.querySelectorAll<HTMLElement>(".gad-rail").forEach((rail) => {
+      const info = rail.querySelector<HTMLElement>(".gad-dev-info");
+      if (info) info.textContent = `${unit.width} × ${unit.height} · slot ${unit.slot}`;
+      renderAd(rail.querySelector<HTMLElement>(".gad-box")!, unit, root.dataset.client!, root.dataset.test);
+    });
+
+    // Centre each rail in its gutter (also on resize)
+    const place = () => {
+      const g = (window.innerWidth - contentWidth()) / 2;
+      root.style.setProperty("--rail-x", `${Math.max(GAP, (g - unit.width) / 2)}px`);
+    };
+    place();
+    window.addEventListener("resize", place, { passive: true });
+  }
+
+  document.querySelectorAll<HTMLElement>(".gad-rails").forEach(setup);
+</script>
+
+<style>
+  .gad-rails {
+    display: none;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .gad-rails.is-on {
+    display: block;
+  }
+
+  /* Full-height columns; the inner block sticks while scrolling */
+  .gad-rail {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: var(--rail-w);
+  }
+
+  .gad-rail-left {
+    left: var(--rail-x);
+  }
+
+  .gad-rail-right {
+    right: var(--rail-x);
+  }
+
+  .gad-rail-inner {
+    position: sticky;
+    top: var(--rail-top);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-top: 24px;
+    pointer-events: auto;
+  }
+
+  .gad-label {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted, #9ca3af);
+  }
+
+  .gad-box {
+    width: var(--rail-w);
+    height: var(--rail-h);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    background: var(--surface-2, #f8fafc);
+    border-radius: 4px;
+  }
+
+  /* Production: hide a rail AdSense couldn't fill */
+  .gad-rails:not(.gad-dev) .gad-rail:has(ins[data-ad-status="unfilled"]) {
+    display: none;
+  }
+
+  /* Dev placeholder — same look as <GAd> */
+  .gad-dev .gad-box {
+    position: relative;
+    height: var(--rail-h) !important;
+    border: 1.5px dashed #f59e0b;
+    background: repeating-linear-gradient(45deg, #fffbeb, #fffbeb 10px, #fef3c7 10px, #fef3c7 20px);
+  }
+
+  .gad-dev .gad-box :global(ins) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .gad-dev-info {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #92400e;
+    text-align: center;
+  }
+
+  .gad-dev .gad-label {
+    color: #b45309;
+  }
+</style>

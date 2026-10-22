@@ -3,12 +3,16 @@ export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import BeginnerTypingTest from "../../components/BeginnerTypingTest.astro";
 import GAd from "../../components/GAd.astro";
+import GAdRails from "../../components/GAdRails.astro";
 ---
 
 <BaseLayout
   title="Beginner Typing Practice – Build Speed from Scratch | Brinto MockTest"
   description="Free beginner typing practice — word-by-word mode, encouraging feedback, rotating tips. Perfect for OSSSC aspirants starting from zero."
 >
+  <!-- Sticky side-rail ads (wide screens only) -->
+  <GAdRails />
+
   <!-- Page header -->
   <div class="page-hd wrap">
     <nav class="crumb" aria-label="Breadcrumb">
@@ -26,63 +30,76 @@ import GAd from "../../components/GAd.astro";
     </div>
   </div>
 
-  <!-- Test -->
-  <div class="test-wrap wrap">
-    <BeginnerTypingTest
-      testId="btt-main"
-      title="Beginner Typing Practice"
-      duration={900}
-      wpmGoal={20}
-    />
+  <!-- Test + Sidebar Ads layout -->
+  <div class="page-body wrap">
+    <main class="main-column">
+      <div class="test-wrap">
+        <BeginnerTypingTest
+          testId="btt-main"
+          title="Beginner Typing Practice"
+          duration={900}
+          wpmGoal={20}
+        />
+      </div>
+
+      <!-- In-flow ad: below test on mobile / tablet -->
+      <div class="ad-slot ad-slot-mid">
+        <GAd sizes={{ mobile: "320x100", tablet: "728x90", desktop: null }} />
+      </div>
+
+      <!-- Info section -->
+      <section class="info">
+        <div class="info-grid">
+          <div class="info-card">
+            <h3>🎯 How it works</h3>
+            <ul>
+              <li>One word is shown at a time in the spotlight box</li>
+              <li>Type the word exactly, then press <kbd>Space</kbd> or <kbd>Enter</kbd></li>
+              <li>Wrong attempt → the box shakes, try again</li>
+              <li>Correct → moves to the next word automatically</li>
+              <li>Complete all words or finish in 15 minutes</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>🖐️ Finger placement</h3>
+            <ul>
+              <li><strong>Left:</strong> A S D F (pinky → index)</li>
+              <li><strong>Right:</strong> J K L ; (index → pinky)</li>
+              <li>Thumbs rest on the <strong>Space bar</strong></li>
+              <li>Return to home row after every key</li>
+              <li>Never look down — keep eyes on screen</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>📈 Your next steps</h3>
+            <ul>
+              <li>Reach 20 WPM here → try the full OSSSC test</li>
+              <li>Practise 15–20 min daily for 2 weeks</li>
+              <li>Speed and accuracy improve together</li>
+              <li>Common exam target: 40 WPM English</li>
+              <li><a href="/mocktest/tests/osssc-typing" class="info-link">Take the full OSSSC Typing Test →</a></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Sidebar with sticky ads on desktop -->
+    <aside class="sidebar-column" aria-label="Sidebar Advertisements">
+      <div class="sidebar-ad">
+        <GAd size="300x250" />
+      </div>
+      <div class="sidebar-ad sidebar-ad-sticky">
+        <GAd size="300x600" />
+      </div>
+    </aside>
   </div>
 
-  <!-- Ad: below the test, away from the typing box -->
-  <div class="ad-slot wrap">
-    <GAd sizes={{ mobile: "320x100", desktop: "728x90" }} />
-  </div>
-
-  <!-- Info section -->
-  <section class="info wrap">
-    <div class="info-grid">
-
-      <div class="info-card">
-        <h3>🎯 How it works</h3>
-        <ul>
-          <li>One word is shown at a time in the spotlight box</li>
-          <li>Type the word exactly, then press <kbd>Space</kbd> or <kbd>Enter</kbd></li>
-          <li>Wrong attempt → the box shakes, try again</li>
-          <li>Correct → moves to the next word automatically</li>
-          <li>Complete all words or finish in 15 minutes</li>
-        </ul>
-      </div>
-
-      <div class="info-card">
-        <h3>🖐️ Finger placement</h3>
-        <ul>
-          <li><strong>Left:</strong> A S D F (pinky → index)</li>
-          <li><strong>Right:</strong> J K L ; (index → pinky)</li>
-          <li>Thumbs rest on the <strong>Space bar</strong></li>
-          <li>Return to home row after every key</li>
-          <li>Never look down — keep eyes on screen</li>
-        </ul>
-      </div>
-
-      <div class="info-card">
-        <h3>📈 Your next steps</h3>
-        <ul>
-          <li>Reach 20 WPM here → try the full OSSSC test</li>
-          <li>Practise 15–20 min daily for 2 weeks</li>
-          <li>Speed and accuracy improve together</li>
-          <li>Common exam target: 40 WPM English</li>
-          <li><a href="/mocktest/tests/osssc-typing" class="info-link">Take the full OSSSC Typing Test →</a></li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- Ad: end of page -->
+  <!-- Ad: end of page (all devices) -->
   <div class="ad-slot ad-slot-end wrap">
-    <GAd size="300x250" />
+    <GAd sizes={{ mobile: "300x250", desktop: "728x90" }} />
   </div>
 </BaseLayout>
 
@@ -107,7 +124,53 @@ import GAd from "../../components/GAd.astro";
   }
   .chip-green { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
 
-  .test-wrap { padding: 14px 24px 0; }
+  /* Responsive body grid: test + sidebar */
+  .page-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .main-column {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .test-wrap { padding: 14px 0 0; }
+
+  /* Sidebar: hidden on mobile, block on desktop */
+  .sidebar-column {
+    display: none;
+    width: 300px;
+  }
+
+  .sidebar-ad {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  /* 2nd ad is sticky — sticks to viewport as user scrolls */
+  .sidebar-ad-sticky {
+    position: sticky;
+    top: 84px;
+    z-index: 10;
+    margin-bottom: 0;
+  }
+
+  /* Desktop layout with sidebar */
+  @media (min-width: 1024px) {
+    .page-body {
+      grid-template-columns: 1fr 300px;
+      gap: 28px;
+      align-items: start;
+    }
+    .sidebar-column {
+      display: block; /* block, NOT flex — so sticky works on children */
+    }
+  }
 
   @media (max-width: 480px) {
     .test-wrap { padding: 10px 0 0; }
@@ -118,14 +181,23 @@ import GAd from "../../components/GAd.astro";
     .page-hd   { display: none; }
     .info      { display: none; }
     .ad-slot   { display: none; }
+    .sidebar-column { display: none !important; }
   }
 
   /* Ads */
-  .ad-slot { padding: 8px 24px 0; }
-  .ad-slot-end { padding: 0 24px 40px; }
+  .ad-slot { padding: 8px 0 0; }
+  .ad-slot-end { padding: 8px 24px 40px; }
+  .ad-slot-mid {
+    display: block;
+  }
+  @media (min-width: 1024px) {
+    .ad-slot-mid {
+      display: none;
+    }
+  }
 
   /* Info */
-  .info { padding: 20px 24px 24px; }
+  .info { padding: 8px 0 16px; }
   .info-grid {
     display: grid; grid-template-columns: repeat(3,1fr); gap: 14px;
   }

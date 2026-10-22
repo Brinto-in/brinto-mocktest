@@ -72,19 +72,9 @@ const vars = (["mobile", "tablet", "desktop"] as const)
 
 <script>
   import { AD_BREAKPOINTS } from "../lib/ads";
+  import { renderAd } from "../lib/adsClient";
 
   type Unit = { key: string; slot: string; width: number; height: number } | null;
-  type W = Window & { adsbygoogle?: unknown[] };
-
-  // Load the AdSense library once if the page doesn't already include it.
-  function ensureLoader(client: string) {
-    if (document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]')) return;
-    const s = document.createElement("script");
-    s.async = true;
-    s.crossOrigin = "anonymous";
-    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
-    document.head.appendChild(s);
-  }
 
   function currentBreakpoint() {
     const w = window.innerWidth;
@@ -104,24 +94,7 @@ const vars = (["mobile", "tablet", "desktop"] as const)
     const devInfo = el.querySelector<HTMLElement>(".gad-dev-info");
     if (devInfo) devInfo.textContent = `${unit.width} × ${unit.height} · slot ${unit.slot}`;
 
-    const client = el.dataset.gadClient!;
-    ensureLoader(client);
-
-    const ins = document.createElement("ins");
-    ins.className = "adsbygoogle";
-    ins.style.display = "inline-block";
-    ins.style.width = `${unit.width}px`;
-    ins.style.height = `${unit.height}px`;
-    ins.dataset.adClient = client;
-    ins.dataset.adSlot = unit.slot;
-    if (el.dataset.gadTest) ins.dataset.adtest = el.dataset.gadTest;
-    el.querySelector(".gad-box")!.appendChild(ins);
-
-    try {
-      ((window as W).adsbygoogle = (window as W).adsbygoogle || []).push({});
-    } catch (err) {
-      console.warn("AdSense push failed:", err);
-    }
+    renderAd(el.querySelector<HTMLElement>(".gad-box")!, unit, el.dataset.gadClient!, el.dataset.gadTest);
   }
 
   document.querySelectorAll<HTMLElement>(".gad").forEach(fill);
