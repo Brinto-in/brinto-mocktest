@@ -4,7 +4,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ODISHA_10TH_SUBJECTS, ODISHA_10TH_ACTIVE } from '../lib/odisha/hsc/10/subjects';
 import {
-  ODISHA_10TH_QUESTIONS,
   EXAM_PATTERN_DETAILS,
   OMR_TIPS,
   FAQS_ODISHA_10TH,
@@ -15,23 +14,17 @@ const canonicalPath = '/mocktest/odisha-10th-mock-test';
 // Poster paths come from the subject/chapter data; add the site base here.
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const poster = (path?: string) => (path ? `${base}${path}` : '');
-// A question belongs to a chapter when its topic and the chapter's topicKey overlap
-// (tags are sometimes shorter than chapter titles, so check both directions).
-const topicMatch = (topic: string | undefined, key: string) =>
-  !!topic && (topic.includes(key) || key.includes(topic));
-const questionsFor = (subjectId: string, key?: string) =>
-  ODISHA_10TH_QUESTIONS.filter((q) => q.subjectId === subjectId && (!key || topicMatch(q.topic, key)));
-const paceMinutes = (count: number) => Math.max(5, Math.ceil(count * 0.9));
+// Tests open at /mocktest/test/{testId}; anything without a testId is "Coming soon".
+const testHref = (id?: number) => (id ? `/mocktest/test/${id}` : undefined);
+const stats = (questions?: number, minutes?: number) =>
+  [questions ? `${questions} ${questions === 1 ? 'MCQ' : 'MCQs'}` : '', minutes ? `${minutes} min` : '', 'Free']
+    .filter(Boolean)
+    .join(' · ');
 
-// Live tests with their real question counts (topic tests use only matching questions).
-// Time follows the board pace of 45 min for 50 MCQs, with a 5-minute minimum.
-const activeTests = ODISHA_10TH_ACTIVE.map((t) => {
-  const subject = ODISHA_10TH_SUBJECTS.find((s) => s.id === t.subjectId);
-  // Linked tests use the numbers given in the data; in-page tests count local questions
-  const count = t.href ? (t.questions ?? 0) : questionsFor(t.subjectId, t.topicKey).length;
-  const minutes = t.href ? (t.minutes ?? 0) : paceMinutes(count);
-  return { ...t, subject, count, minutes };
-}).filter((t) => t.subject && (t.href || t.count > 0));
+const activeTests = ODISHA_10TH_ACTIVE.map((t) => ({
+  ...t,
+  subject: ODISHA_10TH_SUBJECTS.find((s) => s.id === t.subjectId),
+})).filter((t) => t.subject && t.testId);
 const firstActive = activeTests[0];
 // Removes a missing poster so the gradient + icon underneath shows instead
 const IMG_FALLBACK = 'this.remove()';
@@ -206,24 +199,14 @@ const webPageJsonLd = {
             </header>
             <ul class="sx-row">
               {activeTests.map((t) => {
-                const Tag = t.href ? 'a' : 'button';
-                const stats = [
-                  t.count ? `${t.count} ${t.count === 1 ? 'MCQ' : 'MCQs'}` : '',
-                  t.minutes ? `${t.minutes} min` : '',
-                  'Free',
-                ].filter(Boolean).join(' · ');
+                const info = stats(t.questions, t.minutes);
                 return (
                 <li>
-                  <Tag
-                    type={t.href ? undefined : 'button'}
-                    href={t.href}
+                  <a
+                    href={testHref(t.testId)}
                     class="sx-card sx-main"
                     style={`--accent:${t.subject!.accentColor};`}
-                    data-start-topic={t.href ? undefined : t.subjectId}
-                    data-topic-key={t.href ? undefined : t.topicKey}
-                    data-topic-title={t.href ? undefined : `${t.subtitle}: ${t.title} (${t.titleEn})`}
-                    data-minutes={t.href ? undefined : t.minutes}
-                    aria-label={`${t.subtitle} chapter test: ${t.title} (${t.titleEn}) – ${stats}`}
+                    aria-label={`${t.subtitle} chapter test: ${t.title} (${t.titleEn}) – ${info}`}
                   >
                     <span class="sx-fallback" aria-hidden="true">{t.subject!.icon}</span>
                     {t.poster && (
@@ -233,9 +216,9 @@ const webPageJsonLd = {
                     <span class="sx-overlay">
                       <span class="sx-kicker">{t.subtitle} · Chapter test</span>
                       <span class="sx-name">{t.title} ({t.titleEn})</span>
-                      <span class="sx-info">{t.href && !t.count ? `${stats} · Start test →` : stats}</span>
+                      <span class="sx-info">{t.questions ? info : `${info} · Start test →`}</span>
                     </span>
-                  </Tag>
+                  </a>
                 </li>
                 );
               })}
@@ -258,12 +241,9 @@ const webPageJsonLd = {
         <!-- Subject rows: full mock poster + chapter mock tests -->
         <div class="sx-rows" id="subjects-grid">
           {ODISHA_10TH_SUBJECTS.map((s) => {
-            const subjectCount = questionsFor(s.id).length;
-            const subjectSoon = s.comingSoon || subjectCount === 0;
-            const units = (s.chapters.length > 1 ? s.chapters : []).map((u) => {
-              const count = u.topicKey ? questionsFor(s.id, u.topicKey).length : subjectCount;
-              return { ...u, count, soon: u.comingSoon || count === 0 };
-            });
+            const fullHref = testHref(s.testId);
+            const FullTag = fullHref ? 'a' : 'div';
+            const units = (s.chapters.length > 1 ? s.chapters : []).map((u) => ({ ...u, href: testHref(u.testId) }));
             return (
               <article
                 class="sx-subject hsc-subject-row"
@@ -295,60 +275,56 @@ const webPageJsonLd = {
                 <ul class="sx-row">
                   <!-- Main subject: full mock test -->
                   <li>
-                    <button
-                      type="button"
-                      class={`sx-card sx-main ${subjectSoon ? 'is-soon' : ''}`}
-                      data-start-test={subjectSoon ? undefined : s.id}
-                      data-minutes={subjectSoon ? undefined : paceMinutes(subjectCount)}
-                      disabled={subjectSoon}
-                      aria-label={subjectSoon
-                        ? `${s.name} full mock test – coming soon`
-                        : `${s.name} full mock test – ${subjectCount} questions, ${paceMinutes(subjectCount)} minutes`}
+                    <FullTag
+                      href={fullHref}
+                      class={`sx-card sx-main ${fullHref ? '' : 'is-soon'}`}
+                      aria-disabled={fullHref ? undefined : 'true'}
+                      aria-label={fullHref
+                        ? `${s.name} full mock test – ${s.questionCount} questions, ${s.durationMinutes} minutes`
+                        : `${s.name} full mock test – coming soon`}
                     >
                       <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
                       {s.poster && (
                         <img class="sx-img" src={poster(s.poster)} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
                       )}
                       <span class="sx-badge">FULL TEST</span>
-                      {subjectSoon
+                      {!fullHref
                         ? <span class="sx-badge sx-badge-pop sx-badge-soon">COMING SOON</span>
                         : s.isPopular && <span class="sx-badge sx-badge-pop">★ POPULAR</span>}
                       <span class="sx-overlay">
                         <span class="sx-kicker">{s.code} · Full mock</span>
                         <span class="sx-name">{s.name}</span>
                         <span class="sx-info">
-                          {subjectSoon
-                            ? 'Full mock test coming soon'
-                            : `${subjectCount} ${subjectCount === 1 ? 'MCQ' : 'MCQs'} · ${paceMinutes(subjectCount)} min · Free`}
+                          {fullHref ? `${s.questionCount} MCQs · ${s.durationMinutes} min · Free` : 'Full mock test coming soon'}
                         </span>
                       </span>
-                    </button>
+                    </FullTag>
                   </li>
 
                   <!-- Chapter mock tests -->
                   {units.map((u, i) => {
                     const img = poster(u.poster);
+                    const Tag = u.href ? 'a' : 'div';
+                    const soon = !u.href;
+                    const info = stats(u.questions, u.minutes);
                     return (
                       <li>
-                        <button
-                          type="button"
-                          class={`sx-card ${img ? 'sx-chapter-img' : 'sx-chapter'} ${u.soon ? 'is-soon' : ''}`}
-                          data-start-test={u.soon ? undefined : s.id}
-                          data-chapter={u.soon ? undefined : i}
-                          data-minutes={u.soon ? undefined : paceMinutes(u.count)}
-                          disabled={u.soon}
-                          aria-label={`${s.name} chapter test: ${u.unit} – ${u.soon ? 'coming soon' : `${u.count} ${u.count === 1 ? 'question' : 'questions'}`}`}
+                        <Tag
+                          href={u.href}
+                          class={`sx-card ${img ? 'sx-chapter-img' : 'sx-chapter'} ${soon ? 'is-soon' : ''}`}
+                          aria-disabled={soon ? 'true' : undefined}
+                          aria-label={`${s.name} chapter test: ${u.unit} – ${soon ? 'coming soon' : info}`}
                         >
                           {img ? (
                             <>
                               <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
                               <img class="sx-img" src={img} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
                               <span class="sx-badge sx-badge-ch">CHAPTER {String(i + 1).padStart(2, '0')}</span>
-                              {u.soon && <span class="sx-badge sx-badge-pop sx-badge-soon">SOON</span>}
+                              {soon && <span class="sx-badge sx-badge-pop sx-badge-soon">SOON</span>}
                               <span class="sx-overlay">
                                 <span class="sx-kicker">{u.weightageMarks ? `${u.weightageMarks} marks · ` : ''}{u.topics.length} topics</span>
                                 <span class="sx-name">{u.unitOdia}</span>
-                                <span class="sx-info">{u.soon ? 'Coming soon' : 'Chapter practice →'}</span>
+                                <span class="sx-info">{soon ? 'Coming soon' : 'Chapter practice →'}</span>
                               </span>
                             </>
                           ) : (
@@ -356,20 +332,20 @@ const webPageJsonLd = {
                               <span class="sx-ch-top">
                                 <span class="sx-ch-num">{String(i + 1).padStart(2, '0')}</span>
                                 <span class="sx-ch-marks">
-                                  {u.soon ? 'Soon' : `${u.count} ${u.count === 1 ? 'MCQ' : 'MCQs'}`}
+                                  {soon ? 'Soon' : u.questions ? `${u.questions} ${u.questions === 1 ? 'MCQ' : 'MCQs'}` : 'Live'}
                                 </span>
                               </span>
                               <span class="sx-ch-label">Chapter test</span>
                               <span class="sx-ch-title">{u.unitOdia}</span>
-                              {u.topicKey && u.unit !== u.unitOdia && <span class="sx-ch-en">{u.unit}</span>}
+                              {u.unit !== u.unitOdia && <span class="sx-ch-en">{u.unit}</span>}
                               <span class="sx-ch-topics">
                                 {u.topics.slice(0, 3).map((t) => <span>{t}</span>)}
                                 {u.topics.length > 3 && <span class="sx-ch-more">+{u.topics.length - 3} more topics</span>}
                               </span>
-                              <span class="sx-ch-cta">{u.soon ? 'Coming soon' : 'Practice →'}</span>
+                              <span class="sx-ch-cta">{soon ? 'Coming soon' : 'Practice →'}</span>
                             </>
                           )}
-                        </button>
+                        </Tag>
                       </li>
                     );
                   })}
@@ -535,18 +511,14 @@ const webPageJsonLd = {
 
                 <div class="hsc-details-cta">
                   <span>Ready to test your knowledge in {s.name}?</span>
-                  {s.comingSoon || questionsFor(s.id).length === 0 ? (
+                  {s.testId ? (
+                    <a href={testHref(s.testId)} class="hsc-btn hsc-btn-primary hsc-btn-sm">
+                      Start {s.name} Mock Test 🎯
+                    </a>
+                  ) : (
                     <span class="hsc-btn hsc-btn-primary hsc-btn-sm is-disabled" aria-disabled="true">
                       {s.name} Mock Test · Coming soon
                     </span>
-                  ) : (
-                    <button
-                      type="button"
-                      class="hsc-btn hsc-btn-primary hsc-btn-sm"
-                      data-subject={s.id}
-                    >
-                      Start {s.name} Mock Test 🎯
-                    </button>
                   )}
                 </div>
               </div>
@@ -649,1036 +621,65 @@ const webPageJsonLd = {
         </div>
       </div>
     </section>
-
-    <!-- ── 8. INTERACTIVE TEST RUNNER MODAL ────────────────── -->
-    <dialog class="hsc-test-modal" id="hsc-test-modal" aria-label="Odisha 10th Mock Test Player">
-      <div class="hsc-modal-container">
-        <!-- Modal Top Bar -->
-        <header class="hsc-modal-header">
-          <div class="hsc-modal-header-left">
-            <span class="hsc-test-badge" id="modal-subject-badge">BSE Class 10</span>
-            <h2 id="modal-test-title" class="hsc-modal-test-name">Odisha 10th Mock Test</h2>
-          </div>
-
-          <div class="hsc-modal-timer-box" aria-label="Timer">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="modal-timer">45:00</span>
-          </div>
-
-          <div class="hsc-modal-header-right">
-            <button type="button" class="hsc-modal-btn-palette" id="btn-toggle-palette" aria-label="Toggle Question Palette">
-              <span>📋 Palette</span>
-            </button>
-            <button type="button" class="hsc-modal-btn-close" id="btn-close-modal" aria-label="Close Test">
-              &times;
-            </button>
-          </div>
-        </header>
-
-        <!-- Modal Body (Two columns when palette open) -->
-        <div class="hsc-modal-body">
-          <!-- Main Test Screen -->
-          <div class="hsc-test-main-view" id="test-main-view">
-            <!-- Progress Bar -->
-            <div class="hsc-progress-track">
-              <div class="hsc-progress-fill" id="modal-progress-fill" style="width: 10%;"></div>
-            </div>
-
-            <!-- Active Question Card -->
-            <div class="hsc-question-card" id="question-card">
-              <div class="hsc-q-meta-row">
-                <span class="hsc-q-counter" id="q-counter">Question 1 of 10</span>
-                <span class="hsc-q-section-tag" id="q-section-tag">Algebra</span>
-                <button type="button" class="hsc-btn-mark-review" id="btn-mark-review">
-                  <span id="mark-icon">🔖</span> <span id="mark-text">Mark for Review</span>
-                </button>
-              </div>
-
-              <!-- Question Text -->
-              <div class="hsc-q-text-wrap">
-                <p class="hsc-q-text" id="q-text-en">Question loading...</p>
-                <p class="hsc-q-text-odia" id="q-text-or"></p>
-              </div>
-
-              <!-- 4 Options -->
-              <div class="hsc-options-grid" id="options-container" role="radiogroup" aria-label="Answer options">
-                <!-- Injected via JavaScript -->
-              </div>
-            </div>
-
-            <!-- Footer Controls -->
-            <footer class="hsc-test-footer">
-              <div class="hsc-footer-left">
-                <button type="button" class="hsc-btn hsc-btn-secondary" id="btn-prev-q">
-                  ← Previous
-                </button>
-                <button type="button" class="hsc-btn-text" id="btn-clear-q">
-                  Clear Response
-                </button>
-              </div>
-
-              <div class="hsc-footer-right">
-                <button type="button" class="hsc-btn hsc-btn-secondary" id="btn-next-q">
-                  Next →
-                </button>
-                <button type="button" class="hsc-btn hsc-btn-submit" id="btn-submit-test">
-                  Submit Test ✓
-                </button>
-              </div>
-            </footer>
-          </div>
-
-          <!-- Question Palette Sidebar -->
-          <aside class="hsc-palette-sidebar" id="palette-sidebar">
-            <div class="hsc-palette-header">
-              <h3>Question Palette</h3>
-              <span class="hsc-palette-legend">
-                <span class="leg-item"><span class="leg-dot dot-ans"></span> Ans</span>
-                <span class="leg-item"><span class="leg-dot dot-unans"></span> Left</span>
-                <span class="leg-item"><span class="leg-dot dot-mark"></span> Rev</span>
-              </span>
-            </div>
-
-            <div class="hsc-palette-bubbles" id="palette-bubbles">
-              <!-- Injected via JS -->
-            </div>
-
-            <div class="hsc-palette-footer">
-              <button type="button" class="hsc-btn hsc-btn-primary hsc-btn-full" id="btn-palette-submit">
-                Submit Test ✓
-              </button>
-            </div>
-          </aside>
-
-          <!-- Result & Scorecard View (hidden until submission) -->
-          <div class="hsc-result-view" id="test-result-view" hidden>
-            <div class="hsc-scorecard">
-              <div class="hsc-score-badge" id="res-badge">🎉 Test Completed!</div>
-              <h3 class="hsc-score-title" id="res-title">BSE Odisha Class 10 Mock Test</h3>
-
-              <div class="hsc-score-hero">
-                <div class="hsc-score-circle">
-                  <span class="hsc-score-big" id="res-score">0</span>
-                  <span class="hsc-score-total" id="res-total">/ 0</span>
-                </div>
-                <div class="hsc-score-details">
-                  <div class="hsc-score-metric">
-                    <span>Percentage</span>
-                    <strong id="res-percent">0%</strong>
-                  </div>
-                  <div class="hsc-score-metric">
-                    <span>Performance</span>
-                    <strong id="res-division" class="hsc-grade-text">Pass</strong>
-                  </div>
-                  <div class="hsc-score-metric">
-                    <span>Time Taken</span>
-                    <strong id="res-time-taken">0 mins</strong>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Action Bar -->
-              <div class="hsc-result-actions">
-                <button type="button" class="hsc-btn hsc-btn-primary" id="btn-review-answers">
-                  Review All Answers with Explanations 📖
-                </button>
-                <button type="button" class="hsc-btn hsc-btn-secondary" id="btn-retake-test">
-                  Retake Test 🔄
-                </button>
-                <button type="button" class="hsc-btn hsc-btn-secondary" id="btn-exit-modal">
-                  Back to All Subjects ✕
-                </button>
-              </div>
-            </div>
-
-            <!-- Detailed Question-by-Question Review List -->
-            <div class="hsc-review-container" id="review-container" hidden>
-              <div class="hsc-review-header">
-                <h3>Detailed Answer Explanations (ସମାଧାନ ଓ ଉତ୍ତର)</h3>
-                <p>Verify your responses with step-by-step logic in Odia & English.</p>
-              </div>
-              <div class="hsc-review-list" id="review-list">
-                <!-- Injected via JS -->
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </dialog>
-
-    <!-- ── 9. TEST MODE & CHAPTER SELECTOR MODAL ─────────── -->
-    <dialog class="hsc-mode-modal" id="hsc-mode-modal" aria-label="Choose Test Mode">
-      <div class="hsc-modal-container">
-        <div class="hsc-sheet-handle" aria-hidden="true"></div>
-        <header class="hsc-modal-header">
-          <div class="hsc-modal-header-left">
-            <span class="hsc-test-badge" id="mode-modal-badge">BSE Class 10</span>
-            <h2 id="mode-modal-title" class="hsc-modal-test-name">Select Test or Chapter</h2>
-          </div>
-          <button type="button" class="hsc-modal-btn-close" id="btn-close-mode-modal" aria-label="Close">
-            &times;
-          </button>
-        </header>
-        <div class="hsc-modal-body hsc-mode-modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
-          <p style="color: var(--ink-soft); font-size: 0.9rem; margin: 0; line-height: 1.4;">
-            Choose whether to attempt the full subject test or practice a specific chapter for <strong id="mode-subject-name" style="color: var(--ink);">Subject</strong>:
-          </p>
-
-          <!-- Option 1: Full Test -->
-          <button type="button" class="hsc-full-test-option-btn" id="btn-mode-full">
-            <div class="hsc-opt-left">
-              <span class="hsc-opt-icon">🚀</span>
-              <div>
-                <strong>Full Subject Grand Test</strong>
-                <span>50 MCQs • Complete Syllabus • Timed (45 Mins)</span>
-              </div>
-            </div>
-            <span class="hsc-opt-cta">Start Full Test →</span>
-          </button>
-
-          <!-- Divider / Separator -->
-          <div class="hsc-modal-divider">
-            <hr />
-            <span>OR CHOOSE CHAPTER</span>
-            <hr />
-          </div>
-
-          <!-- Option 2: Chapters List -->
-          <div id="chapters-list-container" class="hsc-chapters-modal-list">
-            <!-- Injected via JS -->
-          </div>
-        </div>
-      </div>
-    </dialog>
   </div>
 </BaseLayout>
 
-<!-- Client-Side State & Test Runner Engine (100% Static, ZERO API Needed) -->
-<script is:inline define:vars={{ questionsData: ODISHA_10TH_QUESTIONS, subjectsData: ODISHA_10TH_SUBJECTS }}>
-  (function () {
-    // --- Tab Filtering for Subjects ---
-    const filterTabs = document.querySelectorAll('.hsc-filter-tab');
-    const subjectCards = document.querySelectorAll('.hsc-subject-row');
+<script>
+  // Subject filter pills: show one subject row or all
+  const filterTabs = document.querySelectorAll<HTMLButtonElement>('.hsc-filter-tab');
+  const subjectRows = document.querySelectorAll<HTMLElement>('.hsc-subject-row');
 
-    filterTabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        filterTabs.forEach((t) => {
-          t.classList.remove('active');
-          t.setAttribute('aria-selected', 'false');
-        });
-        tab.classList.add('active');
-        tab.setAttribute('aria-selected', 'true');
+  filterTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      filterTabs.forEach((t) => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
 
-        const filterVal = tab.getAttribute('data-filter');
-        subjectCards.forEach((card) => {
-          if (filterVal === 'all' || card.getAttribute('data-subject-id') === filterVal) {
-            card.style.display = '';
-          } else {
-            card.style.display = 'none';
-          }
-        });
+      const filterVal = tab.dataset.filter;
+      subjectRows.forEach((row) => {
+        row.style.display = filterVal === 'all' || row.dataset.subjectId === filterVal ? '' : 'none';
       });
     });
-
-    // --- Static Test Runner Engine ---
-    const modal = document.getElementById('hsc-test-modal');
-    const btnCloseModal = document.getElementById('btn-close-modal');
-    const btnExitModal = document.getElementById('btn-exit-modal');
-    const btnTogglePalette = document.getElementById('btn-toggle-palette');
-    const paletteSidebar = document.getElementById('palette-sidebar');
-
-    const testMainView = document.getElementById('test-main-view');
-    const testResultView = document.getElementById('test-result-view');
-    const reviewContainer = document.getElementById('review-container');
-
-    const modalTitle = document.getElementById('modal-test-title');
-    const modalBadge = document.getElementById('modal-subject-badge');
-    const modalTimer = document.getElementById('modal-timer');
-    const modalProgress = document.getElementById('modal-progress-fill');
-
-    const qCounter = document.getElementById('q-counter');
-    const qSectionTag = document.getElementById('q-section-tag');
-    const btnMarkReview = document.getElementById('btn-mark-review');
-    const qTextEn = document.getElementById('q-text-en');
-    const qTextOr = document.getElementById('q-text-or');
-    const optionsContainer = document.getElementById('options-container');
-
-    const btnPrevQ = document.getElementById('btn-prev-q');
-    const btnNextQ = document.getElementById('btn-next-q');
-    const btnClearQ = document.getElementById('btn-clear-q');
-    const btnSubmitTest = document.getElementById('btn-submit-test');
-    const btnPaletteSubmit = document.getElementById('btn-palette-submit');
-
-    const paletteBubbles = document.getElementById('palette-bubbles');
-
-    // Result elements
-    const resScore = document.getElementById('res-score');
-    const resTotal = document.getElementById('res-total');
-    const resPercent = document.getElementById('res-percent');
-    const resDivision = document.getElementById('res-division');
-    const resTimeTaken = document.getElementById('res-time-taken');
-    const btnReviewAnswers = document.getElementById('btn-review-answers');
-    const btnRetakeTest = document.getElementById('btn-retake-test');
-    const reviewList = document.getElementById('review-list');
-
-    let activeQuestions = [];
-    let currentIdx = 0;
-    let userAnswers = {}; // { qIdx: selectedOptionIdx }
-    let markedForReview = new Set();
-    let timerSeconds = 45 * 60;
-    let timerInterval = null;
-    let testStartTime = 0;
-    let currentSubjectId = 'all';
-
-    function blockScroll() {
-      document.documentElement.classList.add('modal-open');
-      document.body.classList.add('modal-open');
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.overflow = 'hidden';
-    }
-
-    function unblockScroll() {
-      document.documentElement.classList.remove('modal-open');
-      document.body.classList.remove('modal-open');
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    }
-
-    function startTest(subjectId, mode = 'full', chapterIndex = null, topic = null) {
-      currentSubjectId = subjectId;
-      if (subjectId === 'all') {
-        activeQuestions = [...questionsData];
-        modalTitle.textContent = 'BSE Class 10 Grand Mock Test (All Subjects)';
-        modalBadge.textContent = 'Full Model Set';
-      } else {
-        const subj = subjectsData.find((s) => s.id === subjectId);
-        let subjQuestions = questionsData.filter((q) => q.subjectId === subjectId);
-
-        if (mode === 'topic' && topic) {
-          activeQuestions = subjQuestions.filter((q) => (q.topic || '').includes(topic.key));
-          modalTitle.textContent = topic.title;
-          modalBadge.textContent = 'Chapter Test';
-        } else if (mode === 'chapter' && chapterIndex !== null && subj && subj.chapters[chapterIndex]) {
-          const ch = subj.chapters[chapterIndex];
-          const filtered = ch.topicKey
-            ? subjQuestions.filter((q) => q.topic && (q.topic.includes(ch.topicKey) || ch.topicKey.includes(q.topic)))
-            : subjQuestions.filter((q) => {
-            return (q.topic && (q.topic === ch.unit || ch.unit.includes(q.topic) || q.topic.includes(ch.unit))) ||
-                   ch.topics.some((t) => q.topic && q.topic.toLowerCase().includes(t.toLowerCase()));
-          });
-          activeQuestions = filtered.length > 0 || ch.topicKey ? filtered : subjQuestions.slice(0, 5);
-          modalTitle.textContent = `${subj.name}: ${ch.unit}`;
-          modalBadge.textContent = 'Chapter Practice';
-        } else {
-          activeQuestions = subjQuestions.length > 0 ? subjQuestions : [...questionsData];
-          modalTitle.textContent = subj ? `${subj.name} (${subj.nameOdia}) Full Mock Test` : '10th Mock Test';
-          modalBadge.textContent = subj ? subj.code : 'BSE Class 10';
-        }
-      }
-
-      if (!activeQuestions.length) {
-        alert('This test is coming soon.');
-        return;
-      }
-
-      currentIdx = 0;
-      userAnswers = {};
-      markedForReview.clear();
-      timerSeconds = (topic && topic.minutes ? topic.minutes : 45) * 60;
-      testStartTime = Date.now();
-
-      testMainView.hidden = false;
-      testResultView.hidden = true;
-      reviewContainer.hidden = true;
-
-      renderPalette();
-      loadQuestion(0);
-      startTimer();
-
-      if (typeof modal.showModal === 'function') {
-        modal.showModal();
-      } else {
-        modal.setAttribute('open', 'true');
-      }
-      blockScroll();
-    }
-
-    function closeTestModal() {
-      if (timerInterval) clearInterval(timerInterval);
-      if (typeof modal.close === 'function') {
-        modal.close();
-      } else {
-        modal.removeAttribute('open');
-      }
-      unblockScroll();
-    }
-
-    modal.addEventListener('cancel', () => {
-      unblockScroll();
-    });
-
-    function startTimer() {
-      if (timerInterval) clearInterval(timerInterval);
-      updateTimerDisplay();
-      timerInterval = setInterval(() => {
-        timerSeconds--;
-        updateTimerDisplay();
-        if (timerSeconds <= 0) {
-          clearInterval(timerInterval);
-          alert('Time is up! Submitting your mock test.');
-          finishTest();
-        }
-      }, 1000);
-    }
-
-    function updateTimerDisplay() {
-      const mins = Math.floor(timerSeconds / 60);
-      const secs = timerSeconds % 60;
-      modalTimer.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    function loadQuestion(idx) {
-      currentIdx = idx;
-      const q = activeQuestions[idx];
-      if (!q) return;
-
-      qCounter.textContent = `Question ${idx + 1} of ${activeQuestions.length}`;
-      qSectionTag.textContent = q.topic || q.section;
-      qTextEn.textContent = q.text;
-      qTextOr.textContent = q.textOdia || '';
-
-      const percent = ((idx + 1) / activeQuestions.length) * 100;
-      modalProgress.style.width = `${percent}%`;
-
-      // Update Mark for review status
-      const isMarked = markedForReview.has(idx);
-      btnMarkReview.classList.toggle('marked', isMarked);
-      document.getElementById('mark-text').textContent = isMarked ? 'Marked for Review' : 'Mark for Review';
-
-      // Render options
-      optionsContainer.innerHTML = '';
-      q.options.forEach((optText, optIdx) => {
-        const optCard = document.createElement('label');
-        optCard.className = 'hsc-opt-card';
-        if (userAnswers[idx] === optIdx) {
-          optCard.classList.add('selected');
-        }
-
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = `opt_q_${idx}`;
-        radio.value = optIdx;
-        radio.checked = userAnswers[idx] === optIdx;
-
-        const letters = ['A', 'B', 'C', 'D'];
-        const letterBadge = document.createElement('span');
-        letterBadge.className = 'hsc-opt-letter';
-        letterBadge.textContent = letters[optIdx] || optIdx + 1;
-
-        const labelSpan = document.createElement('span');
-        labelSpan.className = 'hsc-opt-label';
-        labelSpan.textContent = optText;
-
-        optCard.appendChild(radio);
-        optCard.appendChild(letterBadge);
-        optCard.appendChild(labelSpan);
-
-        optCard.addEventListener('click', (e) => {
-          userAnswers[idx] = optIdx;
-          document.querySelectorAll('.hsc-opt-card').forEach((c) => c.classList.remove('selected'));
-          optCard.classList.add('selected');
-          updatePaletteBubble(idx);
-        });
-
-        optionsContainer.appendChild(optCard);
-      });
-
-      // Update Prev / Next buttons
-      btnPrevQ.disabled = idx === 0;
-      btnNextQ.disabled = idx === activeQuestions.length - 1;
-
-      updatePaletteBubble(idx);
-    }
-
-    function renderPalette() {
-      paletteBubbles.innerHTML = '';
-      activeQuestions.forEach((_, idx) => {
-        const bubble = document.createElement('button');
-        bubble.type = 'button';
-        bubble.className = 'hsc-palette-bubble';
-        bubble.id = `palette-b-${idx}`;
-        bubble.textContent = (idx + 1).toString();
-        bubble.setAttribute('aria-label', `Question ${idx + 1}`);
-
-        bubble.addEventListener('click', () => {
-          loadQuestion(idx);
-          if (window.innerWidth < 768) {
-            paletteSidebar.classList.remove('open');
-          }
-        });
-
-        paletteBubbles.appendChild(bubble);
-      });
-    }
-
-    function updatePaletteBubble(idx) {
-      const bubble = document.getElementById(`palette-b-${idx}`);
-      if (!bubble) return;
-
-      bubble.classList.remove('ans', 'unans', 'marked', 'active');
-
-      if (idx === currentIdx) {
-        bubble.classList.add('active');
-      }
-
-      if (markedForReview.has(idx)) {
-        bubble.classList.add('marked');
-      } else if (userAnswers[idx] !== undefined) {
-        bubble.classList.add('ans');
-      } else {
-        bubble.classList.add('unans');
-      }
-    }
-
-    // Toggle Review
-    btnMarkReview.addEventListener('click', () => {
-      if (markedForReview.has(currentIdx)) {
-        markedForReview.delete(currentIdx);
-      } else {
-        markedForReview.add(currentIdx);
-      }
-      loadQuestion(currentIdx);
-    });
-
-    // Clear response
-    btnClearQ.addEventListener('click', () => {
-      delete userAnswers[currentIdx];
-      loadQuestion(currentIdx);
-    });
-
-    // Navigation
-    btnPrevQ.addEventListener('click', () => {
-      if (currentIdx > 0) loadQuestion(currentIdx - 1);
-    });
-
-    btnNextQ.addEventListener('click', () => {
-      if (currentIdx < activeQuestions.length - 1) loadQuestion(currentIdx + 1);
-    });
-
-    // Palette toggle
-    btnTogglePalette.addEventListener('click', () => {
-      paletteSidebar.classList.toggle('open');
-    });
-
-    // Submit test handler
-    function finishTest() {
-      if (timerInterval) clearInterval(timerInterval);
-
-      let correctCount = 0;
-      activeQuestions.forEach((q, idx) => {
-        if (userAnswers[idx] === q.correct) {
-          correctCount++;
-        }
-      });
-
-      const totalQs = activeQuestions.length;
-      const percentage = Math.round((correctCount / totalQs) * 100);
-      const timeSpentSecs = Math.round((Date.now() - testStartTime) / 1000);
-      const timeSpentMins = Math.max(1, Math.round(timeSpentSecs / 60));
-
-      resScore.textContent = correctCount;
-      resTotal.textContent = `/ ${totalQs}`;
-      resPercent.textContent = `${percentage}%`;
-      resTimeTaken.textContent = `${timeSpentMins} min`;
-
-      if (percentage >= 80) {
-        resDivision.textContent = 'Grade A1 (Distinction) 🌟';
-        resDivision.style.color = '#1B6B3A';
-      } else if (percentage >= 60) {
-        resDivision.textContent = '1st Division (Passed) 👍';
-        resDivision.style.color = '#2563EB';
-      } else if (percentage >= 45) {
-        resDivision.textContent = '2nd Division (Qualified) 📘';
-        resDivision.style.color = '#D97706';
-      } else if (percentage >= 33) {
-        resDivision.textContent = '3rd Division (Pass) 📙';
-        resDivision.style.color = '#7C3AED';
-      } else {
-        resDivision.textContent = 'Needs More Practice ⚠️';
-        resDivision.style.color = '#B00020';
-      }
-
-      testMainView.hidden = true;
-      testResultView.hidden = false;
-      reviewContainer.hidden = true;
-    }
-
-    btnSubmitTest.addEventListener('click', () => {
-      const answeredCount = Object.keys(userAnswers).length;
-      const total = activeQuestions.length;
-      const confirmed = confirm(
-        `You have answered ${answeredCount} of ${total} questions. Are you sure you want to submit your mock test?`
-      );
-      if (confirmed) finishTest();
-    });
-
-    btnPaletteSubmit.addEventListener('click', () => {
-      btnSubmitTest.click();
-    });
-
-    // Review answer keys
-    btnReviewAnswers.addEventListener('click', () => {
-      reviewContainer.hidden = false;
-      reviewList.innerHTML = '';
-
-      activeQuestions.forEach((q, idx) => {
-        const item = document.createElement('div');
-        const userChoice = userAnswers[idx];
-        const isCorrect = userChoice === q.correct;
-
-        item.className = `hsc-rev-card ${isCorrect ? 'rev-correct' : 'rev-wrong'}`;
-
-        const letters = ['A', 'B', 'C', 'D'];
-        const userText = userChoice !== undefined ? `${letters[userChoice]}. ${q.options[userChoice]}` : 'Not Attempted';
-        const correctText = `${letters[q.correct]}. ${q.options[q.correct]}`;
-
-        item.innerHTML = `
-          <div class="hsc-rev-num-bar">
-            <span>Question ${idx + 1} • ${q.section}</span>
-            <span class="hsc-rev-status-pill ${isCorrect ? 'pill-corr' : 'pill-wrn'}">
-              ${isCorrect ? '✓ Correct (+1 Mark)' : '✗ Incorrect (0 Mark)'}
-            </span>
-          </div>
-          <p class="hsc-rev-q">${q.text}</p>
-          ${q.textOdia ? `<p class="hsc-rev-q-odia">${q.textOdia}</p>` : ''}
-          <div class="hsc-rev-answers">
-            <div class="hsc-ans-box ans-user ${isCorrect ? 'box-green' : 'box-red'}">
-              <strong>Your Choice:</strong> ${userText}
-            </div>
-            <div class="hsc-ans-box ans-correct box-green">
-              <strong>Correct Answer:</strong> ${correctText}
-            </div>
-          </div>
-          <div class="hsc-rev-exp">
-            <strong>Explanation (ସମାଧାନ):</strong>
-            <p>${q.explanation}</p>
-            ${q.explanationOdia ? `<p class="exp-odia">${q.explanationOdia}</p>` : ''}
-          </div>
-        `;
-        reviewList.appendChild(item);
-      });
-
-      reviewContainer.scrollIntoView({ behavior: 'smooth' });
-    });
-
-    // Retake Test
-    btnRetakeTest.addEventListener('click', () => {
-      startTest(currentSubjectId);
-    });
-
-    // Mode Modal Logic
-    const modeModal = document.getElementById('hsc-mode-modal');
-    const btnCloseModeModal = document.getElementById('btn-close-mode-modal');
-    const modeSubjectName = document.getElementById('mode-subject-name');
-    const modeModalBadge = document.getElementById('mode-modal-badge');
-    const btnModeFull = document.getElementById('btn-mode-full');
-    const chaptersListContainer = document.getElementById('chapters-list-container');
-
-    let selectedSubjectForMode = null;
-
-    function openModeModal(subjectId) {
-      if (subjectId === 'all') {
-        startTest('all');
-        return;
-      }
-      selectedSubjectForMode = subjectId;
-      const subj = subjectsData.find((s) => s.id === subjectId);
-      modeSubjectName.textContent = subj ? `${subj.name} (${subj.nameOdia})` : 'Subject';
-      modeModalBadge.textContent = subj ? subj.code : 'BSE Class 10';
-
-      renderChaptersList(subjectId);
-
-      if (typeof modeModal.showModal === 'function') {
-        modeModal.showModal();
-      } else {
-        modeModal.setAttribute('open', 'true');
-      }
-      blockScroll();
-    }
-
-    function closeModeModal() {
-      if (typeof modeModal.close === 'function') {
-        modeModal.close();
-      } else {
-        modeModal.removeAttribute('open');
-      }
-      unblockScroll();
-    }
-
-    modeModal.addEventListener('cancel', () => {
-      unblockScroll();
-    });
-
-    modeModal.addEventListener('click', (e) => {
-      const rect = modeModal.getBoundingClientRect();
-      const isInDialog = (
-        rect.top <= e.clientY &&
-        e.clientY <= rect.top + rect.height &&
-        rect.left <= e.clientX &&
-        e.clientX <= rect.left + rect.width
-      );
-      if (!isInDialog) {
-        closeModeModal();
-      }
-    });
-
-    if (btnCloseModeModal) {
-      btnCloseModeModal.addEventListener('click', closeModeModal);
-    }
-
-    if (btnModeFull) {
-      btnModeFull.addEventListener('click', () => {
-        closeModeModal();
-        startTest(selectedSubjectForMode, 'full');
-      });
-    }
-
-    function renderChaptersList(subjectId) {
-      if (!chaptersListContainer) return;
-      chaptersListContainer.innerHTML = '';
-      const subj = subjectsData.find((s) => s.id === subjectId);
-      if (!subj || !subj.chapters) return;
-
-      subj.chapters.forEach((ch, chIdx) => {
-        // Skip chapters that are coming soon or have no questions yet
-        const hasQuestions = !ch.topicKey || questionsData.some((q) => q.subjectId === subjectId && q.topic &&
-          (q.topic.includes(ch.topicKey) || ch.topicKey.includes(q.topic)));
-        if (ch.comingSoon || !hasQuestions) return;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'hsc-chapter-item-btn';
-
-        btn.innerHTML = `
-          <div class="hsc-ch-info">
-            <strong class="hsc-ch-title">${ch.unit}</strong>
-            <span class="hsc-ch-sub">${ch.unitOdia}${ch.weightageMarks ? ` • Weightage: ${ch.weightageMarks} Marks` : ''}</span>
-          </div>
-          <span class="hsc-ch-cta">
-            <span class="hsc-ch-cta-text">Practice</span>
-            <span class="hsc-ch-cta-icon" aria-hidden="true">→</span>
-          </span>
-        `;
-
-        btn.addEventListener('click', () => {
-          closeModeModal();
-          startTest(subjectId, 'chapter', chIdx);
-        });
-
-        chaptersListContainer.appendChild(btn);
-      });
-    }
-
-    // Modal Close
-    btnCloseModal.addEventListener('click', closeTestModal);
-    btnExitModal.addEventListener('click', closeTestModal);
-
-    // Attach Launch Buttons from Page
-    document.querySelectorAll('[data-subject]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const subjId = btn.getAttribute('data-subject') || 'all';
-        openModeModal(subjId);
-      });
-    });
-
-    // "Available now" topic tests
-    document.querySelectorAll('[data-start-topic]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        startTest(btn.getAttribute('data-start-topic'), 'topic', null, {
-          key: btn.getAttribute('data-topic-key'),
-          title: btn.getAttribute('data-topic-title'),
-          minutes: Number(btn.getAttribute('data-minutes')) || 5,
-        });
-      });
-    });
-
-    // Subject-row posters start the test directly (full or chapter)
-    document.querySelectorAll('[data-start-test]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const subjId = btn.getAttribute('data-start-test');
-        const ch = btn.getAttribute('data-chapter');
-        const pace = { minutes: Number(btn.getAttribute('data-minutes')) || 45 };
-        if (ch === null) startTest(subjId, 'full', null, pace);
-        else startTest(subjId, 'chapter', Number(ch), pace);
-      });
-    });
-
-    // Row arrows
-    document.querySelectorAll('.sx-subject').forEach((sec) => {
-      const row = sec.querySelector('.sx-row');
-      const arrows = sec.querySelectorAll('.sx-arrow');
-      if (!row || arrows.length < 2) return;
-      const update = () => {
-        const max = row.scrollWidth - row.clientWidth - 2;
-        arrows[0].disabled = row.scrollLeft <= 2;
-        arrows[1].disabled = row.scrollLeft >= max;
-        sec.classList.toggle('sx-no-scroll', max <= 0);
-      };
-      arrows.forEach((a) => a.addEventListener('click', () => {
+  });
+
+  // Row arrows
+  document.querySelectorAll<HTMLElement>('.sx-subject').forEach((sec) => {
+    const row = sec.querySelector<HTMLElement>('.sx-row');
+    const arrows = sec.querySelectorAll<HTMLButtonElement>('.sx-arrow');
+    if (!row || arrows.length < 2) return;
+    const update = () => {
+      const max = row.scrollWidth - row.clientWidth - 2;
+      arrows[0].disabled = row.scrollLeft <= 2;
+      arrows[1].disabled = row.scrollLeft >= max;
+      sec.classList.toggle('sx-no-scroll', max <= 0);
+    };
+    arrows.forEach((a) =>
+      a.addEventListener('click', () => {
         row.scrollBy({ left: Number(a.dataset.dir) * row.clientWidth * 0.85, behavior: 'smooth' });
-      }));
-      row.addEventListener('scroll', update, { passive: true });
-      window.addEventListener('resize', update);
-      update();
-    });
-  })();
+      })
+    );
+    row.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
 </script>
 
 <style is:global>
   /* Lock background scroll when modal is open */
-  html.modal-open,
-  body.modal-open {
-    overflow: hidden !important;
-    touch-action: none;
-    -webkit-overflow-scrolling: auto;
-  }
 
   /* ── MODE SELECTOR MODAL / BOTTOM SHEET ─────────────── */
-  .hsc-mode-modal:not([open]) {
-    display: none !important;
-  }
-  .hsc-mode-modal[open] {
-    display: flex;
-    flex-direction: column;
-  }
-  .hsc-mode-modal {
-    width: 94vw;
-    max-width: 600px;
-    height: auto;
-    max-height: 85vh;
-    border: none;
-    border-radius: 20px;
-    padding: 0;
-    background: var(--bg);
-    color: var(--ink);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-    overflow: hidden;
-  }
-  .hsc-mode-modal::backdrop {
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(4px);
-  }
-  .hsc-mode-modal .hsc-modal-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    max-height: 85vh;
-    overflow: hidden;
-  }
-  .hsc-mode-modal-body {
-    flex: 1 1 auto;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding-bottom: 32px !important;
-  }
-  .hsc-sheet-handle {
-    display: none;
-    width: 40px;
-    height: 4px;
-    background: var(--rule);
-    border-radius: 2px;
-    margin: 10px auto 2px;
-    flex-shrink: 0;
-  }
+  
   @media (max-width: 768px) {
-    .hsc-mode-modal:not([open]) {
-      display: none !important;
-    }
-    .hsc-mode-modal[open] {
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      top: auto;
-      margin: 0;
-      width: 100vw;
-      max-width: 100vw;
-      height: 85vh;
-      max-height: 85vh;
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-      border-top-left-radius: 24px;
-      border-top-right-radius: 24px;
-      animation: slideUpBottomsheet 0.25s ease-out;
-    }
-    .hsc-mode-modal .hsc-modal-container {
-      height: 100%;
-      max-height: 85vh;
-    }
-    .hsc-sheet-handle {
-      display: block;
-    }
     @keyframes slideUpBottomsheet {
       from { transform: translateY(100%); }
       to { transform: translateY(0); }
     }
   }
-  .hsc-modal-divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 2px 0;
-    color: var(--ink-muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    flex-shrink: 0;
-  }
-  .hsc-modal-divider hr {
-    flex: 1;
-    border: none;
-    border-top: 1px solid var(--rule);
-  }
-  .hsc-chapters-modal-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow: visible;
-    padding-right: 2px;
-    padding-bottom: 24px;
-  }
-  .hsc-full-test-option-btn {
-    flex-shrink: 0;
-    background: var(--brand-light);
-    border: 1px solid var(--brand-mid);
-    border-radius: 12px;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    text-align: left;
-    width: 100%;
-    transition: all 0.2s ease;
-  }
-  .hsc-full-test-option-btn:hover {
-    background: var(--brand);
-    border-color: var(--brand);
-  }
-  .hsc-full-test-option-btn:hover strong,
-  .hsc-full-test-option-btn:hover span {
-    color: #ffffff !important;
-  }
-  .hsc-opt-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .hsc-opt-icon {
-    font-size: 1.6rem;
-    background: #fff;
-    padding: 6px 10px;
-    border-radius: 10px;
-    box-shadow: var(--shadow-sm);
-  }
-  .hsc-full-test-option-btn strong {
-    display: block;
-    font-size: 0.95rem;
-    color: var(--ink);
-  }
-  .hsc-full-test-option-btn span {
-    font-size: 0.78rem;
-    color: var(--ink-soft);
-  }
-  .hsc-opt-cta {
-    font-weight: 700;
-    color: var(--brand);
-    font-size: 0.85rem;
-    white-space: nowrap;
-  }
-  .hsc-chapter-item-btn {
-    background: #ffffff;
-    border: 1px solid var(--rule);
-    border-radius: 10px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    cursor: pointer;
-    text-align: left;
-    width: 100%;
-    transition: all 0.15s ease;
-  }
-  .hsc-chapter-item-btn:hover {
-    border-color: var(--brand);
-    background: #fff5f6;
-  }
-  .hsc-ch-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    min-width: 0;
-  }
-  .hsc-ch-title {
-    font-size: 0.9rem;
-    color: #111827;
-    line-height: 1.35;
-  }
-  .hsc-ch-sub {
-    font-size: 0.78rem;
-    color: #4b5563;
-    line-height: 1.3;
-  }
-  .hsc-ch-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 700;
-    color: #b00020;
-    font-size: 0.85rem;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .hsc-ch-cta-icon {
-    font-size: 1rem;
-    line-height: 1;
-    transition: transform 0.15s ease;
-  }
-  .hsc-chapter-item-btn:hover .hsc-ch-cta-icon {
-    transform: translateX(3px);
-  }
 
   /* On small screens, hide 'Practice' text and keep only the arrow icon */
-  @media (max-width: 480px) {
-    .hsc-ch-cta-text {
-      display: none;
-    }
-    .hsc-ch-cta {
-      width: 28px;
-      height: 28px;
-      border-radius: 999px;
-      background: var(--brand-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .hsc-full-test-option-btn {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .hsc-opt-cta {
-      align-self: flex-end;
-    }
-  }
 
   /* ── ROOT & LAYOUT ──────────────────────────────────── */
   .hsc-page {
@@ -2045,79 +1046,7 @@ const webPageJsonLd = {
     letter-spacing: 0.05em;
   }
 
-  .hsc-substreams {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .hsc-substream-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--ink-muted);
-  }
-
-  .hsc-substream-chip {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--brand-dark);
-    background: var(--brand-light);
-    padding: 2px 8px;
-    border-radius: 999px;
-  }
-
   /* Chapters preview */
-  .hsc-chapters-preview {
-    background: var(--surface-2);
-    border: 1px solid var(--rule);
-    border-radius: 10px;
-    padding: 12px 14px;
-  }
-
-  .hsc-chapters-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 8px;
-  }
-
-  .hsc-view-all-link {
-    font-size: 0.72rem;
-    color: var(--brand);
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .hsc-view-all-link:hover {
-    text-decoration: underline;
-  }
-
-  .hsc-chapter-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .hsc-chapter-list li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.76rem;
-    color: var(--ink-soft);
-    line-height: 1.3;
-  }
-
-  .hsc-chapter-list svg {
-    color: var(--green);
-    flex-shrink: 0;
-  }
 
   /* ── EXAM PATTERN TABLE ─────────────────────────────── */
   .hsc-table-wrapper {
@@ -2614,392 +1543,14 @@ const webPageJsonLd = {
   }
 
   /* ── INTERACTIVE TEST RUNNER MODAL ──────────────────── */
-  .hsc-test-modal:not([open]) {
-    display: none !important;
-  }
-  .hsc-test-modal[open] {
-    display: flex;
-    flex-direction: column;
-  }
-  .hsc-test-modal {
-    width: 96vw;
-    max-width: 1100px;
-    height: 94vh;
-    max-height: 900px;
-    border: none;
-    border-radius: 20px;
-    padding: 0;
-    background: var(--bg);
-    color: var(--ink);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-    overflow: hidden;
-  }
-
-  .hsc-test-modal::backdrop {
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(4px);
-  }
-
-  @media (max-width: 768px) {
-    .hsc-test-modal {
-      width: 100vw;
-      height: 100vh;
-      max-width: 100vw;
-      max-height: 100vh;
-      border-radius: 0;
-    }
-    .hsc-modal-header {
-      padding: 10px 16px;
-      gap: 10px;
-    }
-    .hsc-modal-test-name {
-      font-size: 0.95rem;
-    }
-    .hsc-modal-timer-box {
-      font-size: 0.9rem;
-      padding: 4px 10px;
-    }
-    .hsc-test-main-view {
-      padding: 16px;
-    }
-  }
-
-  @media (max-width: 540px) {
-    .hsc-modal-header-left {
-      gap: 8px;
-    }
-    .hsc-test-badge {
-      display: none;
-    }
-  }
-
-  .hsc-modal-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .hsc-modal-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--rule);
-    padding: 14px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-shrink: 0;
-  }
-
-  .hsc-modal-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .hsc-test-badge {
-    font-size: 0.72rem;
-    font-weight: 800;
-    color: var(--brand);
-    background: var(--brand-light);
-    border: 1px solid var(--brand-mid);
-    padding: 3px 8px;
-    border-radius: 4px;
-  }
-
-  .hsc-modal-test-name {
-    font-size: 1.1rem;
-    color: var(--ink);
-    font-weight: 700;
-  }
-
-  .hsc-modal-timer-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #fff1f2;
-    color: #e11d48;
-    border: 1px solid #fecdd3;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-family: monospace;
-    font-weight: 700;
-    font-size: 1.05rem;
-  }
-
-  .hsc-modal-header-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .hsc-modal-btn-palette {
-    background: var(--surface-2);
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-weight: 600;
-    font-size: 0.82rem;
-    color: var(--ink-soft);
-    cursor: pointer;
-  }
-
-  .hsc-modal-btn-palette:hover {
-    border-color: var(--brand);
-    color: var(--brand);
-  }
-
-  .hsc-modal-btn-close {
-    background: transparent;
-    border: none;
-    font-size: 1.8rem;
-    color: var(--ink-muted);
-    cursor: pointer;
-    line-height: 1;
-    padding: 0 4px;
-  }
-
-  .hsc-modal-btn-close:hover {
-    color: var(--brand);
-  }
-
-  .hsc-modal-body {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .hsc-test-main-view {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-  }
-
-  .hsc-progress-track {
-    height: 4px;
-    background: var(--rule);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-
-  .hsc-progress-fill {
-    height: 100%;
-    background: var(--brand);
-    transition: width 0.3s ease;
-  }
 
   /* Question card */
-  .hsc-question-card {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 16px;
-    padding: 28px;
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 24px;
-    flex: 1;
-  }
-
-  .hsc-q-meta-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .hsc-q-counter {
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--brand);
-  }
-
-  .hsc-q-section-tag {
-    font-size: 0.78rem;
-    background: var(--surface-2);
-    color: var(--ink-soft);
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-weight: 600;
-  }
-
-  .hsc-btn-mark-review {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--ink-soft);
-    background: transparent;
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    padding: 4px 12px;
-    cursor: pointer;
-  }
-
-  .hsc-btn-mark-review.marked {
-    background: #f3e8ff;
-    border-color: #d8b4fe;
-    color: #7c3aed;
-    font-weight: 700;
-  }
-
-  .hsc-q-text-wrap {
-    margin-bottom: 24px;
-  }
-
-  .hsc-q-text {
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--ink);
-    line-height: 1.5;
-    margin-bottom: 8px;
-  }
-
-  .hsc-q-text-odia {
-    font-size: 1.05rem;
-    color: var(--brand-dark);
-    line-height: 1.5;
-    font-weight: 500;
-  }
 
   /* Options Grid */
-  .hsc-options-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .hsc-opt-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: var(--surface-2);
-    border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 14px 18px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .hsc-opt-card:hover {
-    background: #ffffff;
-    border-color: var(--brand-mid);
-  }
-
-  .hsc-opt-card.selected {
-    background: #ffffff;
-    border-color: var(--brand);
-    box-shadow: 0 4px 12px rgba(176, 0, 32, 0.1);
-  }
-
-  .hsc-opt-card input {
-    display: none;
-  }
-
-  .hsc-opt-letter {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.82rem;
-    color: var(--ink);
-    flex-shrink: 0;
-  }
-
-  .hsc-opt-card.selected .hsc-opt-letter {
-    background: var(--brand);
-    border-color: var(--brand);
-    color: #ffffff;
-  }
-
-  .hsc-opt-label {
-    font-size: 0.95rem;
-    color: var(--ink);
-    line-height: 1.4;
-  }
 
   /* Test Footer */
-  .hsc-test-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 16px;
-    gap: 16px;
-  }
-
-  .hsc-footer-left,
-  .hsc-footer-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .hsc-btn-text {
-    background: transparent;
-    border: none;
-    color: var(--ink-muted);
-    font-size: 0.84rem;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-
-  .hsc-btn-text:hover {
-    color: var(--brand);
-  }
-
-  .hsc-btn-submit {
-    background: var(--green);
-    color: #ffffff;
-    border: none;
-    font-weight: 700;
-    font-size: 0.95rem;
-    padding: 12px 24px;
-    border-radius: 999px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(27, 107, 58, 0.25);
-  }
-
-  .hsc-btn-submit:hover {
-    background: #14532d;
-  }
 
   /* Palette Sidebar */
-  .hsc-palette-sidebar {
-    width: 300px;
-    background: var(--surface);
-    border-left: 1px solid var(--rule);
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    overflow-y: auto;
-  }
-
-  .hsc-palette-header {
-    margin-bottom: 16px;
-  }
-
-  .hsc-palette-header h3 {
-    font-size: 1rem;
-    color: var(--ink);
-    margin-bottom: 8px;
-  }
-
-  .hsc-palette-legend {
-    display: flex;
-    gap: 12px;
-    font-size: 0.72rem;
-    color: var(--ink-soft);
-  }
 
   .leg-item {
     display: flex;
@@ -3025,212 +1576,9 @@ const webPageJsonLd = {
     background: #7c3aed;
   }
 
-  .hsc-palette-bubbles {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin-bottom: auto;
-  }
-
-  .hsc-palette-bubble {
-    aspect-ratio: 1;
-    border-radius: 8px;
-    border: 1px solid var(--rule);
-    background: var(--surface-2);
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--ink-soft);
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .hsc-palette-bubble.active {
-    border: 2px solid var(--brand);
-  }
-
-  .hsc-palette-bubble.ans {
-    background: var(--green);
-    color: #ffffff;
-    border-color: var(--green);
-  }
-
-  .hsc-palette-bubble.marked {
-    background: #7c3aed;
-    color: #ffffff;
-    border-color: #7c3aed;
-  }
-
-  .hsc-palette-footer {
-    padding-top: 16px;
-    border-top: 1px solid var(--rule);
-    margin-top: 16px;
-  }
-
-  .hsc-btn-full {
-    width: 100%;
-  }
-
   /* ── RESULT & REVIEW VIEW ───────────────────────────── */
-  .hsc-result-view {
-    flex: 1;
-    overflow-y: auto;
-    padding: 32px;
-  }
-
-  .hsc-scorecard {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 20px;
-    padding: 36px;
-    max-width: 680px;
-    margin: 0 auto 32px;
-    text-align: center;
-    box-shadow: var(--shadow-md);
-  }
-
-  .hsc-score-badge {
-    display: inline-block;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--brand);
-    background: var(--brand-light);
-    border: 1px solid var(--brand-mid);
-    padding: 4px 14px;
-    border-radius: 999px;
-    margin-bottom: 12px;
-  }
-
-  .hsc-score-title {
-    font-size: 1.5rem;
-    color: var(--ink);
-    margin-bottom: 24px;
-  }
-
-  .hsc-score-hero {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 36px;
-    margin-bottom: 28px;
-  }
-
-  .hsc-score-circle {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #fff0f2 0%, #ffe4e6 100%);
-    border: 4px solid var(--brand);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 24px rgba(176, 0, 32, 0.15);
-  }
-
-  .hsc-score-big {
-    font-size: 2.8rem;
-    font-weight: 900;
-    color: var(--brand);
-    line-height: 1;
-    font-family: var(--font-display);
-  }
-
-  .hsc-score-total {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--ink-soft);
-  }
-
-  .hsc-score-details {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    text-align: left;
-  }
-
-  .hsc-score-metric {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    font-size: 0.92rem;
-    border-bottom: 1px dashed var(--rule);
-    padding-bottom: 6px;
-  }
-
-  .hsc-score-metric span {
-    color: var(--ink-soft);
-  }
-
-  .hsc-result-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-  }
 
   /* Review answers */
-  .hsc-review-container {
-    max-width: 860px;
-    margin: 0 auto;
-    padding-top: 24px;
-    border-top: 1px solid var(--rule);
-  }
-
-  .hsc-review-header {
-    margin-bottom: 24px;
-  }
-
-  .hsc-review-header h3 {
-    font-size: 1.3rem;
-    color: var(--ink);
-    margin-bottom: 4px;
-  }
-
-  .hsc-review-header p {
-    color: var(--ink-soft);
-    font-size: 0.9rem;
-  }
-
-  .hsc-review-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .hsc-rev-card {
-    background: var(--surface);
-    border: 1px solid var(--rule);
-    border-radius: 14px;
-    padding: 22px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .hsc-rev-card.rev-correct {
-    border-left: 5px solid var(--green);
-  }
-
-  .hsc-rev-card.rev-wrong {
-    border-left: 5px solid var(--brand);
-  }
-
-  .hsc-rev-num-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--ink-muted);
-    margin-bottom: 10px;
-  }
-
-  .hsc-rev-status-pill {
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-  }
 
   .pill-corr {
     background: var(--green-light);
@@ -3240,35 +1588,6 @@ const webPageJsonLd = {
   .pill-wrn {
     background: var(--brand-light);
     color: var(--brand);
-  }
-
-  .hsc-rev-q {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--ink);
-    margin-bottom: 4px;
-    line-height: 1.45;
-  }
-
-  .hsc-rev-q-odia {
-    font-size: 0.98rem;
-    color: var(--brand-dark);
-    margin-bottom: 14px;
-    line-height: 1.45;
-  }
-
-  .hsc-rev-answers {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-
-  .hsc-ans-box {
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    line-height: 1.4;
   }
 
   .box-green {
@@ -3281,21 +1600,6 @@ const webPageJsonLd = {
     background: var(--brand-light);
     color: var(--brand-dark);
     border: 1px solid var(--brand-mid);
-  }
-
-  .hsc-rev-exp {
-    background: var(--surface-2);
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 0.86rem;
-    color: var(--ink-soft);
-    line-height: 1.5;
-  }
-
-  .hsc-rev-exp strong {
-    color: var(--ink);
-    display: block;
-    margin-bottom: 4px;
   }
 
   .exp-odia {
@@ -3337,30 +1641,6 @@ const webPageJsonLd = {
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
       padding: 16px;
-    }
-
-    .hsc-palette-sidebar {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 10;
-      box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
-      transform: translateX(100%);
-      transition: transform 0.25s ease;
-    }
-
-    .hsc-palette-sidebar.open {
-      transform: translateX(0);
-    }
-
-    .hsc-score-hero {
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .hsc-rev-answers {
-      grid-template-columns: 1fr;
     }
   }
 

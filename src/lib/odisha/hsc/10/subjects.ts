@@ -2,8 +2,8 @@
 // Single source for the Odisha 10th page: filter pills, subject rows (full mock + chapter tests),
 // the syllabus section and the in-page test player (which looks chapters up by index — keep order stable).
 //
-// A test that is not comingSoon but has no matching questions still shows as "Coming soon".
-// comingSoon: true shows the card as "Coming soon" (not clickable). Set to false to open that test.
+// testId: the test in the API (/mocktest/test/{testId}). Cards without a testId show "Coming soon" and do not link.
+// questions / minutes: optional numbers shown on the card.
 // poster: path under /public (the site base is added by the page). If the file is missing,
 //         the card falls back to the subject colour + icon.
 
@@ -12,9 +12,10 @@ export interface Chapter {
   unitOdia: string;
   weightageMarks?: number; // optional: hidden when unknown
   topics: string[];
-  topicKey?: string; // questions whose `topic` contains this belong to the chapter
   poster?: string;
-  comingSoon?: boolean;
+  testId?: number;
+  questions?: number;
+  minutes?: number;
 }
 
 export interface SubjectModule {
@@ -39,7 +40,7 @@ export interface SubjectModule {
   attempts: string;
   rating: string;
   isPopular?: boolean;
-  comingSoon?: boolean;
+  testId?: number; // full subject mock test
   chapters: Chapter[];
 }
 
@@ -70,7 +71,6 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "24.1k",
     "rating": "4.7",
     "isPopular": false,
-    "comingSoon": true,
     "chapters": [
       {
         "unit": "Prose & Poetry",
@@ -83,8 +83,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "The Solitary Reaper (William Wordsworth)",
           "Village Song (Sarojini Naidu)",
           "From the Post Office (A Tiger in the House & The Beggar)"
-        ],
-        "comingSoon": true
+        ]
       },
       {
         "unit": "English Grammar & Vocabulary",
@@ -97,8 +96,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "Active and Passive Voice Transformation",
           "Direct and Indirect Speech (Reported Speech)",
           "Noun Clauses & Relative Clauses"
-        ],
-        "comingSoon": true
+        ]
       }
     ]
   },
@@ -128,7 +126,6 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "31.2k",
     "rating": "4.9",
     "isPopular": true,
-    "comingSoon": true,
     "chapters": [
       {
         "unit": "Sahitya: Padya & Gadya (ପଦ୍ୟ ଓ ଗଦ୍ୟ)",
@@ -142,8 +139,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "ସର୍ବଂସହା ମାଟି - ବିଦ୍ୟୁତ୍ପ୍ରଭା ଦେବୀ",
           "ଜନ୍ମଭୂମି - ଡକ୍ଟର କୃଷ୍ଣଚନ୍ଦ୍ର ପାଣିଗ୍ରାହୀ",
           "କାଠ - ବିଜୟ କୃଷ୍ଣ ମହାନ୍ତି"
-        ],
-        "comingSoon": true
+        ]
       },
       {
         "unit": "Odia Vyakarana (ମାଧ୍ୟମିକ ବ୍ୟାକରଣ)",
@@ -156,8 +152,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "ରୂଢ଼ି ଓ ଲୋକବାଣୀ (Popular Odia Idioms & Proverbs)",
           "ଛନ୍ଦ ଓ ଅଳଙ୍କାର (ଉପମା, ରୂପକ, ଉତ୍ପ୍ରେକ୍ଷା)",
           "ଶବ୍ଦ ବିଧି ଓ ଅଶୁଦ୍ଧି ସଂଶୋଧନ (Spelling & Grammatical Corrections)"
-        ],
-        "comingSoon": true
+        ]
       }
     ]
   },
@@ -188,7 +183,6 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "28.4k",
     "rating": "4.9",
     "isPopular": true,
-    "comingSoon": true,
     "chapters": [
       {
         "unit": "ସରଳ ସହସମୀକରଣ",
@@ -198,8 +192,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "ସରଳ ସହସମୀକରଣ",
           "Linear Simultaneous Equations",
           "ସମୀକରଣ ପ୍ରଣାଳୀ"
-        ],
-        "comingSoon": true
+        ]
       },
       {
         "unit": "ଦ୍ଵିଘାତ ସମୀକରଣ",
@@ -209,8 +202,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "ଦ୍ଵିଘାତ ସମୀକରଣ",
           "Quadratic Equations",
           "ପ୍ରଭେଦକ"
-        ],
-        "comingSoon": true
+        ]
       },
       {
         "unit": "ସମ୍ଭାବ୍ୟତା",
@@ -219,8 +211,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "topics": [
           "ସମ୍ଭାବ୍ୟତା",
           "Probability"
-        ],
-        "comingSoon": true
+        ]
       },
       {
         "unit": "ସମାନ୍ତର ପ୍ରଗତି",
@@ -230,8 +221,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "ସମାନ୍ତର ପ୍ରଗତି",
           "Arithmetic Progression",
           "AP"
-        ],
-        "comingSoon": true
+        ]
       },
       {
         "unit": "ପରିସଂଖ୍ୟାନ",
@@ -241,8 +231,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "ପରିସଂଖ୍ୟାନ",
           "Statistics",
           "ମାଧ୍ୟମାନ"
-        ],
-        "comingSoon": true
+        ]
       },
       {
         "unit": "ସଡ଼କ ସୁରକ୍ଷା ଶିକ୍ଷା",
@@ -251,8 +240,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "topics": [
           "ସଡ଼କ ସୁରକ୍ଷା ଶିକ୍ଷା",
           "Road Safety"
-        ],
-        "comingSoon": true
+        ]
       }
     ]
   },
@@ -280,71 +268,55 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "26.9k",
     "rating": "4.8",
     "isPopular": true,
-    "comingSoon": false,
     "chapters": [
       {
         "unit": "Nutrition",
         "unitOdia": "ପୋଷଣ",
-        "topicKey": "ପୋଷଣ",
         "topics": [
           "ଆଲୋକଶ୍ଳେଷଣ ଓ ହଜମ"
         ],
-        "comingSoon": false
+        "testId": 13
       },
       {
         "unit": "Respiration",
         "unitOdia": "ଶ୍ୱସନ",
-        "topicKey": "ଶ୍ୱସନ",
         "topics": [
           "ବାୟୁ ଉପଜୀବୀ ଓ ଅପଜୀବୀ"
-        ],
-        "comingSoon": false
+        ]
       },
       {
         "unit": "Transportation & Blood Circulation",
         "unitOdia": "ପରିବହନ ଓ ସଞ୍ଚାଳନ",
-        "topicKey": "ପରିବହନ ଓ ସଞ୍ଚାଳନ",
-        "topics": [],
-        "comingSoon": false
+        "topics": []
       },
       {
         "unit": "Excretion",
         "unitOdia": "ରେଚନ",
-        "topicKey": "ରେଚନ",
         "topics": [
           "ବୃକ୍କକ ଓ ନେଫ୍ରନ୍"
-        ],
-        "comingSoon": false
+        ]
       },
       {
         "unit": "Control & Coordination",
         "unitOdia": "ନିୟନ୍ତ୍ରଣ ଓ ସମନ୍ୱୟ",
-        "topicKey": "ନିୟନ୍ତ୍ରଣ ଓ ସମନ୍ୱୟ",
         "topics": [
           "ସ୍ନାୟୁତନ୍ତ୍ର ଓ ହରମୋନ୍"
-        ],
-        "comingSoon": false
+        ]
       },
       {
         "unit": "Reproduction in Plants & Animals",
         "unitOdia": "ପ୍ରଜନନ",
-        "topicKey": "ପ୍ରଜନନ",
-        "topics": [],
-        "comingSoon": false
+        "topics": []
       },
       {
         "unit": "Heredity & Evolution",
         "unitOdia": "ବଂଶାନୁକ୍ରମ ଓ ଜୈବ ବିବର୍ତ୍ତନ",
-        "topicKey": "ବଂଶାନୁକ୍ରମ ଓ ଜୈବ ବିବର୍ତ୍ତନ",
-        "topics": [],
-        "comingSoon": false
+        "topics": []
       },
       {
         "unit": "Environment & Natural Resources",
         "unitOdia": "ଆମ ପରିବେଶ ଓ ପ୍ରାକୃତିକ ସମ୍ପଦ ପରିଚାଳନା",
-        "topicKey": "ଆମ ପରିବେଶ ଓ ପ୍ରାକୃତିକ ସମ୍ପଦ ପରିଚାଳନା",
-        "topics": [],
-        "comingSoon": false
+        "topics": []
       }
     ]
   },
@@ -372,63 +344,46 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "26.9k",
     "rating": "4.8",
     "isPopular": true,
-    "comingSoon": true,
     "chapters": [
       {
         "unit": "Chemical Reactions & Equations",
         "unitOdia": "ରାସାୟନିକ ପ୍ରତିକ୍ରିୟା ଓ ସମୀକରଣ",
-        "topicKey": "ରାସାୟନିକ ପ୍ରତିକ୍ରିୟା ଓ ସମୀକରଣ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Acids, Bases & Salts",
         "unitOdia": "ଅମ୍ଳ, କ୍ଷାରକ ଓ ଲବଣ",
-        "topicKey": "ଅମ୍ଳ, କ୍ଷାରକ ଓ ଲବଣ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Metals & Non-Metals",
         "unitOdia": "ଧାତୁ ଓ ଅଧାତୁ",
-        "topicKey": "ଧାତୁ ଓ ଅଧାତୁ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Carbon & Its Compounds",
         "unitOdia": "କାର୍ବନ ଓ ଏହାର ଯୌଗିକ",
-        "topicKey": "କାର୍ବନ ଓ ଏହାର ଯୌଗିକ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Light: Reflection & Refraction",
         "unitOdia": "ଆଲୋକ: ପ୍ରତିଫଳନ ଓ ପ୍ରତିସରଣ",
-        "topicKey": "ଆଲୋକ: ପ୍ରତିଫଳନ ଓ ପ୍ରତିସରଣ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Human Eye & Colorful World",
         "unitOdia": "ମାନବ ଚକ୍ଷୁ ଓ ବର୍ଣ୍ଣବିଭବ୍",
-        "topicKey": "ମାନବ ଚକ୍ଷୁ ଓ ବର୍ଣ୍ଣବିଭବ୍",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Electricity & Magnetic Effects",
         "unitOdia": "ବିଦ୍ୟୁତ୍ ଓ ବିଦ୍ୟୁତ୍ ଚୁମ୍ବକୀୟ ପ୍ରଭାବ",
-        "topicKey": "ବିଦ୍ୟୁତ୍ ଓ ବିଦ୍ୟୁତ୍ ଚୁମ୍ବକୀୟ ପ୍ରଭାବ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Sources of Energy",
         "unitOdia": "ଶକ୍ତିର ଉତ୍ସ",
-        "topicKey": "ଶକ୍ତିର ଉତ୍ସ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       }
     ]
   },
@@ -456,49 +411,36 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "21.5k",
     "rating": "4.8",
     "isPopular": false,
-    "comingSoon": true,
     "chapters": [
       {
         "unit": "National Movement & Gandhi",
         "unitOdia": "ଭାରତରେ ଜାତୀୟ ଆନ୍ଦୋଳନ ଓ ଗାନ୍ଧୀଜୀ",
-        "topicKey": "ଭାରତରେ ଜାତୀୟ ଆନ୍ଦୋଳନ ଓ ଗାନ୍ଧୀଜୀ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Freedom Struggle in Odisha",
         "unitOdia": "ଓଡ଼ିଶାରେ ଅସହଯୋଗ ଓ ସ୍ୱାଧୀନତା ସଂଗ୍ରାମ",
-        "topicKey": "ଓଡ଼ିଶାରେ ଅସହଯୋଗ ଓ ସ୍ୱାଧୀନତା ସଂଗ୍ରାମ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Post-Independence India",
         "unitOdia": "ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ଭାରତ ଓ ଓଡ଼ିଶାର ବିକାଶ",
-        "topicKey": "ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ଭାରତ ଓ ଓଡ଼ିଶାର ବିକାଶ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Constitution & Rights",
         "unitOdia": "ଭାରତର ସମ୍ବିଧାନ, ମୌଳିକ କର୍ତ୍ତବ୍ୟ ଓ ଅଧିକାର",
-        "topicKey": "ଭାରତର ସମ୍ବିଧାନ, ମୌଳିକ କର୍ତ୍ତବ୍ୟ ଓ ଅଧିକାର",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Elections & Democracy",
         "unitOdia": "ଭାରତୀୟ ଗଣତନ୍ତ୍ର ଓ ନିର୍ବାଚନ ପ୍ରକ୍ରିୟା",
-        "topicKey": "ଭାରତୀୟ ଗଣତନ୍ତ୍ର ଓ ନିର୍ବାଚନ ପ୍ରକ୍ରିୟା",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "India Foreign Policy",
         "unitOdia": "ଭାରତର ବୈଦେଶିକ ନୀତି",
-        "topicKey": "ଭାରତର ବୈଦେଶିକ ନୀତି",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       }
     ]
   },
@@ -526,49 +468,36 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "21.5k",
     "rating": "4.8",
     "isPopular": false,
-    "comingSoon": true,
     "chapters": [
       {
         "unit": "Resources & Conservation",
         "unitOdia": "ସମ୍ବଳ: ବିକାଶ ଓ ସଂରକ୍ଷଣ",
-        "topicKey": "ସମ୍ବଳ: ବିକାଶ ଓ ସଂରକ୍ଷଣ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Forest, Wildlife & Water",
         "unitOdia": "ବନ, ବନ୍ୟପ୍ରାଣୀ ଓ ଜଳ ସମ୍ବଳ",
-        "topicKey": "ବନ, ବନ୍ୟପ୍ରାଣୀ ଓ ଜଳ ସମ୍ବଳ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Agriculture & Minerals",
         "unitOdia": "ଭାରତରେ କୃଷି ଓ ଖଣିଜ ସମ୍ବଳ",
-        "topicKey": "ଭାରତରେ କୃଷି ଓ ଖଣିଜ ସମ୍ବଳ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Energy & Industries",
         "unitOdia": "ଶକ୍ତି ସମ୍ବଳ ଓ ବିନିର୍ମାଣ ଉଦ୍ୟୋଗ",
-        "topicKey": "ଶକ୍ତି ସମ୍ବଳ ଓ ବିନିର୍ମାଣ ଉଦ୍ୟୋଗ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Economic Development & Liberalisation",
         "unitOdia": "ଅର୍ଥନୈତିକ ବିକାଶ ଓ ଉଦାରୀକରଣ",
-        "topicKey": "ଅର୍ଥନୈତିକ ବିକାଶ ଓ ଉଦାରୀକରଣ",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       },
       {
         "unit": "Consumer Awareness",
         "unitOdia": "ଖାଉଟି ସଚେତନତା",
-        "topicKey": "ଖାଉଟି ସଚେତନତା",
-        "topics": [],
-        "comingSoon": true
+        "topics": []
       }
     ]
   },
@@ -596,7 +525,6 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "15.2k",
     "rating": "4.8",
     "isPopular": false,
-    "comingSoon": true,
     "chapters": [
       {
         "unit": "Third Language Hindi (ହିନ୍ଦୀ)",
@@ -610,8 +538,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "हिन्दी व्याकरण: संज्ञा, सर्वनाम, विशेषण, क्रिया",
           "काल ও वाच्य",
           "विलोम शब्द ଓ ପର୍ଯ୍ୟାୟବାଚୀ ଶବ୍ଦ"
-        ],
-        "comingSoon": true
+        ]
       }
     ]
   },
@@ -639,7 +566,6 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "attempts": "14.6k",
     "rating": "4.8",
     "isPopular": false,
-    "comingSoon": true,
     "chapters": [
       {
         "unit": "Third Language Sanskrit (ସଂସ୍କୃତ)",
@@ -654,26 +580,22 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "ଧାତୁରୂପ (ଭୂ, ପଠ୍, ଗମ୍ - ଲଟ୍, ଲୋଟ୍, ଲଙ୍ଗ, ବିଧିଲିଙ୍ଗ, ଲୃଟ୍)",
           "ସନ୍ଧି ଓ ସମାସ",
           "କାରକ ଓ ବିଭକ୍ତି ପ୍ରୟୋଗ"
-        ],
-        "comingSoon": true
+        ]
       }
     ]
   }
 ];
 
 // Tests that are live now — shown in the "Available now" row above the subjects.
-// href set   → the card links to that test page (questions/minutes are shown if you fill them in).
-// href unset → the card opens the in-page player with the questions whose `topic` contains `topicKey`.
+// Each needs a testId; the card links to /mocktest/test/{testId}.
 export interface ActiveTest {
   id: string;
   subjectId: string;
-  chapterIndex: number;
-  topicKey: string;
   title: string;
   titleEn: string;
   subtitle: string;
   poster?: string;
-  href?: string;
+  testId: number;
   questions?: number;
   minutes?: number;
 }
@@ -682,12 +604,10 @@ export const ODISHA_10TH_ACTIVE: ActiveTest[] = [
   {
     id: 'scl-poshana',
     subjectId: 'scl',
-    chapterIndex: 0,
-    topicKey: 'ପୋଷଣ',
     title: 'ପୋଷଣ',
     titleEn: 'Nutrition',
     subtitle: 'ଜୀବ ବିଜ୍ଞାନ (SCL)',
     poster: '/images/odisha-10th/life-science.png',
-    href: '/mocktest/test/13',
+    testId: 13,
   },
 ];
