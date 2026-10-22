@@ -1,0 +1,2169 @@
+---
+import type { Test } from "../lib/types";
+
+interface Props {
+  slug?: string;
+  test?: Test;
+  questionsData?: any[];
+}
+
+const { slug = "11", test, questionsData = [] } = Astro.props;
+
+// Default OSSSC Passages
+const passage1 = `The Odisha Sub-ordinate Staff Selection Commission conducts recruitment for various government posts in the state of Odisha including Revenue Inspector, Assistant Revenue Inspector, Amin, ICDS Supervisor, and Junior Assistant. Candidates appearing for the practical computer skill test must demonstrate proficiency in English typewriting. The minimum qualifying speed required is forty words per minute. Regular practice is essential to achieve the desired speed and high accuracy. Maintain an upright posture, keep your wrists relaxed, and use all ten fingers on the keyboard for efficient typing. Avoid looking at the keyboard while typing and focus on the text displayed on the screen. Speed and precision will improve naturally with consistent daily practice sessions.`;
+
+const passage2 = `Good governance and administrative efficiency rely heavily on clear and timely written communication. As a public servant in the state administration, an officer is required to draft official notifications, letters, and reports accurately. Digital literacy and keyboard skills have become indispensable tools for modern public administration. The computer skill test evaluates not only your typing velocity but also your attention to detail, spelling accuracy, and adherence to punctuation. Candidates should focus on minimizing backspaces and sustaining a consistent cadence throughout the duration of the examination. Consistent focus under timed conditions is the key to qualifying the test.`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title id="page-title">{test?.title ? `${test.title} | Brinto MockTest` : "OSSSC MCQ + Typing Combo Test | Brinto MockTest"}</title>
+    <meta name="robots" content="noindex" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style is:global>
+      :root {
+        --brand: #b00020;
+        --brand-dark: #7b0015;
+        --brand-light: #fff0f2;
+        --brand-mid: #f5c6ce;
+        --combo-purple: #7c3aed;
+        --combo-purple-dark: #5b21b6;
+        --combo-purple-light: #f5f3ff;
+        --purple: #6b21a8;
+        --purple-light: #f3e8ff;
+        --gold: #d4830f;
+        --gold-light: #fef3e2;
+        --green: #1b6b3a;
+        --green-light: #e8f5ee;
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --surface-2: #f1f5f9;
+        --ink: #0f172a;
+        --ink-soft: #475569;
+        --ink-muted: #94a3b8;
+        --rule: #e2e8f0;
+        --font-display: "Source Serif 4", Georgia, serif;
+        --font-body: "Inter", -apple-system, sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+        --radius-pill: 999px;
+      }
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      a { color: inherit; text-decoration: none; }
+      button { cursor: pointer; font-family: inherit; }
+
+      /* ── INSTRUCTION / START MODAL ── */
+      .instr-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: rgba(26, 20, 16, 0.72);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        overscroll-behavior: contain;
+      }
+      .instr-modal {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 620px;
+        max-height: 90vh;
+        overflow-y: hidden;
+        box-shadow: 0 32px 80px rgba(26, 20, 16, 0.28);
+        display: flex;
+        flex-direction: column;
+      }
+      .instr-header {
+        background: var(--ink);
+        color: #fff;
+        padding: 24px 28px 20px;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        flex-shrink: 0;
+      }
+      .instr-exam-name {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 6px;
+      }
+      .instr-test-title {
+        font-size: 1.18rem;
+        font-family: var(--font-display);
+        color: #fff;
+        line-height: 1.25;
+        margin-bottom: 14px;
+      }
+      .instr-meta-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .instr-pill {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: var(--radius-pill);
+      }
+      .instr-body {
+        padding: 22px 28px;
+        overflow-y: auto;
+        flex: 1;
+      }
+      .instr-section-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ink-muted);
+        margin-bottom: 12px;
+      }
+      .instr-rules {
+        list-style: none;
+        margin: 0 0 20px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .instr-rule {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        font-size: 0.88rem;
+        color: var(--ink);
+        line-height: 1.5;
+      }
+      .rule-warn {
+        background: var(--brand-light);
+        border-color: var(--brand-mid);
+      }
+      .rule-info {
+        background: var(--gold-light);
+        border-color: #f6d8a0;
+      }
+      .rule-ok {
+        background: var(--green-light);
+        border-color: #a7d7b8;
+      }
+      .rule-combo {
+        background: var(--combo-purple-light);
+        border-color: #ddd6fe;
+      }
+      .instr-rule-icon {
+        flex-shrink: 0;
+        font-size: 1.1rem;
+        margin-top: 1px;
+      }
+      .instr-rule-text strong {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 1px;
+      }
+      .instr-marking {
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+      .marking-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .mg-item {
+        text-align: center;
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 10px 8px;
+      }
+      .mg-val {
+        font-size: 1.2rem;
+        font-weight: 700;
+        font-family: var(--font-display);
+      }
+      .mg-label {
+        font-size: 0.72rem;
+        color: var(--ink-muted);
+        margin-top: 2px;
+      }
+      .mg-correct .mg-val { color: var(--green); }
+      .mg-wrong .mg-val { color: var(--brand); }
+      .mg-skip .mg-val { color: var(--ink-muted); }
+
+      .instr-footer {
+        padding: 18px 28px 24px;
+        border-top: 1px solid var(--rule);
+        background: var(--surface);
+        flex-shrink: 0;
+        z-index: 10;
+      }
+      .instr-agree {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+        cursor: pointer;
+      }
+      .instr-agree input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-top: 3px;
+        accent-color: var(--brand);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .instr-agree-text {
+        font-size: 0.9rem;
+        color: var(--ink-soft);
+        line-height: 1.5;
+      }
+      .btn-start-test {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        background: var(--brand);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: var(--radius-pill);
+        transition: background 0.15s, opacity 0.15s, transform 0.1s;
+      }
+      .btn-start-test:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .btn-start-test:not(:disabled):hover {
+        background: var(--brand-dark);
+        transform: translateY(-1px);
+      }
+
+      /* ── HEADER ── */
+      .exam-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--surface);
+        border-bottom: 1px solid var(--rule);
+        padding: 0 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        height: 60px;
+        flex-shrink: 0;
+      }
+      .eh-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+      .eh-title {
+        font-weight: 700;
+        font-size: 0.92rem;
+        color: var(--ink);
+      }
+      .eh-badge {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #fff;
+        background: var(--combo-purple);
+        padding: 3px 8px;
+        border-radius: var(--radius-pill);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      /* ── COMBO STEP INDICATORS (NON-CLICKABLE TABS) ── */
+      .combo-tabs {
+        display: flex;
+        background: var(--surface-2);
+        padding: 4px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--rule);
+        gap: 4px;
+        user-select: none;
+      }
+      .combo-step {
+        border: none;
+        background: transparent;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--ink-muted);
+        padding: 6px 14px;
+        border-radius: var(--radius-pill);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: default;
+        pointer-events: none;
+        transition: all 0.2s ease;
+      }
+      .combo-step.active {
+        background: #fff;
+        color: var(--combo-purple-dark);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        font-weight: 700;
+      }
+      .combo-step.completed {
+        background: rgba(27, 107, 58, 0.12);
+        color: var(--green);
+        font-weight: 700;
+      }
+      .combo-step .step-icon {
+        font-size: 0.9rem;
+      }
+      .combo-step .step-short {
+        display: none;
+      }
+      @media (max-width: 640px) {
+        .combo-step .step-full {
+          display: none;
+        }
+        .combo-step .step-short {
+          display: inline;
+        }
+      }
+
+      /* ── HEADER RIGHT ── */
+      .eh-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+      .timer-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 6px 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .timer-box svg { color: var(--ink-muted); }
+      .btn-submit-header {
+        background: var(--brand);
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 8px 18px;
+        border: none;
+        border-radius: var(--radius-pill);
+        transition: background 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-submit-header:hover {
+        background: var(--brand-dark);
+      }
+
+      /* ── PANELS CONTAINER ── */
+      .test-panel {
+        display: none;
+        flex: 1;
+        min-height: 0;
+      }
+      .test-panel.active {
+        display: flex;
+      }
+
+      /* ── MCQ EXAM BODY ── */
+      #mcq-panel {
+        display: none;
+        grid-template-columns: 1fr 300px;
+        flex: 1;
+        min-height: 0;
+      }
+      #mcq-panel.active {
+        display: grid;
+      }
+      .question-panel {
+        padding: 28px 32px 96px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .q-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .q-section-tag {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--brand);
+        background: var(--brand-light);
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+      }
+      .q-progress-text {
+        font-size: 0.82rem;
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+      .q-progress-bar {
+        height: 4px;
+        background: var(--rule);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .q-progress-fill {
+        height: 100%;
+        background: var(--brand);
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
+
+      /* ── QUESTION TYPOGRAPHY (IDENTICAL TO EXAMUI) ── */
+      .q-num {
+        font-size: 0.8rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .q-text {
+        font-size: 1.08rem;
+        color: var(--ink);
+        line-height: 1.7;
+        font-weight: 500;
+        font-family: var(--font-body);
+      }
+
+      /* ── OPTIONS (IDENTICAL TO EXAMUI) ── */
+      .options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .option-btn {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        background: var(--surface);
+        border: 1.5px solid var(--rule);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        font-size: 0.96rem;
+        color: var(--ink);
+        text-align: left;
+        width: 100%;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .option-btn:hover:not(:disabled) {
+        border-color: var(--brand);
+        background: var(--brand-light);
+      }
+      .option-btn.selected {
+        border-color: var(--brand);
+        background: var(--brand-light);
+      }
+      .opt-key {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--surface-2);
+        font-weight: 700;
+        font-size: 0.8rem;
+        border: 1.5px solid var(--rule);
+        color: var(--ink-soft);
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .option-btn.selected .opt-key {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+      }
+      .opt-text {
+        line-height: 1.5;
+        padding-top: 2px;
+      }
+
+      /* Fixed Action Bar at Bottom (Desktop) */
+      .action-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        position: fixed;
+        left: 0;
+        right: 300px;
+        bottom: 0;
+        z-index: 20;
+        padding: 14px 32px;
+        background: var(--surface);
+        border-top: 1px solid var(--rule);
+        box-shadow: 0 -6px 16px rgba(26, 20, 16, 0.05);
+      }
+      .btn-mark {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--purple-light);
+        color: var(--purple);
+        border: 1.5px solid var(--purple-light);
+        border-radius: var(--radius-pill);
+        padding: 8px 16px;
+        font-size: 0.86rem;
+        font-weight: 700;
+        transition: all 0.15s ease;
+      }
+      .btn-mark:hover {
+        border-color: var(--purple);
+      }
+      .btn-mark.marked {
+        background: var(--purple);
+        color: #fff;
+      }
+      .btn-clear {
+        background: none;
+        color: var(--ink-soft);
+        border: 1.5px solid var(--rule);
+        border-radius: var(--radius-pill);
+        padding: 8px 16px;
+        font-size: 0.86rem;
+        font-weight: 600;
+        transition: all 0.15s ease;
+      }
+      .btn-clear:hover {
+        border-color: var(--ink-soft);
+        color: var(--ink);
+      }
+      .nav-row {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+      }
+      .btn-prev,
+      .btn-next {
+        padding: 8px 20px;
+        border-radius: var(--radius-pill);
+        font-size: 0.88rem;
+        font-weight: 700;
+        border: none;
+        transition: background 0.15s ease;
+      }
+      .btn-prev {
+        background: var(--surface-2);
+        color: var(--ink);
+      }
+      .btn-prev:hover {
+        background: var(--rule);
+      }
+      .btn-next {
+        background: var(--brand);
+        color: #fff;
+      }
+      .btn-next:hover {
+        background: var(--brand-dark);
+      }
+
+      /* ── MOBILE CONTROLS (IDENTICAL TO EXAMUI) ── */
+      .palette-toggle {
+        display: none;
+        position: fixed;
+        bottom: 74px;
+        right: 16px;
+        z-index: 30;
+        background: var(--ink);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-pill);
+        padding: 10px 18px;
+        font-size: 0.86rem;
+        font-weight: 700;
+        box-shadow: 0 4px 16px rgba(26, 20, 16, 0.25);
+        align-items: center;
+        gap: 6px;
+      }
+      .mobile-nav-bar {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 30;
+        background: var(--surface);
+        border-top: 1px solid var(--rule);
+        padding: 10px 16px;
+        gap: 8px;
+      }
+
+      /* Sidebar Palette */
+      .sidebar {
+        border-left: 1px solid var(--rule);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sidebar-header {
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid var(--rule);
+        flex-shrink: 0;
+      }
+      .sidebar-header-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .sidebar-header h3 {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--ink-muted);
+        margin: 0;
+      }
+      .sidebar-close-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        cursor: pointer;
+        color: var(--ink-muted);
+        line-height: 1;
+        padding: 4px;
+      }
+      .sidebar-backdrop {
+        display: none;
+      }
+      .section-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .sec-tab {
+        border: 1px solid var(--rule);
+        background: var(--surface-2);
+        font-size: 0.76rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        color: var(--ink-soft);
+      }
+      .sec-tab.active {
+        background: var(--brand);
+        color: #fff;
+        border-color: var(--brand);
+      }
+      .palette-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 18px;
+      }
+      .palette-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      .pq-btn {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+      .pq-btn:hover {
+        transform: scale(1.08);
+      }
+      .pq-btn.current {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+      /* States */
+      .pq-btn.not-visited {
+        background: var(--surface-2);
+        color: var(--ink-soft);
+        border: 1px solid var(--rule);
+      }
+      .pq-btn.not-answered {
+        background: #dc2626;
+        color: #ffffff;
+      }
+      .pq-btn.answered {
+        background: #16a34a;
+        color: #ffffff;
+      }
+      .pq-btn.marked {
+        background: #f3e8ff;
+        color: #6b21a8;
+        border: 1.5px solid #a855f7;
+      }
+      .pq-btn.ans-marked {
+        background: var(--purple);
+        color: #fff;
+      }
+      .legend {
+        padding: 14px 18px;
+        border-top: 1px solid var(--rule);
+        font-size: 0.74rem;
+        background: var(--surface-2);
+      }
+      .legend-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 10px;
+        margin-top: 6px;
+      }
+      .leg-item { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); }
+      .leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+      .ld-nv { background: var(--surface-2); border: 1.5px solid var(--rule); }
+      .ld-na { background: #dc2626; }
+      .ld-an { background: #16a34a; }
+      .ld-mr { background: #6b21a8; }
+
+      /* ── TYPING TEST PANELS ── */
+      .typing-panel-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 20px;
+        width: 100%;
+        min-height: 0;
+      }
+      .tt-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .tt-header-left h2 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin: 0 0 2px;
+      }
+      .tt-header-left p {
+        font-size: 0.85rem;
+        color: var(--ink-soft);
+        margin: 0;
+      }
+      .tt-stats {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .stat-pill {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 6px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 60px;
+      }
+      .stat-val {
+        font-size: 1.15rem;
+        font-weight: 800;
+        line-height: 1.1;
+      }
+      .stat-lbl {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--ink-muted);
+        letter-spacing: 0.05em;
+      }
+      .stat-val.wpm { color: var(--combo-purple); }
+      .stat-val.acc { color: var(--green); }
+      .stat-val.err { color: var(--brand); }
+
+      /* Typing Area */
+      .typing-card {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+        flex: 1;
+        min-height: 380px;
+      }
+      .passage-box {
+        padding: 20px 24px;
+        background: #fafafc;
+        border-bottom: 1.5px solid var(--rule);
+        font-family: var(--font-mono);
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: var(--ink-soft);
+        height: 200px;
+        overflow-y: auto;
+        user-select: none;
+      }
+      .tt-ch { position: relative; }
+      .tt-ch.correct { color: var(--green); font-weight: 600; }
+      .tt-ch.wrong { color: #fff; background: var(--brand); border-radius: 2px; }
+      .tt-ch.current {
+        background: rgba(124, 58, 237, 0.18);
+        border-bottom: 2px solid var(--combo-purple);
+      }
+      .tt-word { display: inline-block; white-space: nowrap; }
+
+      .input-area-wrap {
+        padding: 16px 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .typing-input {
+        flex: 1;
+        width: 100%;
+        border: none;
+        outline: none;
+        font-family: var(--font-mono);
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--ink);
+        resize: none;
+        background: transparent;
+      }
+      .typing-input::placeholder {
+        color: var(--ink-muted);
+        font-size: 0.95rem;
+      }
+      .typing-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 10px;
+        border-top: 1px solid var(--rule);
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .typing-instructions {
+        font-size: 0.8rem;
+        color: var(--ink-muted);
+      }
+      .btn-restart {
+        border: 1px solid var(--rule);
+        background: var(--surface-2);
+        color: var(--ink);
+        padding: 7px 14px;
+        border-radius: var(--radius-pill);
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+      .btn-step-submit {
+        background: var(--brand);
+        color: #fff;
+        border: none;
+        padding: 8px 20px;
+        border-radius: var(--radius-pill);
+        font-size: 0.86rem;
+        font-weight: 700;
+        transition: background 0.15s ease;
+      }
+      .btn-step-submit:hover {
+        background: var(--brand-dark);
+      }
+
+      /* ── CONFIRMATION MODALS ── */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 100;
+        display: none;
+        place-items: center;
+        padding: 16px;
+      }
+      .modal-box {
+        background: #fff;
+        border-radius: var(--radius-md);
+        max-width: 520px;
+        width: 100%;
+        padding: 24px 28px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      }
+      .modal-box h2 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin: 0 0 8px;
+      }
+      .modal-box p {
+        color: var(--ink-soft);
+        font-size: 0.9rem;
+        margin: 0 0 20px;
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .summary-card {
+        background: var(--surface-2);
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--rule);
+      }
+      .summary-card-hd {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--ink-muted);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .summary-card-val {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--ink);
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+      .btn-cancel {
+        padding: 10px 18px;
+        border: 1px solid var(--rule);
+        background: #fff;
+        border-radius: var(--radius-pill);
+        font-weight: 600;
+        font-size: 0.88rem;
+      }
+      .btn-confirm {
+        padding: 10px 24px;
+        border: none;
+        background: var(--brand);
+        color: #fff;
+        border-radius: var(--radius-pill);
+        font-weight: 700;
+        font-size: 0.88rem;
+      }
+
+      /* ── RESPONSIVE STYLES (MATCHING EXAMUI) ── */
+      @media (max-width: 900px) {
+        #mcq-panel {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          position: fixed;
+          right: 0;
+          top: 60px;
+          bottom: 0;
+          width: 290px;
+          transform: translateX(100%);
+          transition: transform 0.25s ease;
+          z-index: 40;
+          box-shadow: -8px 0 24px rgba(26, 20, 16, 0.12);
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+        .sidebar-close-btn {
+          display: block;
+        }
+        .sidebar-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.45);
+          z-index: 39;
+          display: none;
+        }
+        .sidebar-backdrop.open {
+          display: block;
+        }
+        .palette-toggle {
+          display: flex;
+        }
+        .mobile-nav-bar {
+          display: flex;
+        }
+        .question-panel {
+          padding: 20px 16px 120px;
+        }
+        .action-row {
+          display: none;
+        }
+        .eh-title {
+          display: none;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .exam-header {
+          padding: 0 10px;
+          gap: 6px;
+        }
+        .combo-tabs {
+          padding: 2px;
+          gap: 2px;
+        }
+        .combo-step {
+          padding: 4px 8px;
+          font-size: 0.72rem;
+          gap: 3px;
+        }
+        .combo-step .step-label-long {
+          display: none;
+        }
+        .btn-submit-header {
+          padding: 6px 10px;
+          font-size: 0.78rem;
+        }
+        .timer-box {
+          padding: 5px 8px;
+          font-size: 0.84rem;
+        }
+        .tt-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .tt-stats {
+          width: 100%;
+          justify-content: space-between;
+        }
+        .typing-footer {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+        }
+        .btn-step-submit {
+          width: 100%;
+          text-align: center;
+          padding: 10px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .exam-header {
+          padding: 0 8px;
+        }
+        .eh-badge {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ── INSTRUCTION / START MODAL (SHOWN BEFORE START) ── -->
+    <div
+      class="instr-overlay"
+      id="instr-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="instr-title"
+    >
+      <div class="instr-modal">
+        <div class="instr-header">
+          <div class="instr-exam-name" id="instr-exam-name">
+            {test?.exam ? `${test.exam} · Combo Mock Test` : "OSSSC · Combo Mock Test"}
+          </div>
+          <div class="instr-test-title" id="instr-title">
+            {test?.title || "OSSSC Combined Recruitment Mock Test & Typing"}
+          </div>
+          <div class="instr-meta-pills">
+            <span class="instr-pill">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+              <span id="instr-duration">{test?.duration || 120}</span> Minutes
+            </span>
+            <span class="instr-pill">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+              <span id="instr-questions">{test?.questions || 100}</span> MCQ Questions
+            </span>
+            <span class="instr-pill">
+              ⌨️ 2 Typing Tests
+            </span>
+            <span class="instr-pill">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+              <span id="instr-marks">
+                {
+                  test?.total_marks !== undefined
+                    ? test.total_marks
+                    : (test?.questions || 100) * (test?.correct_marks !== undefined ? test.correct_marks : 1)
+                }
+              </span> Marks Total
+            </span>
+            <span
+              class="instr-pill"
+              id="instr-neg-pill"
+              style={
+                test?.wrong_penalty && test.wrong_penalty > 0
+                  ? "background:rgba(176,0,32,0.3)"
+                  : "background:rgba(27,107,58,0.2); color:#1b6b3a;"
+              }
+            >
+              <span id="instr-neg-text">
+                {
+                  test?.wrong_penalty !== undefined
+                    ? test.wrong_penalty > 0
+                      ? `Negative Marking (-${test.wrong_penalty})`
+                      : "No Negative Marking"
+                    : "Negative Marking (-0.25)"
+                }
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div class="instr-body">
+          <div class="instr-section-label">General & Combo Instructions</div>
+          <ul class="instr-rules">
+            <li class="instr-rule rule-combo">
+              <span class="instr-rule-icon">📝</span>
+              <div class="instr-rule-text">
+                <strong>Sequential 3-Stage Exam</strong>
+                This test contains 3 stages in order: <strong>Stage 1: MCQ Test</strong>, <strong>Stage 2: Typing Test 1</strong>, and <strong>Stage 3: Typing Test 2</strong>. Once you submit a stage, you advance to the next stage and cannot change answers in completed stages.
+              </div>
+            </li>
+            <li class="instr-rule rule-warn">
+              <span class="instr-rule-icon">🚫</span>
+              <div class="instr-rule-text">
+                <strong>Do not switch tabs or windows</strong>
+                Switching browser tabs or windows is monitored. Please stay on this tab until your exam is submitted.
+              </div>
+            </li>
+            <li class="instr-rule rule-warn">
+              <span class="instr-rule-icon">🔄</span>
+              <div class="instr-rule-text">
+                <strong>Do not refresh or press Back</strong>
+                Refreshing the page or pressing back ends the active test session.
+              </div>
+            </li>
+            <li class="instr-rule rule-ok">
+              <span class="instr-rule-icon">⌨️</span>
+              <div class="instr-rule-text">
+                <strong>Computer Typing Skill Test (40 WPM Benchmark)</strong>
+                Type the given passage accurately. Words turn green when typed correctly and red if incorrect.
+              </div>
+            </li>
+          </ul>
+
+          <div class="instr-section-label">Marking Scheme</div>
+          <div class="instr-marking">
+            <div style="font-size:0.88rem;color:var(--ink-soft);" id="instr-marking-desc">
+              Each question carries <strong style="color:var(--ink)" id="instr-correct-text">
+                {test?.correct_marks !== undefined ? `${test.correct_marks} mark${test.correct_marks === 1 ? '' : 's'}` : "1 mark"}
+              </strong>. <span id="instr-penalty-desc">
+                {test?.wrong_penalty !== undefined ? (test.wrong_penalty > 0 ? "Wrong answers attract a penalty." : "No penalty for wrong answers.") : "Wrong answers attract -0.25 penalty."}
+              </span>
+            </div>
+            <div class="marking-grid">
+              <div class="mg-item mg-correct">
+                <div class="mg-val" id="instr-mg-correct">
+                  {test?.correct_marks !== undefined ? `+${test.correct_marks}` : "+1"}
+                </div>
+                <div class="mg-label">Correct Answer</div>
+              </div>
+              <div class="mg-item mg-wrong">
+                <div class="mg-val" id="instr-mg-wrong">
+                  {test?.wrong_penalty !== undefined ? (test.wrong_penalty > 0 ? `-${test.wrong_penalty}` : "0") : "-0.25"}
+                </div>
+                <div class="mg-label">Wrong Answer</div>
+              </div>
+              <div class="mg-item mg-skip">
+                <div class="mg-val" id="instr-mg-skip">0</div>
+                <div class="mg-label">Skipped</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="instr-footer">
+          <label class="instr-agree">
+            <input type="checkbox" id="instr-agree-cb" />
+            <span class="instr-agree-text">
+              I have read all instructions carefully and agree to follow all exam rules.
+            </span>
+          </label>
+          <button class="btn-start-test" id="btn-start-test" disabled>
+            Start Test →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXAM HEADER ── -->
+    <header class="exam-header">
+      <div class="eh-left">
+        <a href="/mocktest/osssc" class="eh-title" id="eh-title">OSSSC Combo</a>
+        <span class="eh-badge">MCQ + Typing</span>
+      </div>
+
+      <!-- Combo Step Indicators (Locked: Progression is strictly 1 -> 2 -> 3) -->
+      <nav class="combo-tabs" aria-label="Combo test progress" id="combo-step-nav">
+        <div class="combo-step active" id="step-1">
+          <span class="step-full">MCQ</span>
+          <span class="step-short">MCQ</span>
+        </div>
+        <div class="combo-step" id="step-2">
+          <span class="step-full">Passage 1</span>
+          <span class="step-short">P1</span>
+        </div>
+        <div class="combo-step" id="step-3">
+          <span class="step-full">Passage 2</span>
+          <span class="step-short">P2</span>
+        </div>
+      </nav>
+
+      <div class="eh-right">
+        <div class="timer-box" title="Remaining time">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span id="combo-timer">120:00</span>
+        </div>
+        <button type="button" class="btn-submit-header" id="btn-header-submit">
+          <span>Submit MCQ & Next</span> →
+        </button>
+      </div>
+    </header>
+
+    <!-- ═════════════════════════════════════════════ -->
+    <!-- 1. MCQ TEST PANEL (STAGE 1)                   -->
+    <!-- ═════════════════════════════════════════════ -->
+    <main id="mcq-panel" class="test-panel active">
+      <div class="question-panel">
+        <div class="q-header">
+          <span class="q-section-tag" id="q-section-tag">Section</span>
+          <span class="q-progress-text" id="q-progress-text">Question 1 of 100</span>
+        </div>
+        <div class="q-progress-bar">
+          <div class="q-progress-fill" id="q-progress-fill" style="width: 1%;"></div>
+        </div>
+
+        <div>
+          <div class="q-num" id="q-num">Question 1</div>
+          <div class="q-text" id="q-text">Click "Start Test" above to begin...</div>
+        </div>
+
+        <div class="options-container" id="options-container">
+          <!-- Dynamic options will be rendered here -->
+        </div>
+
+        <!-- Action Row (Desktop) -->
+        <div class="action-row">
+          <button type="button" class="btn-mark" id="btn-mark">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            Mark for Review
+          </button>
+          <button type="button" class="btn-clear" id="btn-clear">Clear Response</button>
+          <div class="nav-row">
+            <button type="button" class="btn-prev" id="btn-prev">← Prev</button>
+            <button type="button" class="btn-next" id="btn-next">Save & Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backdrop for mobile slide-in sidebar -->
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+      <!-- Question Palette Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-header-top">
+            <h3>Question Palette</h3>
+            <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close palette">&times;</button>
+          </div>
+          <div class="section-tabs" id="palette-sections">
+            <button class="sec-tab active" data-sec="all">All</button>
+          </div>
+        </div>
+        <div class="palette-scroll">
+          <div class="palette-grid" id="palette-grid">
+            <!-- Palette numbers populated dynamically -->
+          </div>
+        </div>
+        <div class="legend">
+          <strong>Legend</strong>
+          <div class="legend-grid">
+            <div class="leg-item"><div class="leg-dot ld-nv"></div>Not Visited</div>
+            <div class="leg-item"><div class="leg-dot ld-na"></div>Not Answered</div>
+            <div class="leg-item"><div class="leg-dot ld-an"></div>Answered</div>
+            <div class="leg-item"><div class="leg-dot ld-mr"></div>Marked</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Mobile Floating Palette Toggle -->
+      <button class="palette-toggle" id="palette-toggle" aria-label="Toggle question palette">
+        📋 Palette
+      </button>
+
+      <!-- Mobile Fixed Navigation Bar -->
+      <div class="mobile-nav-bar" id="mobile-nav-bar">
+        <button class="btn-prev" id="btn-prev-mob" style="flex:1">← Prev</button>
+        <button class="btn-mark" id="btn-mark-mob" style="flex:1;justify-content:center">★ Review</button>
+        <button class="btn-next" id="btn-next-mob" style="flex:1">Save & Next →</button>
+      </div>
+    </main>
+
+    <!-- ═════════════════════════════════════════════ -->
+    <!-- 2. TYPING TEST 1 PANEL (STAGE 2)              -->
+    <!-- ═════════════════════════════════════════════ -->
+    <section id="typing-panel-1" class="test-panel">
+      <div class="typing-panel-content">
+        <div class="tt-header">
+          <div class="tt-header-left">
+            <h2>Stage 2 · Typing Test 1 (General & Office Norms)</h2>
+            <p>OSSSC Standard English Typing · 40 WPM Benchmark</p>
+          </div>
+          <div class="tt-stats">
+            <div class="stat-pill">
+              <span class="stat-val wpm" id="tt1-wpm">0</span>
+              <span class="stat-lbl">WPM</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val acc" id="tt1-acc">100%</span>
+              <span class="stat-lbl">Accuracy</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val err" id="tt1-errors">0</span>
+              <span class="stat-lbl">Errors</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="typing-card">
+          <div class="passage-box" id="tt1-passage" data-passage={passage1} data-passage-id="1"></div>
+          <div class="input-area-wrap">
+            <textarea
+              class="typing-input"
+              id="tt1-input"
+              placeholder="Click here and begin typing the passage above..."
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+            ></textarea>
+            <div class="typing-footer">
+              <div style="display:flex;gap:10px;align-items:center;">
+                <span class="typing-instructions">Type each word carefully. Words turn green when typed correctly.</span>
+                <button type="button" class="btn-restart" id="tt1-reset">Reset Passage</button>
+              </div>
+              <button type="button" class="btn-step-submit" id="tt1-submit-step">
+                Submit Typing 1 & Proceed to Test 2 →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════ -->
+    <!-- 3. TYPING TEST 2 PANEL (STAGE 3)              -->
+    <!-- ═════════════════════════════════════════════ -->
+    <section id="typing-panel-2" class="test-panel">
+      <div class="typing-panel-content">
+        <div class="tt-header">
+          <div class="tt-header-left">
+            <h2>Stage 3 · Typing Test 2 (Administrative Drafting)</h2>
+            <p>OSSSC Official Communication & Accuracy Test</p>
+          </div>
+          <div class="tt-stats">
+            <div class="stat-pill">
+              <span class="stat-val wpm" id="tt2-wpm">0</span>
+              <span class="stat-lbl">WPM</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val acc" id="tt2-acc">100%</span>
+              <span class="stat-lbl">Accuracy</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val err" id="tt2-errors">0</span>
+              <span class="stat-lbl">Errors</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="typing-card">
+          <div class="passage-box" id="tt2-passage" data-passage={passage2} data-passage-id="2"></div>
+          <div class="input-area-wrap">
+            <textarea
+              class="typing-input"
+              id="tt2-input"
+              placeholder="Click here and begin typing the administrative passage above..."
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+            ></textarea>
+            <div class="typing-footer">
+              <div style="display:flex;gap:10px;align-items:center;">
+                <span class="typing-instructions">Maintain high accuracy and consistent rhythm under timed conditions.</span>
+                <button type="button" class="btn-restart" id="tt2-reset">Reset Passage</button>
+              </div>
+              <button type="button" class="btn-step-submit" id="tt2-submit-step">
+                Final Submit Combo Test
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CONFIRMATION MODAL (1->2, 2->3, and Final) ── -->
+    <div class="modal-backdrop" id="combo-modal">
+      <div class="modal-box">
+        <h2 id="modal-title">Submit Section 1?</h2>
+        <p id="modal-desc">Review your progress before advancing to the next section.</p>
+        
+        <div class="summary-grid" id="modal-summary-grid">
+          <div class="summary-card" id="mcard-mcq-ans">
+            <div class="summary-card-hd">MCQ Answered</div>
+            <div class="summary-card-val" id="sum-mcq-ans">0 / 0</div>
+          </div>
+          <div class="summary-card" id="mcard-mcq-marked">
+            <div class="summary-card-hd">MCQ Marked</div>
+            <div class="summary-card-val" id="sum-mcq-marked">0</div>
+          </div>
+          <div class="summary-card" id="mcard-tt1" style="display:none;">
+            <div class="summary-card-hd">Typing Test 1 Speed</div>
+            <div class="summary-card-val" id="sum-tt1">0 WPM (100%)</div>
+          </div>
+          <div class="summary-card" id="mcard-tt2" style="display:none;">
+            <div class="summary-card-hd">Typing Test 2 Speed</div>
+            <div class="summary-card-val" id="sum-tt2">0 WPM (100%)</div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="btn-modal-cancel">Continue Current Section</button>
+          <button type="button" class="btn-confirm" id="btn-modal-confirm">Submit & Proceed →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CLIENT SCRIPT ── -->
+    <script define:vars={{ testIdRaw: slug }}>
+      (() => {
+        // ── SEQUENTIAL STAGE MANAGEMENT (1 -> submit -> 2 -> submit -> 3 -> final submit) ──
+        let currentStage = 1; // 1 = MCQ, 2 = Typing 1, 3 = Typing 2
+
+        const step1 = document.getElementById("step-1");
+        const step2 = document.getElementById("step-2");
+        const step3 = document.getElementById("step-3");
+
+        const panel1 = document.getElementById("mcq-panel");
+        const panel2 = document.getElementById("typing-panel-1");
+        const panel3 = document.getElementById("typing-panel-2");
+
+        const btnHeaderSubmit = document.getElementById("btn-header-submit");
+        const comboModal = document.getElementById("combo-modal");
+        const modalTitle = document.getElementById("modal-title");
+        const modalDesc = document.getElementById("modal-desc");
+        const btnModalCancel = document.getElementById("btn-modal-cancel");
+        const btnModalConfirm = document.getElementById("btn-modal-confirm");
+
+        // ── INSTRUCTION / START TEST MODAL ──
+        const instrOverlay = document.getElementById("instr-overlay");
+        const instrCb = document.getElementById("instr-agree-cb");
+        const btnStart = document.getElementById("btn-start-test");
+
+        // Pre-fetch test details to populate the start modal on load
+        const parsedId = parseInt(testIdRaw, 10) || 11;
+        fetch(`https://brintoapi.brinto.in/api/mocktests/${parsedId}/details`, {
+          headers: { "Accept": "*/*" }
+        })
+          .then((r) => r.json())
+          .then((json) => {
+            if (json?.success && json?.data) {
+              const d = json.data;
+              if (d.title) {
+                const elTitle = document.getElementById("instr-title");
+                if (elTitle) elTitle.textContent = d.title;
+                const ehTitle = document.getElementById("eh-title");
+                if (ehTitle) ehTitle.textContent = d.title;
+                document.title = `${d.title} | Brinto MockTest`;
+              }
+              if (d.exam) {
+                const elExam = document.getElementById("instr-exam-name");
+                if (elExam) elExam.textContent = `${d.exam} · Combo Test`;
+              }
+              if (d.duration) {
+                const elDur = document.getElementById("instr-duration");
+                if (elDur) elDur.textContent = d.duration;
+              }
+              const qCount = Array.isArray(d.questions) ? d.questions.length : (d.questions || 100);
+              const elQs = document.getElementById("instr-questions");
+              if (elQs) elQs.textContent = qCount;
+
+              const cMarks = d.correct_marks !== undefined ? d.correct_marks : 1;
+              const wPenalty = d.wrong_penalty !== undefined ? d.wrong_penalty : 0.25;
+              const tMarks = d.total_marks !== undefined ? d.total_marks : qCount * cMarks;
+
+              const elMarks = document.getElementById("instr-marks");
+              if (elMarks) elMarks.textContent = tMarks;
+
+              const elMgC = document.getElementById("instr-mg-correct");
+              if (elMgC) elMgC.textContent = `+${cMarks}`;
+
+              const elMgW = document.getElementById("instr-mg-wrong");
+              if (elMgW) elMgW.textContent = wPenalty > 0 ? `-${wPenalty}` : "0";
+
+              const elCorrectText = document.getElementById("instr-correct-text");
+              if (elCorrectText) elCorrectText.textContent = `${cMarks} mark${cMarks === 1 ? '' : 's'}`;
+
+              const elPenaltyDesc = document.getElementById("instr-penalty-desc");
+              if (elPenaltyDesc) elPenaltyDesc.textContent = wPenalty > 0 ? `Wrong answers attract a -${wPenalty} penalty.` : "No penalty for wrong answers.";
+            }
+          })
+          .catch((e) => console.warn("Failed to load test details:", e));
+
+        instrCb.addEventListener("change", () => {
+          btnStart.disabled = !instrCb.checked;
+        });
+
+        btnStart.addEventListener("click", async () => {
+          btnStart.disabled = true;
+          btnStart.textContent = "Starting Test...";
+
+          try {
+            await initMCQ();
+
+            // Animate out instruction overlay
+            instrOverlay.style.transition = "opacity 0.3s";
+            instrOverlay.style.opacity = "0";
+            setTimeout(() => {
+              instrOverlay.style.display = "none";
+            }, 300);
+
+            startTimer();
+          } catch (err) {
+            console.error("Error starting test:", err);
+            alert("Unable to start test session: " + (err.message || "Network error. Please try again."));
+            btnStart.disabled = !instrCb.checked;
+            btnStart.textContent = "Start Test →";
+          }
+        });
+
+        // Overall combo timer (120 mins)
+        let totalSeconds = 120 * 60;
+        let timerInterval = null;
+        const timerEl = document.getElementById("combo-timer");
+
+        function startTimer() {
+          timerInterval = setInterval(() => {
+            if (totalSeconds <= 0) {
+              clearInterval(timerInterval);
+              timerEl.textContent = "00:00";
+              alert("Time is up! Submitting your full combo test.");
+              performFinalSubmit();
+              return;
+            }
+            totalSeconds--;
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            timerEl.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+          }, 1000);
+        }
+
+        function updateHeaderButton() {
+          if (currentStage === 1) {
+            btnHeaderSubmit.innerHTML = `<span>Submit MCQ & Next</span> →`;
+          } else if (currentStage === 2) {
+            btnHeaderSubmit.innerHTML = `<span>Submit Typing 1 & Next</span> →`;
+          } else if (currentStage === 3) {
+            btnHeaderSubmit.innerHTML = `<span>Final Submit Combo</span>`;
+          }
+        }
+
+        // Open step modal based on current stage
+        function requestAdvanceStage() {
+          const answeredCount = Object.keys(answers).length;
+          const markedCount = marked.size;
+          const s1 = tt1.getStats();
+          const s2 = tt2.getStats();
+
+          document.getElementById("sum-mcq-ans").textContent = `${answeredCount} / ${questions.length}`;
+          document.getElementById("sum-mcq-marked").textContent = String(markedCount);
+          document.getElementById("sum-tt1").textContent = `${s1.wpm} WPM (${s1.acc})`;
+          document.getElementById("sum-tt2").textContent = `${s2.wpm} WPM (${s2.acc})`;
+
+          const cardMcqAns = document.getElementById("mcard-mcq-ans");
+          const cardMcqMark = document.getElementById("mcard-mcq-marked");
+          const cardTt1 = document.getElementById("mcard-tt1");
+          const cardTt2 = document.getElementById("mcard-tt2");
+
+          if (currentStage === 1) {
+            modalTitle.textContent = "Submit Section 1 (MCQ Test)?";
+            modalDesc.textContent = "You have answered " + answeredCount + " of " + questions.length + " questions. Once submitted, you will advance to Typing Test 1 and cannot return to the MCQ section.";
+            cardMcqAns.style.display = "block";
+            cardMcqMark.style.display = "block";
+            cardTt1.style.display = "none";
+            cardTt2.style.display = "none";
+            btnModalConfirm.textContent = "Submit & Proceed to Typing 1 →";
+          } else if (currentStage === 2) {
+            modalTitle.textContent = "Submit Section 2 (Typing Test 1)?";
+            modalDesc.textContent = "Your typing speed is " + s1.wpm + " WPM with " + s1.acc + " accuracy. Once submitted, you will proceed to Typing Test 2.";
+            cardMcqAns.style.display = "block";
+            cardMcqMark.style.display = "none";
+            cardTt1.style.display = "block";
+            cardTt2.style.display = "none";
+            btnModalConfirm.textContent = "Submit & Proceed to Typing 2 →";
+          } else if (currentStage === 3) {
+            modalTitle.textContent = "Final Submit OSSSC Combo Test?";
+            modalDesc.textContent = "Review your overall performance across MCQ and both Typing tests before final submission.";
+            cardMcqAns.style.display = "block";
+            cardMcqMark.style.display = "block";
+            cardTt1.style.display = "block";
+            cardTt2.style.display = "block";
+            btnModalConfirm.textContent = "Confirm Final Submission";
+          }
+
+          comboModal.style.display = "grid";
+        }
+
+        btnHeaderSubmit.addEventListener("click", requestAdvanceStage);
+        btnModalCancel.addEventListener("click", () => {
+          comboModal.style.display = "none";
+        });
+
+        btnModalConfirm.addEventListener("click", () => {
+          comboModal.style.display = "none";
+
+          if (currentStage === 1) {
+            // Move 1 -> 2
+            currentStage = 2;
+            step1.className = "combo-step completed";
+            step1.innerHTML = `<span class="step-full">MCQ</span><span class="step-short">MCQ</span>`;
+
+            step2.className = "combo-step active";
+            step2.innerHTML = `<span class="step-full">Passage 1</span><span class="step-short">P1</span>`;
+
+            panel1.classList.remove("active");
+            panel2.classList.add("active");
+
+            // Hide mobile MCQ navigation bar
+            const mobNav = document.getElementById("mobile-nav-bar");
+            if (mobNav) mobNav.style.display = "none";
+            const palToggle = document.getElementById("palette-toggle");
+            if (palToggle) palToggle.style.display = "none";
+
+            updateHeaderButton();
+            document.getElementById("tt1-input")?.focus();
+          } else if (currentStage === 2) {
+            // Move 2 -> 3
+            currentStage = 3;
+            step2.className = "combo-step completed";
+            step2.innerHTML = `<span class="step-full">Passage 1</span><span class="step-short">P1</span>`;
+
+            step3.className = "combo-step active";
+            step3.innerHTML = `<span class="step-full">Passage 2</span><span class="step-short">P2</span>`;
+
+            panel2.classList.remove("active");
+            panel3.classList.add("active");
+
+            updateHeaderButton();
+            document.getElementById("tt2-input")?.focus();
+          } else if (currentStage === 3) {
+            // Final submit
+            performFinalSubmit();
+          }
+        });
+
+        document.getElementById("tt1-submit-step")?.addEventListener("click", requestAdvanceStage);
+        document.getElementById("tt2-submit-step")?.addEventListener("click", requestAdvanceStage);
+
+        // ── MOBILE SIDEBAR PALETTE CONTROLS ──
+        const sidebar = document.getElementById("sidebar");
+        const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+        const paletteToggle = document.getElementById("palette-toggle");
+        const sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+
+        function closeSidebarMob() {
+          if (sidebar) sidebar.classList.remove("open");
+          if (sidebarBackdrop) sidebarBackdrop.classList.remove("open");
+        }
+
+        paletteToggle?.addEventListener("click", () => {
+          sidebar?.classList.add("open");
+          sidebarBackdrop?.classList.add("open");
+        });
+
+        sidebarCloseBtn?.addEventListener("click", closeSidebarMob);
+        sidebarBackdrop?.addEventListener("click", closeSidebarMob);
+
+        // ── MCQ ENGINE & API INTEGRATION ──
+        let questions = [];
+        let currentIndex = 0;
+        let answers = {};
+        let marked = new Set();
+        let visited = new Set();
+        let sessionId = null;
+        let startTime = Date.now();
+
+        const qNum = document.getElementById("q-num");
+        const qText = document.getElementById("q-text");
+        const optionsContainer = document.getElementById("options-container");
+        const qSectionTag = document.getElementById("q-section-tag");
+        const qProgressText = document.getElementById("q-progress-text");
+        const qProgressFill = document.getElementById("q-progress-fill");
+
+        // Action row buttons (desktop)
+        const btnPrev = document.getElementById("btn-prev");
+        const btnNext = document.getElementById("btn-next");
+        const btnMark = document.getElementById("btn-mark");
+        const btnClear = document.getElementById("btn-clear");
+
+        // Mobile nav bar buttons
+        const btnPrevMob = document.getElementById("btn-prev-mob");
+        const btnNextMob = document.getElementById("btn-next-mob");
+        const btnMarkMob = document.getElementById("btn-mark-mob");
+
+        const paletteGrid = document.getElementById("palette-grid");
+
+        async function initMCQ() {
+          const token = localStorage.getItem("brinto_token") || "";
+          const guestId = localStorage.getItem("brinto_guest_id") || "";
+
+          // Step 1: Create session via POST /api/mocktests/sessions
+          const sessRes = await fetch("https://brintoapi.brinto.in/api/mocktests/sessions", {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "X-Guest-Id": guestId,
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ testId: parsedId }),
+          });
+          const sessData = await sessRes.json();
+          if (sessData?.success && sessData?.data?.id) {
+            sessionId = sessData.data.id;
+          }
+
+          // Step 2: Fetch questions using session_id
+          const qUrl = sessionId
+            ? `https://brintoapi.brinto.in/api/mocktests/${parsedId}?session_id=${sessionId}`
+            : `https://brintoapi.brinto.in/api/mocktests/${parsedId}`;
+          const qRes = await fetch(qUrl, {
+            headers: {
+              Accept: "*/*",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          });
+          const qData = await qRes.json();
+          if (qData?.success && Array.isArray(qData?.data?.questions) && qData.data.questions.length > 0) {
+            const raw = qData.data.questions;
+            // Properly extract question text and options format matching ExamUI
+            questions = raw.map((q) => ({
+              ...q,
+              text: q.text || q.question || q.title || "Question",
+              optionsObjects: Array.isArray(q.options) ? q.options : [],
+              options: Array.isArray(q.options)
+                ? q.options.map((opt) => (typeof opt === "object" && opt !== null ? opt.text : opt))
+                : []
+            }));
+
+            if (qData.data.duration) {
+              totalSeconds = qData.data.duration * 60;
+            }
+          } else {
+            // High quality fallback questions if API is unavailable
+            questions = [
+              {
+                id: 1,
+                text: "In which year was the Odisha Sub-ordinate Staff Selection Commission (OSSSC) established?",
+                options: ["2010", "2012", "2015", "2018"],
+                optionsObjects: [{ id: "opt-1", text: "2010" }, { id: "opt-2", text: "2012" }, { id: "opt-3", text: "2015" }, { id: "opt-4", text: "2018" }],
+                section: "General Awareness"
+              },
+              {
+                id: 2,
+                text: "What is the standard minimum qualifying speed in the OSSSC English Typing Test?",
+                options: ["30 WPM", "35 WPM", "40 WPM", "45 WPM"],
+                optionsObjects: [{ id: "opt-5", text: "30 WPM" }, { id: "opt-6", text: "35 WPM" }, { id: "opt-7", text: "40 WPM" }, { id: "opt-8", text: "45 WPM" }],
+                section: "Computer Skill"
+              },
+              {
+                id: 3,
+                text: "Which shortcut key is commonly used to undo the last action in Microsoft Word?",
+                options: ["Ctrl + U", "Ctrl + Y", "Ctrl + Z", "Ctrl + X"],
+                optionsObjects: [{ id: "opt-9", text: "Ctrl + U" }, { id: "opt-10", text: "Ctrl + Y" }, { id: "opt-11", text: "Ctrl + Z" }, { id: "opt-12", text: "Ctrl + X" }],
+                section: "Computer Skill"
+              },
+              {
+                id: 4,
+                text: "Who is the head of the Revenue Administration in a district in Odisha?",
+                options: ["Collector and District Magistrate", "Sub-Collector", "Tahasildar", "Revenue Inspector"],
+                optionsObjects: [{ id: "opt-13", text: "Collector and District Magistrate" }, { id: "opt-14", text: "Sub-Collector" }, { id: "opt-15", text: "Tahasildar" }, { id: "opt-16", text: "Revenue Inspector" }],
+                section: "General Awareness"
+              },
+              {
+                id: 5,
+                text: "Which river in Odisha is also known as the 'Sorrow of Odisha' historically?",
+                options: ["Baitarani", "Brahmani", "Mahanadi", "Rushikulya"],
+                optionsObjects: [{ id: "opt-17", text: "Baitarani" }, { id: "opt-18", text: "Brahmani" }, { id: "opt-19", text: "Mahanadi" }, { id: "opt-20", text: "Rushikulya" }],
+                section: "Odisha GK"
+              }
+            ];
+          }
+
+          renderPalette();
+          renderQuestion(0);
+        }
+
+        function getQState(i) {
+          const isAnswered = answers[i] !== undefined;
+          const isMarked = marked.has(i);
+          if (!visited.has(i)) return "not-visited";
+          if (isAnswered && isMarked) return "ans-marked";
+          if (isMarked) return "marked";
+          if (isAnswered) return "answered";
+          return "not-answered";
+        }
+
+        function renderPalette() {
+          paletteGrid.innerHTML = "";
+          questions.forEach((_, idx) => {
+            const btn = document.createElement("button");
+            btn.className = `pq-btn ${getQState(idx)}`;
+            if (idx === currentIndex) btn.classList.add("current");
+            btn.textContent = String(idx + 1);
+            btn.setAttribute("aria-label", `Question ${idx + 1}`);
+            btn.addEventListener("click", () => {
+              renderQuestion(idx);
+              closeSidebarMob();
+            });
+            paletteGrid.appendChild(btn);
+          });
+        }
+
+        function updatePaletteButton(idx) {
+          const btn = paletteGrid.children[idx];
+          if (!btn) return;
+          btn.className = `pq-btn ${getQState(idx)}`;
+          if (idx === currentIndex) btn.classList.add("current");
+        }
+
+        function renderQuestion(idx) {
+          currentIndex = idx;
+          visited.add(idx);
+          const q = questions[idx];
+          if (!q) return;
+
+          qNum.textContent = `Question ${idx + 1}`;
+          // Correctly read question text from API response (q.text)
+          qText.textContent = q.text || q.question || q.title || "Question text unavailable";
+          qSectionTag.textContent = q.section || "General";
+          qProgressText.textContent = `Question ${idx + 1} of ${questions.length}`;
+          qProgressFill.style.width = `${((idx + 1) / questions.length) * 100}%`;
+
+          // If on the last question, change next button text
+          const nextText = idx === questions.length - 1 ? "Submit MCQ & Next →" : "Save & Next →";
+          if (btnNext) btnNext.textContent = nextText;
+          if (btnNextMob) btnNextMob.textContent = nextText;
+
+          // Update mark button state on desktop and mobile
+          const isMarked = marked.has(idx);
+          [btnMark, btnMarkMob].forEach((b) => {
+            if (!b) return;
+            if (isMarked) {
+              b.classList.add("marked");
+            } else {
+              b.classList.remove("marked");
+            }
+          });
+
+          optionsContainer.innerHTML = "";
+          const opts = Array.isArray(q.options) ? q.options : [];
+          const keys = ["A", "B", "C", "D", "E", "F"];
+
+          opts.forEach((opt, oIdx) => {
+            const optText = typeof opt === "object" && opt !== null ? (opt.text || opt.title || "") : String(opt);
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            if (answers[idx] === oIdx) btn.classList.add("selected");
+
+            const key = document.createElement("span");
+            key.className = "opt-key";
+            key.textContent = keys[oIdx] || String(oIdx + 1);
+
+            const label = document.createElement("span");
+            label.className = "opt-text";
+            label.textContent = optText;
+
+            btn.appendChild(key);
+            btn.appendChild(label);
+
+            btn.addEventListener("click", () => {
+              answers[idx] = oIdx;
+              renderQuestion(idx);
+            });
+            optionsContainer.appendChild(btn);
+          });
+
+          for (let i = 0; i < questions.length; i++) {
+            updatePaletteButton(i);
+          }
+        }
+
+        function handlePrev() {
+          if (currentIndex > 0) renderQuestion(currentIndex - 1);
+        }
+
+        function handleNext() {
+          if (currentIndex < questions.length - 1) {
+            renderQuestion(currentIndex + 1);
+          } else {
+            requestAdvanceStage();
+          }
+        }
+
+        function handleMark() {
+          if (marked.has(currentIndex)) {
+            marked.delete(currentIndex);
+          } else {
+            marked.add(currentIndex);
+          }
+          updatePaletteButton(currentIndex);
+          const isMarked = marked.has(currentIndex);
+          [btnMark, btnMarkMob].forEach((b) => {
+            if (!b) return;
+            if (isMarked) b.classList.add("marked");
+            else b.classList.remove("marked");
+          });
+        }
+
+        btnPrev?.addEventListener("click", handlePrev);
+        btnPrevMob?.addEventListener("click", handlePrev);
+
+        btnNext?.addEventListener("click", handleNext);
+        btnNextMob?.addEventListener("click", handleNext);
+
+        btnMark?.addEventListener("click", handleMark);
+        btnMarkMob?.addEventListener("click", handleMark);
+
+        btnClear?.addEventListener("click", () => {
+          delete answers[currentIndex];
+          renderQuestion(currentIndex);
+        });
+
+        // ═════════════════════════════════════════════
+        // TYPING TEST ENGINE (TYPING TEST 1 & 2)
+        // ═════════════════════════════════════════════
+        function setupTypingTest(prefix) {
+          const passageEl = document.getElementById(`${prefix}-passage`);
+          const inputEl = document.getElementById(`${prefix}-input`);
+          const wpmEl = document.getElementById(`${prefix}-wpm`);
+          const accEl = document.getElementById(`${prefix}-acc`);
+          const errEl = document.getElementById(`${prefix}-errors`);
+          const resetBtn = document.getElementById(`${prefix}-reset`);
+
+          let passage = passageEl?.dataset.passage || "";
+          let charSpans = [];
+          let startTime = 0;
+
+          function buildSpans() {
+            passageEl.innerHTML = "";
+            charSpans = [];
+            const tokens = passage.match(/\S+|\s+/g) || [];
+            tokens.forEach((token) => {
+              const isSpace = /^\s+$/.test(token);
+              if (isSpace) {
+                for (const ch of token) {
+                  const s = document.createElement("span");
+                  s.className = "tt-ch";
+                  s.textContent = ch === " " ? "\u00A0" : ch;
+                  passageEl.appendChild(s);
+                  charSpans.push(s);
+                }
+              } else {
+                const wordWrap = document.createElement("span");
+                wordWrap.className = "tt-word";
+                for (const ch of token) {
+                  const s = document.createElement("span");
+                  s.className = "tt-ch";
+                  s.textContent = ch;
+                  wordWrap.appendChild(s);
+                  charSpans.push(s);
+                }
+                passageEl.appendChild(wordWrap);
+              }
+            });
+            if (charSpans[0]) charSpans[0].classList.add("current");
+          }
+
+          function reset() {
+            inputEl.value = "";
+            startTime = 0;
+            wpmEl.textContent = "0";
+            accEl.textContent = "100%";
+            errEl.textContent = "0";
+            buildSpans();
+            inputEl.focus();
+          }
+
+          inputEl.addEventListener("input", () => {
+            const val = inputEl.value;
+            if (!startTime && val.length > 0) {
+              startTime = Date.now();
+            }
+
+            let errors = 0;
+            let correct = 0;
+
+            for (let i = 0; i < charSpans.length; i++) {
+              const span = charSpans[i];
+              span.classList.remove("current", "correct", "wrong");
+              const expected = span.textContent === "\u00A0" ? " " : span.textContent;
+
+              if (i < val.length) {
+                if (val[i] === expected) {
+                  span.classList.add("correct");
+                  correct++;
+                } else {
+                  span.classList.add("wrong");
+                  errors++;
+                }
+              } else if (i === val.length) {
+                span.classList.add("current");
+                span.scrollIntoView({ block: "nearest", inline: "nearest" });
+              }
+            }
+
+            const elapsedMins = (Date.now() - startTime) / 60000;
+            const wpm = elapsedMins > 0 ? Math.round((correct / 5) / elapsedMins) : 0;
+            const accuracy = val.length > 0 ? Math.max(0, Math.round(((val.length - errors) / val.length) * 100)) : 100;
+
+            wpmEl.textContent = String(wpm);
+            accEl.textContent = `${accuracy}%`;
+            errEl.textContent = String(errors);
+          });
+
+          resetBtn.addEventListener("click", reset);
+          buildSpans();
+
+          return {
+            getStats: () => ({
+              wpm: wpmEl.textContent,
+              acc: accEl.textContent,
+              errors: errEl.textContent
+            })
+          };
+        }
+
+        const tt1 = setupTypingTest("tt1");
+        const tt2 = setupTypingTest("tt2");
+
+        // ═════════════════════════════════════════════
+        // FINAL ATTEMPT SUBMISSION
+        // ═════════════════════════════════════════════
+        async function performFinalSubmit() {
+          btnModalConfirm.disabled = true;
+          btnModalConfirm.textContent = "Submitting Attempt...";
+
+          try {
+            const token = localStorage.getItem("brinto_token") || "";
+            const guestId = localStorage.getItem("brinto_guest_id") || "";
+            const timeTaken = Math.round((Date.now() - startTime) / 1000);
+
+            // Correctly map optionsObjects to get selectedOptionId
+            const payloadAnswers = questions.map((q, i) => {
+              const userOptIdx = answers[i];
+              let selectedOptionId = null;
+              if (userOptIdx !== undefined && q.optionsObjects && q.optionsObjects[userOptIdx]) {
+                const optObj = q.optionsObjects[userOptIdx];
+                selectedOptionId = typeof optObj === "object" && optObj !== null ? (optObj.id ?? optObj) : optObj;
+              }
+              return {
+                questionId: q.id,
+                selectedOptionId: selectedOptionId,
+                isMarked: marked.has(i)
+              };
+            });
+
+            if (sessionId) {
+              await fetch("https://brintoapi.brinto.in/api/mocktests/attempts", {
+                method: "POST",
+                headers: {
+                  "Accept": "application/json",
+                  "Content-Type": "application/json",
+                  "X-Guest-Id": guestId,
+                  ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({
+                  sessionId,
+                  timeTaken,
+                  answers: payloadAnswers
+                })
+              });
+            }
+          } catch (e) {
+            console.error("Error submitting attempt:", e);
+          }
+
+          alert("OSSSC Combo Test Submitted successfully! You completed the MCQ test and both typing practical tests.");
+          window.location.href = "/mocktest/osssc";
+        }
+      })();
+    </script>
+  </body>
+</html>
