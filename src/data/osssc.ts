@@ -21,7 +21,7 @@ export const ossscItems: PosterItem[] = [
     icon: "⌨️",
     title: "Typing Test",
     sub: "OSSSC",
-    meta: "10 min · Speed & Accuracy",
+    meta: "30 min · Speed & Accuracy",
     image: "/images/osssc-typing.png",
     tone: ["#1D4ED8", "#1E3A8A"],
     href: "/mocktest/tests/osssc-typing",

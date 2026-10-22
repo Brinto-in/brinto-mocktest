@@ -12,6 +12,7 @@ export interface Props {
   wpmGoal?: number;
   showTips?: boolean;
   apiUrl?: string;
+  trackBackspaces?: boolean;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   wpmGoal = 35,
   showTips = true,
   apiUrl = "",
+  trackBackspaces = false,
 } = Astro.props;
 ---
 
@@ -34,6 +36,7 @@ const {
   data-wpm-goal={wpmGoal}
   data-exam={examName}
   data-api-url={apiUrl}
+  data-track-backspaces={trackBackspaces ? "true" : "false"}
 >
   <!-- ── Mobile tip banner ── -->
   {showTips && (
@@ -123,6 +126,15 @@ const {
       <span class="tt-sstat-val tt-sstat-err" id={`${testId}-errors`}>0</span>
       <span class="tt-sstat-lbl">Errors</span>
     </div>
+    {trackBackspaces && (
+      <>
+        <div class="tt-sstat-sep"></div>
+        <div class="tt-sstat">
+          <span class="tt-sstat-val" id={`${testId}-backspaces`}>0</span>
+          <span class="tt-sstat-lbl">Backspaces</span>
+        </div>
+      </>
+    )}
     <div class="tt-sstat-sep"></div>
     <div class="tt-sstat">
       <span class="tt-sstat-val" id={`${testId}-progress`}>0%</span>
@@ -145,7 +157,7 @@ const {
           <p class="tt-result-sub"  id={`${testId}-res-sub`}></p>
         </div>
       </div>
-      <div class="tt-result-grid">
+      <div class="tt-result-grid" class:list={{ "has-backspaces": trackBackspaces }}>
         <div class="tt-rstat tt-rstat-wpm">
           <span class="tt-rstat-val" id={`${testId}-res-wpm`}>0</span>
           <span class="tt-rstat-lbl">WPM</span>
@@ -162,6 +174,12 @@ const {
           <span class="tt-rstat-val tt-sstat-err" id={`${testId}-res-errors`}>0</span>
           <span class="tt-rstat-lbl">Errors</span>
         </div>
+        {trackBackspaces && (
+          <div class="tt-rstat">
+            <span class="tt-rstat-val" id={`${testId}-res-backspaces`}>0</span>
+            <span class="tt-rstat-lbl">Backspaces</span>
+          </div>
+        )}
       </div>
       <div class="tt-result-actions">
         <button class="tt-res-btn tt-res-btn-primary" id={`${testId}-retry`}>↺ Try Again</button>
@@ -221,6 +239,7 @@ const {
     const dur     = parseInt(root.dataset.duration  ?? '600', 10);
     const goal    = parseInt(root.dataset.wpmGoal   ?? '35',  10);
     const apiUrl  = root.dataset.apiUrl || '';
+    const trackBackspaces = root.dataset.trackBackspaces === 'true';
 
     // refs
     const $ = (sel: string) => root.querySelector<HTMLElement>(sel)!;
@@ -235,6 +254,7 @@ const {
     const accEl      = $(`#${id}-acc`);
     const correctEl  = $(`#${id}-correct`);
     const errorsEl   = $(`#${id}-errors`);
+    const backspacesEl = root.querySelector<HTMLElement>(`#${id}-backspaces`);
     const progressEl = $(`#${id}-progress`);
     const barEl      = $(`#${id}-bar`);
     const startBtn   = root.querySelector<HTMLButtonElement>(`#${id}-start`)!;
@@ -248,10 +268,11 @@ const {
     const resAcc     = $(`#${id}-res-acc`);
     const resCorrect = $(`#${id}-res-correct`);
     const resErrors  = $(`#${id}-res-errors`);
+    const resBackspaces = root.querySelector<HTMLElement>(`#${id}-res-backspaces`);
 
     // state
     let state: 'idle'|'running'|'finished' = 'idle';
-    let pos = 0, correct = 0, errors = 0;
+    let pos = 0, correct = 0, errors = 0, backspaces = 0;
     let startTime = 0, remaining = dur, raf = 0;
     let charSpans: HTMLSpanElement[] = [];
     let lastLen = 0;
@@ -287,16 +308,38 @@ const {
       }
     }
 
-    // build spans
+    // build spans grouped by words so words never break across lines
     function build() {
       passageEl.innerHTML = '';
-      charSpans = [...passage].map(ch => {
-        const s = document.createElement('span');
-        s.className = 'tt-ch';
-        s.textContent = ch === ' ' ? '\u00A0' : ch;
-        passageEl.appendChild(s);
-        return s;
+      charSpans = [];
+
+      // Split into word tokens preserving spaces/newlines
+      const tokens = passage.match(/\S+|\s+/g) || [];
+
+      tokens.forEach(token => {
+        const isSpace = /^\s+$/.test(token);
+        if (isSpace) {
+          for (const ch of token) {
+            const s = document.createElement('span');
+            s.className = 'tt-ch tt-ch-space';
+            s.textContent = ch === ' ' ? '\u00A0' : ch;
+            passageEl.appendChild(s);
+            charSpans.push(s);
+          }
+        } else {
+          const wordWrap = document.createElement('span');
+          wordWrap.className = 'tt-word';
+          for (const ch of token) {
+            const s = document.createElement('span');
+            s.className = 'tt-ch';
+            s.textContent = ch;
+            wordWrap.appendChild(s);
+            charSpans.push(s);
+          }
+          passageEl.appendChild(wordWrap);
+        }
       });
+
       charSpans[0]?.classList.add('tt-cur');
     }
 
@@ -325,6 +368,7 @@ const {
       accEl.textContent      = `${a}%`;
       correctEl.textContent  = String(correct);
       errorsEl.textContent   = String(errors);
+      if (backspacesEl) backspacesEl.textContent = String(backspaces);
       progressEl.textContent = `${pct}%`;
       barEl.style.width      = `${pct}%`;
       timerVal.textContent   = fmt(remaining);
@@ -361,6 +405,7 @@ const {
 
     function backspace() {
       if (state !== 'running' || pos === 0) return;
+      backspaces++;
       charSpans[pos]?.classList.remove('tt-cur');
       pos--;
       const s = charSpans[pos];
@@ -406,13 +451,14 @@ const {
       resAcc.textContent     = `${a}%`;
       resCorrect.textContent = String(correct);
       resErrors.textContent  = String(errors);
+      if (resBackspaces) resBackspaces.textContent = String(backspaces);
       resultEl.style.display = '';
       restartBtn.style.display = 'none';
     }
 
     async function reset() {
       cancelAnimationFrame(raf);
-      state = 'idle'; pos = 0; correct = 0; errors = 0;
+      state = 'idle'; pos = 0; correct = 0; errors = 0; backspaces = 0;
       startTime = 0; remaining = dur; lastLen = 0;
       inputEl.value = ''; inputEl.setAttribute('aria-hidden','true'); inputEl.tabIndex = -1;
       root.classList.remove('tt-running');
@@ -649,6 +695,14 @@ const {
   min-height: 220px;
 }
 
+/* Initially compact while idle, then expands to full height when test starts */
+.tt-root:not(.tt-running) .tt-passage-wrap {
+  max-height: 250px;
+}
+.tt-root.tt-running .tt-passage-wrap {
+  max-height: 480px;
+}
+
 /* Idle overlay */
 .tt-idle {
   position: absolute; inset: 0; z-index: 10;
@@ -667,6 +721,7 @@ const {
 .tt-passage-wrap {
   flex: 1; overflow-y: auto; padding: 24px 24px 16px;
   scrollbar-width: thin; scrollbar-color: var(--tt-border) transparent;
+  transition: max-height 0.35s ease;
 }
 .tt-passage-wrap::-webkit-scrollbar { width: 4px; }
 .tt-passage-wrap::-webkit-scrollbar-thumb { background: var(--tt-border); border-radius: 4px; }
@@ -677,8 +732,15 @@ const {
   line-height: 2.1;
   color: var(--tt-muted);
   letter-spacing: .015em;
-  word-break: break-word;
+  word-break: normal;
+  overflow-wrap: normal;
   user-select: none;
+}
+
+/* Word wrappers to prevent splitting across lines */
+:global(.tt-word) {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 /* Characters */
@@ -750,6 +812,9 @@ const {
 
 .tt-result-grid {
   display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 20px;
+}
+.tt-result-grid.has-backspaces {
+  grid-template-columns: repeat(5, 1fr);
 }
 .tt-rstat {
   background: var(--tt-surf2); border: 1px solid var(--tt-border);
@@ -871,7 +936,8 @@ const {
   .tt-sstat { padding: 0 8px; }
   .tt-sstat-val { font-size: .9rem; }
   /* Result: 2-col grid */
-  .tt-result-grid { grid-template-columns: repeat(2,1fr); }
+  .tt-result-grid,
+  .tt-result-grid.has-backspaces { grid-template-columns: repeat(2,1fr); }
   .tt-result-card { padding: 20px 16px; }
   .tt-result-title { font-size: 1.1rem; }
   .tt-result-emoji { font-size: 1.8rem; }
@@ -910,7 +976,12 @@ const {
 
   /* Arena: shrink passage area */
   .tt-arena { min-height: 0; }
-  .tt-passage-wrap { padding: 10px 14px 6px; max-height: calc(100dvh - 130px); overflow-y: auto; }
+  .tt-root:not(.tt-running) .tt-passage-wrap,
+  .tt-root.tt-running .tt-passage-wrap {
+    padding: 10px 14px 6px;
+    max-height: calc(100dvh - 130px);
+    overflow-y: auto;
+  }
   .tt-passage { font-size: .86rem; line-height: 1.8; }
 
   /* Idle overlay compact */
