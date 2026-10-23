@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import PerformanceChart from "../../components/result/PerformanceChart.astro";
 ---
 
 <BaseLayout
@@ -19,23 +20,41 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             <div class="rh-stats" id="rh-stats">
                 <div class="stat-card">
                     <span class="stat-n" id="st-total">0</span>
-                    <span class="stat-l">Tests Taken</span>
+                    <span class="stat-l" id="st-total-l">Tests Taken</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-n" id="st-avg">0%</span>
-                    <span class="stat-l">Avg Score</span>
+                    <span class="stat-l" id="st-avg-l">Avg Score</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-n" id="st-best">0%</span>
-                    <span class="stat-l">Best Score</span>
+                    <span class="stat-l" id="st-best-l">Best Score</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-n" id="st-time">0h</span>
-                    <span class="stat-l">Time Spent</span>
+                    <span class="stat-l" id="st-time-l">Time Spent</span>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- ── MCQ / TYPING SWITCH ── -->
+    <div class="wrap rt-switch-wrap">
+        <div class="rt-switch" role="tablist" aria-label="Result type">
+            <button type="button" class="rt-tab active" role="tab" data-view="mcq" aria-selected="true" aria-controls="view-mcq">
+                <span aria-hidden="true">📝</span> MCQ tests
+            </button>
+            <button type="button" class="rt-tab" role="tab" data-view="typing" aria-selected="false" aria-controls="view-typing">
+                <span aria-hidden="true">⌨️</span> Typing tests
+            </button>
+        </div>
+    </div>
+
+    <div id="view-mcq" role="tabpanel">
+    <!-- ── PERFORMANCE CHART ── -->
+    <div class="wrap perf-wrap">
+        <PerformanceChart id="perf-chart" />
+    </div>
 
     <!-- ── FILTERS ── -->
     <div class="wrap filter-bar" id="filter-bar">
@@ -70,6 +89,36 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <!-- Results grid (populated by JS) -->
         <div class="results-grid" id="results-grid"></div>
+    </div>
+    </div>
+
+    <!-- ── TYPING VIEW ── -->
+    <div id="view-typing" role="tabpanel" hidden>
+        <div class="wrap perf-wrap">
+            <PerformanceChart
+                id="typing-chart"
+                title="Typing speed trend"
+                trendTitle="Speed per passage"
+                donutTitle="Words breakdown"
+                bands={["40+ WPM", "25–39", "<25"]}
+            />
+        </div>
+
+        <div class="wrap results-body">
+            <div class="tr-loading" id="typing-loading" hidden>
+                <div class="am-spinner"></div>
+                <p>Loading typing results…</p>
+            </div>
+
+            <div class="empty-state" id="typing-empty" style="display:none">
+                <div class="empty-icon-wrap" aria-hidden="true">⌨️</div>
+                <h2>No typing tests yet</h2>
+                <p>Take a typing test to track your speed (WPM), accuracy and progress here.</p>
+                <a href="/mocktest/tests/osssc-typing" class="btn-browse">Start a Typing Test →</a>
+            </div>
+
+            <div class="results-grid" id="typing-grid"></div>
+        </div>
     </div>
 
     <!-- ── ATTEMPT ANALYSIS MODAL ── -->
@@ -130,7 +179,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 </BaseLayout>
 
 <script>
+    import { renderPerformanceChart, renderTypingChart, WPM_TARGET } from "../../components/result/performanceChart";
+
     let allResults = [];
+    const perfChartEl = document.getElementById("perf-chart");
     let activeExam = "All";
 
     const emptyEl = document.getElementById("empty-state");
@@ -319,6 +371,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         if (!results || results.length === 0) {
             emptyEl.style.display = "flex";
             gridEl.style.display = "none";
+            if (perfChartEl) renderPerformanceChart(perfChartEl, []);
             statsEl.style.display = "none";
             filterBar.style.display = "none";
         } else {
@@ -329,6 +382,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             renderStats(results);
             renderFilterTabs(results);
             renderResults(results);
+            if (perfChartEl) renderPerformanceChart(perfChartEl, results);
         }
     }
 
@@ -359,7 +413,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
                 allResults = json.data.map(formatAttempt);
                 activeExam = "All";
-                updateUI(allResults);
+                // Don't overwrite the typing view if the user is on it
+                if (!document.getElementById("view-mcq").hidden) updateUI(allResults);
             }
         } catch (err) {
             console.warn("Failed to fetch dynamic attempts:", err);
@@ -367,6 +422,186 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     loadDynamicAttempts();
+
+    // ── MCQ / TYPING SWITCH ──
+    const viewMcq = document.getElementById("view-mcq");
+    const viewTyping = document.getElementById("view-typing");
+    const typingChartEl = document.getElementById("typing-chart");
+    const tabs = document.querySelectorAll(".rt-tab");
+    let typingResults = null; // loaded on first open
+
+    function setStatLabels(labels) {
+        ["st-total-l", "st-avg-l", "st-best-l", "st-time-l"].forEach((id, i) => {
+            document.getElementById(id).textContent = labels[i];
+        });
+    }
+
+    function showView(view, push = true) {
+        const isTyping = view === "typing";
+        tabs.forEach((t) => {
+            const on = t.dataset.view === view;
+            t.classList.toggle("active", on);
+            t.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        viewMcq.hidden = isTyping;
+        viewTyping.hidden = !isTyping;
+
+        if (push) {
+            const url = new URL(location.href);
+            if (isTyping) url.searchParams.set("type", "typing");
+            else url.searchParams.delete("type");
+            history.pushState({ view }, "", url);
+        }
+
+        if (isTyping) {
+            if (typingResults) renderTypingView(typingResults);
+            else loadTypingResults();
+        } else {
+            setStatLabels(["Tests Taken", "Avg Score", "Best Score", "Time Spent"]);
+            updateUI(allResults);
+        }
+    }
+
+    tabs.forEach((t) => t.addEventListener("click", () => showView(t.dataset.view)));
+    window.addEventListener("popstate", () => {
+        showView(new URL(location.href).searchParams.get("type") === "typing" ? "typing" : "mcq", false);
+    });
+    if (new URL(location.href).searchParams.get("type") === "typing") showView("typing", false);
+
+    // ── TYPING RESULTS ──
+    // API dates look like "2026-10-23 05:32:21" (UTC, no zone)
+    const toIso = (s) => (s && !s.endsWith("Z") ? s.replace(" ", "T") + "Z" : s);
+
+    async function loadTypingResults() {
+        const loading = document.getElementById("typing-loading");
+        loading.hidden = false;
+        try {
+            const token = localStorage.getItem("brinto_token") || "";
+            const guestId = localStorage.getItem("brinto_guest_id") || "";
+            const headers = { Accept: "*/*", "X-Guest-Id": guestId };
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+
+            const res = await fetch("https://brintoapi.brinto.in/api/mocktest-passages/results", { headers });
+            const json = res.ok ? await res.json() : null;
+            typingResults = (json?.success && Array.isArray(json.data) ? json.data : []).map((r) => ({
+                id: r.id,
+                session: r.session_id,
+                passageNumber: r.passage_number,
+                wpm: Number(r.wpm) || 0,
+                typedWords: r.typed_word_count || 0,
+                totalWords: r.total_word_count || 0,
+                errors: r.error_count || 0,
+                backspaces: r.backspace_count || 0,
+                keystrokes: r.keystrokes_count || 0,
+                date: toIso(r.created_at),
+            }));
+        } catch (err) {
+            console.warn("Failed to fetch typing results:", err);
+            typingResults = [];
+        } finally {
+            loading.hidden = true;
+        }
+        if (!viewTyping.hidden) renderTypingView(typingResults);
+    }
+
+    function renderTypingView(results) {
+        // Passages that were opened but never typed don't count towards speed/stats
+        const attempted = results.filter((r) => r.typedWords > 0);
+        const emptyEl = document.getElementById("typing-empty");
+        const grid = document.getElementById("typing-grid");
+
+        setStatLabels(["Sessions", "Avg WPM", "Best WPM", "Words Typed"]);
+        if (!results.length) {
+            emptyEl.style.display = "flex";
+            grid.innerHTML = "";
+            statsEl.style.display = "none";
+            renderTypingChart(typingChartEl, []);
+            return;
+        }
+        emptyEl.style.display = "none";
+        statsEl.style.display = "grid";
+
+        const sessions = new Set(results.map((r) => r.session)).size;
+        const avg = attempted.length ? attempted.reduce((s, r) => s + r.wpm, 0) / attempted.length : 0;
+        const best = attempted.length ? Math.max(...attempted.map((r) => r.wpm)) : 0;
+        const words = attempted.reduce((s, r) => s + r.typedWords, 0);
+        document.getElementById("st-total").textContent = sessions;
+        document.getElementById("st-avg").textContent = Math.round(avg * 10) / 10;
+        document.getElementById("st-best").textContent = best;
+        document.getElementById("st-time").textContent = words.toLocaleString("en-IN");
+
+        renderTypingChart(typingChartEl, attempted);
+        renderTypingSessions(results);
+    }
+
+    function wpmClass(w) {
+        return w >= WPM_TARGET ? "rank-good" : w >= 25 ? "rank-avg" : "rank-low";
+    }
+
+    function renderTypingSessions(results) {
+        // Group passages by session, newest session first
+        const bySession = new Map();
+        results.forEach((r) => {
+            if (!bySession.has(r.session)) bySession.set(r.session, []);
+            bySession.get(r.session).push(r);
+        });
+        const sessions = [...bySession.values()]
+            .map((rows) => rows.sort((a, b) => a.passageNumber - b.passageNumber))
+            .sort((a, b) => Math.max(...b.map((r) => +new Date(r.date))) - Math.max(...a.map((r) => +new Date(r.date))));
+
+        const grid = document.getElementById("typing-grid");
+        grid.innerHTML = sessions.map((rows) => {
+            const started = rows.filter((r) => r.typedWords > 0);
+            const avg = started.length ? Math.round((started.reduce((s, r) => s + r.wpm, 0) / started.length) * 10) / 10 : 0;
+            const date = new Date(Math.min(...rows.map((r) => +new Date(r.date)))).toLocaleString("en-IN", {
+                day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+            });
+            const passages = rows.map((r) => {
+                const pct = r.totalWords ? Math.round((r.typedWords / r.totalWords) * 100) : 0;
+                if (!r.typedWords) {
+                    return `
+            <div class="tr-passage is-empty">
+              <div class="tr-p-head"><span class="tr-p-name">Passage ${r.passageNumber}</span><span class="tr-p-status">Not started</span></div>
+            </div>`;
+                }
+                return `
+            <div class="tr-passage">
+              <div class="tr-p-head">
+                <span class="tr-p-name">Passage ${r.passageNumber}</span>
+                <span class="tr-p-wpm ${wpmClass(r.wpm)}">${r.wpm} WPM</span>
+              </div>
+              <div class="sec-bar-track"><div class="sec-bar-fill" style="width:${pct}%;background:var(--brand)"></div></div>
+              <div class="tr-p-meta">
+                <span>${r.typedWords}/${r.totalWords} words · ${pct}%</span>
+                <span>${r.errors} errors · ${r.backspaces} ⌫</span>
+              </div>
+            </div>`;
+            }).join("");
+            return `
+        <div class="result-card">
+          <div class="rc-top">
+            <div class="rc-left">
+              <span class="rc-exam-tag">Typing</span>
+              <h3 class="rc-title">Typing test session</h3>
+              <div class="rc-meta"><span class="rc-date">${date}</span><span>${rows.length} ${rows.length === 1 ? "passage" : "passages"}</span></div>
+            </div>
+            <div class="tr-avg">
+              <span class="tr-avg-v">${started.length ? avg : "–"}</span>
+              <span class="tr-avg-l">avg WPM</span>
+            </div>
+          </div>
+          <div class="tr-passages">${passages}</div>
+          <div class="rc-footer">
+            ${started.length
+                ? `<span class="rc-rank ${wpmClass(avg)}">${avg >= WPM_TARGET ? "🏆 Target reached" : avg >= 25 ? "📈 Getting there" : "📉 Keep practising"}</span>`
+                : `<span class="rc-rank tr-rank-none">Not started</span>`}
+            <div class="rc-actions">
+              <a href="/mocktest/tests/osssc-typing" class="rc-retake">Practise again →</a>
+            </div>
+          </div>
+        </div>`;
+        }).join("");
+    }
 
     // ── STATS ──
     function renderStats(results) {
@@ -422,6 +657,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         if (sort === "best") filtered.sort((a, b) => b.score - a.score);
         if (sort === "worst") filtered.sort((a, b) => a.score - b.score);
         renderResults(filtered);
+        // Chart follows the exam filter (it always plots oldest → newest)
+        if (perfChartEl) renderPerformanceChart(perfChartEl, filtered);
     }
 
     document
@@ -611,6 +848,134 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         text-transform: uppercase;
         letter-spacing: 0.04em;
         color: var(--ink-muted);
+    }
+
+    /* ── MCQ / TYPING SWITCH ── */
+    .rt-switch-wrap {
+        padding-top: 20px;
+    }
+    .rt-switch {
+        display: inline-flex;
+        gap: 4px;
+        padding: 4px;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-pill);
+    }
+    .rt-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 0;
+        background: transparent;
+        color: var(--ink-soft);
+        font-size: 0.88rem;
+        font-weight: 700;
+        padding: 8px 18px;
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+    .rt-tab:hover {
+        color: var(--ink);
+    }
+    .rt-tab.active {
+        background: var(--surface);
+        color: var(--brand);
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+    }
+
+    /* ── TYPING RESULTS ── */
+    .tr-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 48px 0;
+        color: var(--ink-soft);
+    }
+    .tr-loading[hidden] {
+        display: none;
+    }
+    .tr-avg {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 72px;
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+    }
+    .tr-avg-v {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1;
+    }
+    .tr-avg-l {
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--ink-muted);
+        margin-top: 2px;
+    }
+    .tr-passages {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+    }
+    .tr-passage {
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: var(--surface-2);
+    }
+    .tr-passage.is-empty {
+        opacity: 0.7;
+    }
+    .tr-p-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+    .tr-p-name {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--ink);
+    }
+    .tr-p-wpm {
+        font-size: 0.78rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: var(--radius-pill);
+    }
+    .tr-p-status {
+        font-size: 0.74rem;
+        color: var(--ink-muted);
+    }
+    .tr-rank-none {
+        background: var(--surface-2);
+        color: var(--ink-muted);
+    }
+    .tr-p-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 0.72rem;
+        color: var(--ink-soft);
+    }
+
+    /* ── PERFORMANCE CHART ── */
+    .perf-wrap {
+        padding-top: 24px;
     }
 
     /* ── FILTER BAR ── */
@@ -1268,6 +1633,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         }
         .stat-l {
             font-size: 0.65rem;
+        }
+        .perf-wrap {
+            padding-top: 16px;
+        }
+        .rt-switch-wrap {
+            padding-top: 14px;
+        }
+        .rt-switch {
+            display: flex;
+        }
+        .rt-tab {
+            flex: 1;
+            justify-content: center;
+            padding: 8px 10px;
         }
         .filter-bar {
             padding: 14px 16px 0;

@@ -7,12 +7,12 @@ interface Props {
   questionsData?: any[];
 }
 
-const { slug = "11", test, questionsData = [] } = Astro.props;
+const { slug = "11", test } = Astro.props;
 
-// Default OSSSC Passages
-const passage1 = `The Odisha Sub-ordinate Staff Selection Commission conducts recruitment for various government posts in the state of Odisha including Revenue Inspector, Assistant Revenue Inspector, Amin, ICDS Supervisor, and Junior Assistant. Candidates appearing for the practical computer skill test must demonstrate proficiency in English typewriting. The minimum qualifying speed required is forty words per minute. Regular practice is essential to achieve the desired speed and high accuracy. Maintain an upright posture, keep your wrists relaxed, and use all ten fingers on the keyboard for efficient typing. Avoid looking at the keyboard while typing and focus on the text displayed on the screen. Speed and precision will improve naturally with consistent daily practice sessions.`;
-
-const passage2 = `Good governance and administrative efficiency rely heavily on clear and timely written communication. As a public servant in the state administration, an officer is required to draft official notifications, letters, and reports accurately. Digital literacy and keyboard skills have become indispensable tools for modern public administration. The computer skill test evaluates not only your typing velocity but also your attention to detail, spelling accuracy, and adherence to punctuation. Candidates should focus on minimizing backspaces and sustaining a consistent cadence throughout the duration of the examination. Consistent focus under timed conditions is the key to qualifying the test.`;
+// Passages are NOT fetched here anymore. They are fetched in the browser:
+//   Passage 1 -> right after the MCQ is submitted
+//   Passage 2 -> right after Passage 1 is submitted (with exclude_ids=<passage 1 id>)
+const passageTestName = "Odisha RI Typing Test";
 ---
 
 <!doctype html>
@@ -353,9 +353,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         color: var(--green);
         font-weight: 700;
       }
-      .combo-step .step-icon {
-        font-size: 0.9rem;
-      }
       .combo-step .step-short {
         display: none;
       }
@@ -466,7 +463,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         transition: width 0.3s ease;
       }
 
-      /* ── QUESTION TYPOGRAPHY (IDENTICAL TO EXAMUI) ── */
       .q-num {
         font-size: 0.8rem;
         color: var(--ink-muted);
@@ -481,7 +477,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         font-family: var(--font-body);
       }
 
-      /* ── OPTIONS (IDENTICAL TO EXAMUI) ── */
       .options-container {
         display: flex;
         flex-direction: column;
@@ -539,7 +534,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         padding-top: 2px;
       }
 
-      /* Fixed Action Bar at Bottom (Desktop) */
       .action-row {
         display: flex;
         align-items: center;
@@ -618,7 +612,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         background: var(--brand-dark);
       }
 
-      /* ── MOBILE CONTROLS (IDENTICAL TO EXAMUI) ── */
       .palette-toggle {
         display: none;
         position: fixed;
@@ -649,7 +642,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         gap: 8px;
       }
 
-      /* Sidebar Palette */
       .sidebar {
         border-left: 1px solid var(--rule);
         background: var(--surface);
@@ -737,7 +729,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         outline: 2px solid var(--ink);
         outline-offset: 2px;
       }
-      /* States */
       .pq-btn.not-visited {
         background: var(--surface-2);
         color: var(--ink-soft);
@@ -840,7 +831,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
       .stat-val.acc { color: var(--green); }
       .stat-val.err { color: var(--brand); }
 
-      /* Typing Area */
       .typing-card {
         background: var(--surface);
         border: 1px solid var(--rule);
@@ -853,6 +843,7 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         min-height: 380px;
       }
       .passage-box {
+        position: relative; /* needed so offsetTop-based auto scroll works */
         padding: 20px 24px;
         background: #fafafc;
         border-bottom: 1.5px solid var(--rule);
@@ -863,6 +854,28 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         height: 200px;
         overflow-y: auto;
         user-select: none;
+        -webkit-user-select: none;
+      }
+      .tt-status {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 100%;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        color: var(--ink-soft);
+        text-align: center;
+      }
+      .tt-status.error { color: var(--brand); }
+      .tt-retry {
+        border: none;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 700;
+        padding: 8px 18px;
+        border-radius: var(--radius-pill);
       }
       .tt-ch { position: relative; }
       .tt-ch.correct { color: var(--green); font-weight: 600; }
@@ -891,6 +904,9 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         color: var(--ink);
         resize: none;
         background: transparent;
+      }
+      .typing-input:disabled {
+        cursor: not-allowed;
       }
       .typing-input::placeholder {
         color: var(--ink-muted);
@@ -1007,8 +1023,30 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         font-weight: 700;
         font-size: 0.88rem;
       }
+      .btn-confirm:disabled,
+      .btn-cancel:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
 
-      /* ── RESPONSIVE STYLES (MATCHING EXAMUI) ── */
+      /* ── TOAST (tab-switch warning etc.) ── */
+      .toast {
+        position: fixed;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--brand);
+        color: #fff;
+        padding: 10px 18px;
+        border-radius: var(--radius-pill);
+        font-size: 0.85rem;
+        font-weight: 600;
+        z-index: 300;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        display: none;
+      }
+
+      /* ── RESPONSIVE ── */
       @media (max-width: 900px) {
         #mcq-panel {
           grid-template-columns: 1fr;
@@ -1071,9 +1109,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           font-size: 0.72rem;
           gap: 3px;
         }
-        .combo-step .step-label-long {
-          display: none;
-        }
         .btn-submit-header {
           padding: 6px 10px;
           font-size: 0.78rem;
@@ -1111,10 +1146,73 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           display: none;
         }
       }
+
+      /* ── BUTTON LABEL VARIANTS + SMALL-DEVICE FIXES ── */
+      .lbl-short { display: none; }
+      .typing-footer-left {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .btn-submit-header, .btn-step-submit, .btn-restart,
+      .btn-prev, .btn-next, .btn-mark, .btn-clear { white-space: nowrap; }
+      .btn-confirm, .btn-cancel { white-space: normal; text-align: center; }
+      .modal-actions { flex-wrap: wrap; }
+
+      @media (max-width: 900px) {
+        .mobile-nav-bar {
+          padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+        }
+        .mobile-nav-bar button {
+          flex: 1 1 0;
+          min-width: 0;
+          padding: 10px 6px;
+          font-size: 0.82rem;
+          justify-content: center;
+          text-align: center;
+        }
+      }
+      @media (max-width: 640px) {
+        .lbl-full { display: none; }
+        .lbl-short { display: inline; }
+        .btn-submit-header { padding: 7px 12px; font-size: 0.78rem; }
+        .timer-box svg { display: none; }
+        .typing-panel-content { padding: 16px 12px; }
+        .tt-header-left h2 { font-size: 1.05rem; }
+        .tt-header-left p { font-size: 0.78rem; }
+        .stat-pill { flex: 1; min-width: 0; padding: 6px 8px; }
+        .typing-card { min-height: 340px; }
+        .passage-box { height: 170px; padding: 14px; font-size: 0.95rem; }
+        .input-area-wrap { padding: 12px 14px; }
+        .typing-input { font-size: 1rem; }
+        .typing-footer-left { width: 100%; justify-content: space-between; }
+        .btn-step-submit { width: 100%; }
+        .instr-header { padding: 18px; }
+        .instr-body { padding: 16px 18px; }
+        .instr-footer { padding: 14px 18px 18px; }
+        .instr-test-title { font-size: 1.05rem; }
+        .instr-pill { font-size: 0.72rem; padding: 4px 10px; }
+        .instr-rule { padding: 10px 12px; font-size: 0.84rem; }
+        .marking-grid { gap: 6px; }
+        .modal-box { padding: 18px; }
+        .modal-actions { flex-direction: column-reverse; }
+        .modal-actions button { width: 100%; padding: 12px; }
+        .summary-grid { gap: 8px; }
+        .summary-card-val { font-size: 1.05rem; }
+        .q-text { font-size: 1rem; }
+        .option-btn { padding: 12px; font-size: 0.92rem; gap: 10px; }
+      }
+      @media (max-width: 380px) {
+        .summary-grid { grid-template-columns: 1fr; }
+        .combo-step { padding: 4px 7px; }
+        .timer-box { padding: 4px 6px; font-size: 0.78rem; }
+        .btn-submit-header { padding: 6px 10px; }
+      }
     </style>
   </head>
   <body>
-    <!-- ── INSTRUCTION / START MODAL (SHOWN BEFORE START) ── -->
+    <!-- ── INSTRUCTION / START MODAL ── -->
     <div
       class="instr-overlay"
       id="instr-overlay"
@@ -1132,7 +1230,7 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           </div>
           <div class="instr-meta-pills">
             <span class="instr-pill">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               <span id="instr-duration">{test?.duration || 120}</span> Minutes
             </span>
             <span class="instr-pill">
@@ -1202,7 +1300,7 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
               <span class="instr-rule-icon">⌨️</span>
               <div class="instr-rule-text">
                 <strong>Computer Typing Skill Test (40 WPM Benchmark)</strong>
-                Type the given passage accurately. Words turn green when typed correctly and red if incorrect.
+                Type the given passage accurately. Words turn green when typed correctly and red if incorrect. Copy / paste is disabled.
               </div>
             </li>
           </ul>
@@ -1251,6 +1349,8 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
       </div>
     </div>
 
+    <div class="toast" id="toast" role="alert"></div>
+
     <!-- ── EXAM HEADER ── -->
     <header class="exam-header">
       <div class="eh-left">
@@ -1258,7 +1358,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         <span class="eh-badge">MCQ + Typing</span>
       </div>
 
-      <!-- Combo Step Indicators (Locked: Progression is strictly 1 -> 2 -> 3) -->
       <nav class="combo-tabs" aria-label="Combo test progress" id="combo-step-nav">
         <div class="combo-step active" id="step-1">
           <span class="step-full">MCQ</span>
@@ -1280,14 +1379,12 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           <span id="combo-timer">120:00</span>
         </div>
         <button type="button" class="btn-submit-header" id="btn-header-submit">
-          <span>Submit MCQ & Next</span> →
+          <span class="lbl-full">Submit MCQ & Next →</span><span class="lbl-short">Submit →</span>
         </button>
       </div>
     </header>
 
-    <!-- ═════════════════════════════════════════════ -->
-    <!-- 1. MCQ TEST PANEL (STAGE 1)                   -->
-    <!-- ═════════════════════════════════════════════ -->
+    <!-- 1. MCQ TEST PANEL (STAGE 1) -->
     <main id="mcq-panel" class="test-panel active">
       <div class="question-panel">
         <div class="q-header">
@@ -1303,11 +1400,8 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           <div class="q-text" id="q-text">Click "Start Test" above to begin...</div>
         </div>
 
-        <div class="options-container" id="options-container">
-          <!-- Dynamic options will be rendered here -->
-        </div>
+        <div class="options-container" id="options-container"></div>
 
-        <!-- Action Row (Desktop) -->
         <div class="action-row">
           <button type="button" class="btn-mark" id="btn-mark">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
@@ -1321,10 +1415,8 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         </div>
       </div>
 
-      <!-- Backdrop for mobile slide-in sidebar -->
       <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-      <!-- Question Palette Sidebar -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
           <div class="sidebar-header-top">
@@ -1336,9 +1428,7 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           </div>
         </div>
         <div class="palette-scroll">
-          <div class="palette-grid" id="palette-grid">
-            <!-- Palette numbers populated dynamically -->
-          </div>
+          <div class="palette-grid" id="palette-grid"></div>
         </div>
         <div class="legend">
           <strong>Legend</strong>
@@ -1351,12 +1441,10 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         </div>
       </aside>
 
-      <!-- Mobile Floating Palette Toggle -->
       <button class="palette-toggle" id="palette-toggle" aria-label="Toggle question palette">
         📋 Palette
       </button>
 
-      <!-- Mobile Fixed Navigation Bar -->
       <div class="mobile-nav-bar" id="mobile-nav-bar">
         <button class="btn-prev" id="btn-prev-mob" style="flex:1">← Prev</button>
         <button class="btn-mark" id="btn-mark-mob" style="flex:1;justify-content:center">★ Review</button>
@@ -1364,9 +1452,7 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
       </div>
     </main>
 
-    <!-- ═════════════════════════════════════════════ -->
-    <!-- 2. TYPING TEST 1 PANEL (STAGE 2)              -->
-    <!-- ═════════════════════════════════════════════ -->
+    <!-- 2. TYPING TEST 1 PANEL (STAGE 2) -->
     <section id="typing-panel-1" class="test-panel">
       <div class="typing-panel-content">
         <div class="tt-header">
@@ -1391,7 +1477,9 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         </div>
 
         <div class="typing-card">
-          <div class="passage-box" id="tt1-passage" data-passage={passage1} data-passage-id="1"></div>
+          <div class="passage-box" id="tt1-passage">
+            <div class="tt-status">Passage will load after you submit the MCQ section…</div>
+          </div>
           <div class="input-area-wrap">
             <textarea
               class="typing-input"
@@ -1401,14 +1489,15 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
               autocorrect="off"
               autocapitalize="off"
               spellcheck="false"
+              disabled
             ></textarea>
             <div class="typing-footer">
-              <div style="display:flex;gap:10px;align-items:center;">
+              <div class="typing-footer-left">
                 <span class="typing-instructions">Type each word carefully. Words turn green when typed correctly.</span>
                 <button type="button" class="btn-restart" id="tt1-reset">Reset Passage</button>
               </div>
               <button type="button" class="btn-step-submit" id="tt1-submit-step">
-                Submit Typing 1 & Proceed to Test 2 →
+                <span class="lbl-full">Submit Typing 1 & Proceed to Test 2 →</span><span class="lbl-short">Submit & Next →</span>
               </button>
             </div>
           </div>
@@ -1416,9 +1505,7 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
       </div>
     </section>
 
-    <!-- ═════════════════════════════════════════════ -->
-    <!-- 3. TYPING TEST 2 PANEL (STAGE 3)              -->
-    <!-- ═════════════════════════════════════════════ -->
+    <!-- 3. TYPING TEST 2 PANEL (STAGE 3) -->
     <section id="typing-panel-2" class="test-panel">
       <div class="typing-panel-content">
         <div class="tt-header">
@@ -1443,7 +1530,9 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         </div>
 
         <div class="typing-card">
-          <div class="passage-box" id="tt2-passage" data-passage={passage2} data-passage-id="2"></div>
+          <div class="passage-box" id="tt2-passage">
+            <div class="tt-status">Passage will load after you submit Typing Test 1…</div>
+          </div>
           <div class="input-area-wrap">
             <textarea
               class="typing-input"
@@ -1453,14 +1542,15 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
               autocorrect="off"
               autocapitalize="off"
               spellcheck="false"
+              disabled
             ></textarea>
             <div class="typing-footer">
-              <div style="display:flex;gap:10px;align-items:center;">
+              <div class="typing-footer-left">
                 <span class="typing-instructions">Maintain high accuracy and consistent rhythm under timed conditions.</span>
                 <button type="button" class="btn-restart" id="tt2-reset">Reset Passage</button>
               </div>
               <button type="button" class="btn-step-submit" id="tt2-submit-step">
-                Final Submit Combo Test
+                <span class="lbl-full">Final Submit Combo Test</span><span class="lbl-short">Final Submit</span>
               </button>
             </div>
           </div>
@@ -1468,12 +1558,12 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
       </div>
     </section>
 
-    <!-- ── CONFIRMATION MODAL (1->2, 2->3, and Final) ── -->
+    <!-- ── CONFIRMATION MODAL ── -->
     <div class="modal-backdrop" id="combo-modal">
       <div class="modal-box">
         <h2 id="modal-title">Submit Section 1?</h2>
         <p id="modal-desc">Review your progress before advancing to the next section.</p>
-        
+
         <div class="summary-grid" id="modal-summary-grid">
           <div class="summary-card" id="mcard-mcq-ans">
             <div class="summary-card-hd">MCQ Answered</div>
@@ -1501,15 +1591,41 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
     </div>
 
     <!-- ── CLIENT SCRIPT ── -->
-    <script define:vars={{ testIdRaw: slug }}>
+    <script define:vars={{ testIdRaw: slug, passageTestName }}>
       (() => {
-        // ── SEQUENTIAL STAGE MANAGEMENT (1 -> submit -> 2 -> submit -> 3 -> final submit) ──
-        let currentStage = 1; // 1 = MCQ, 2 = Typing 1, 3 = Typing 2
+        const API = "https://brintoapi.brinto.in/api";
+        // Set to true ONLY for local dev if you want dummy questions when the API is down.
+        const ALLOW_FALLBACK_QUESTIONS = false;
 
+        // ── STATE ──
+        let currentStage = 1; // 1 = MCQ, 2 = Typing 1, 3 = Typing 2
+        let testActive = false;
+        let busy = false;
+        let finished = false;
+        let mcqSubmitted = false;
+        const typingPosted = { 1: false, 2: false };
+
+        let questions = [];
+        let currentIndex = 0;
+        let answers = {};
+        let marked = new Set();
+        let visited = new Set();
+        let sessionId = null;
+        let mcqStartedAt = 0;
+        let activeSection = "all";
+
+        const parsedId = parseInt(testIdRaw, 10) || 11;
+        const getToken = () => localStorage.getItem("brinto_token") || "";
+        const getGuestId = () => localStorage.getItem("brinto_guest_id") || "";
+        const authHeaders = () => ({
+          ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+          ...(getGuestId() ? { "X-Guest-Id": getGuestId() } : {}),
+        });
+
+        // ── ELEMENTS ──
         const step1 = document.getElementById("step-1");
         const step2 = document.getElementById("step-2");
         const step3 = document.getElementById("step-3");
-
         const panel1 = document.getElementById("mcq-panel");
         const panel2 = document.getElementById("typing-panel-1");
         const panel3 = document.getElementById("typing-panel-2");
@@ -1520,58 +1636,52 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         const modalDesc = document.getElementById("modal-desc");
         const btnModalCancel = document.getElementById("btn-modal-cancel");
         const btnModalConfirm = document.getElementById("btn-modal-confirm");
+        const toastEl = document.getElementById("toast");
 
-        // ── INSTRUCTION / START TEST MODAL ──
         const instrOverlay = document.getElementById("instr-overlay");
         const instrCb = document.getElementById("instr-agree-cb");
         const btnStart = document.getElementById("btn-start-test");
 
-        // Pre-fetch test details to populate the start modal on load
-        const parsedId = parseInt(testIdRaw, 10) || 11;
-        fetch(`https://brintoapi.brinto.in/api/mocktests/${parsedId}/details`, {
-          headers: { "Accept": "*/*" }
-        })
+        function showToast(msg, ms = 3500) {
+          toastEl.textContent = msg;
+          toastEl.style.display = "block";
+          clearTimeout(showToast._t);
+          showToast._t = setTimeout(() => (toastEl.style.display = "none"), ms);
+        }
+
+        // ── LOAD TEST DETAILS FOR START MODAL ──
+        fetch(`${API}/mocktests/${parsedId}/details`, { headers: { Accept: "*/*" } })
           .then((r) => r.json())
           .then((json) => {
-            if (json?.success && json?.data) {
-              const d = json.data;
-              if (d.title) {
-                const elTitle = document.getElementById("instr-title");
-                if (elTitle) elTitle.textContent = d.title;
-                const ehTitle = document.getElementById("eh-title");
-                if (ehTitle) ehTitle.textContent = d.title;
-                document.title = `${d.title} | Brinto MockTest`;
-              }
-              if (d.exam) {
-                const elExam = document.getElementById("instr-exam-name");
-                if (elExam) elExam.textContent = `${d.exam} · Combo Test`;
-              }
-              if (d.duration) {
-                const elDur = document.getElementById("instr-duration");
-                if (elDur) elDur.textContent = d.duration;
-              }
-              const qCount = Array.isArray(d.questions) ? d.questions.length : (d.questions || 100);
-              const elQs = document.getElementById("instr-questions");
-              if (elQs) elQs.textContent = qCount;
+            if (!(json?.success && json?.data)) return;
+            const d = json.data;
+            const set = (id, v) => {
+              const el = document.getElementById(id);
+              if (el) el.textContent = v;
+            };
+            if (d.title) {
+              set("instr-title", d.title);
+              set("eh-title", d.title);
+              document.title = `${d.title} | Brinto MockTest`;
+            }
+            if (d.exam) set("instr-exam-name", `${d.exam} · Combo Test`);
+            if (d.duration) set("instr-duration", d.duration);
 
-              const cMarks = d.correct_marks !== undefined ? d.correct_marks : 1;
-              const wPenalty = d.wrong_penalty !== undefined ? d.wrong_penalty : 0.25;
-              const tMarks = d.total_marks !== undefined ? d.total_marks : qCount * cMarks;
+            const qCount = Array.isArray(d.questions) ? d.questions.length : d.questions || 100;
+            const cMarks = d.correct_marks !== undefined ? d.correct_marks : 1;
+            const wPenalty = d.wrong_penalty !== undefined ? d.wrong_penalty : 0.25;
+            const tMarks = d.total_marks !== undefined ? d.total_marks : qCount * cMarks;
 
-              const elMarks = document.getElementById("instr-marks");
-              if (elMarks) elMarks.textContent = tMarks;
-
-              const elMgC = document.getElementById("instr-mg-correct");
-              if (elMgC) elMgC.textContent = `+${cMarks}`;
-
-              const elMgW = document.getElementById("instr-mg-wrong");
-              if (elMgW) elMgW.textContent = wPenalty > 0 ? `-${wPenalty}` : "0";
-
-              const elCorrectText = document.getElementById("instr-correct-text");
-              if (elCorrectText) elCorrectText.textContent = `${cMarks} mark${cMarks === 1 ? '' : 's'}`;
-
-              const elPenaltyDesc = document.getElementById("instr-penalty-desc");
-              if (elPenaltyDesc) elPenaltyDesc.textContent = wPenalty > 0 ? `Wrong answers attract a -${wPenalty} penalty.` : "No penalty for wrong answers.";
+            set("instr-questions", qCount);
+            set("instr-marks", tMarks);
+            set("instr-mg-correct", `+${cMarks}`);
+            set("instr-mg-wrong", wPenalty > 0 ? `-${wPenalty}` : "0");
+            set("instr-correct-text", `${cMarks} mark${cMarks === 1 ? "" : "s"}`);
+            set("instr-penalty-desc", wPenalty > 0 ? `Wrong answers attract a -${wPenalty} penalty.` : "No penalty for wrong answers.");
+            set("instr-neg-text", wPenalty > 0 ? `Negative Marking (-${wPenalty})` : "No Negative Marking");
+            const pill = document.getElementById("instr-neg-pill");
+            if (pill) {
+              pill.style.cssText = wPenalty > 0 ? "background:rgba(176,0,32,0.3)" : "background:rgba(27,107,58,0.2); color:#1b6b3a;";
             }
           })
           .catch((e) => console.warn("Failed to load test details:", e));
@@ -1583,16 +1693,14 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         btnStart.addEventListener("click", async () => {
           btnStart.disabled = true;
           btnStart.textContent = "Starting Test...";
-
           try {
             await initMCQ();
+            mcqStartedAt = Date.now();
+            testActive = true;
 
-            // Animate out instruction overlay
             instrOverlay.style.transition = "opacity 0.3s";
             instrOverlay.style.opacity = "0";
-            setTimeout(() => {
-              instrOverlay.style.display = "none";
-            }, 300);
+            setTimeout(() => (instrOverlay.style.display = "none"), 300);
 
             startTimer();
           } catch (err) {
@@ -1603,39 +1711,85 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           }
         });
 
-        // Overall combo timer (120 mins)
+        // ── TIMER (uses end timestamp so background-tab throttling can't slow it) ──
         let totalSeconds = 120 * 60;
+        let endAt = 0;
         let timerInterval = null;
         const timerEl = document.getElementById("combo-timer");
 
+        function renderTimer(secs) {
+          const m = Math.floor(secs / 60);
+          const s = secs % 60;
+          timerEl.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        }
+
         function startTimer() {
-          timerInterval = setInterval(() => {
-            if (totalSeconds <= 0) {
+          endAt = Date.now() + totalSeconds * 1000;
+          renderTimer(totalSeconds);
+          timerInterval = setInterval(async () => {
+            const remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+            renderTimer(remaining);
+            if (remaining <= 0) {
               clearInterval(timerInterval);
-              timerEl.textContent = "00:00";
-              alert("Time is up! Submitting your full combo test.");
-              performFinalSubmit();
-              return;
+              comboModal.style.display = "none";
+              alert("Time is up! Submitting your test.");
+              await finalSubmit(true);
             }
-            totalSeconds--;
-            const m = Math.floor(totalSeconds / 60);
-            const s = totalSeconds % 60;
-            timerEl.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
           }, 1000);
         }
 
-        function updateHeaderButton() {
-          if (currentStage === 1) {
-            btnHeaderSubmit.innerHTML = `<span>Submit MCQ & Next</span> →`;
-          } else if (currentStage === 2) {
-            btnHeaderSubmit.innerHTML = `<span>Submit Typing 1 & Next</span> →`;
-          } else if (currentStage === 3) {
-            btnHeaderSubmit.innerHTML = `<span>Final Submit Combo</span>`;
+        // ── TAB-SWITCH MONITOR + LEAVE WARNING ──
+        let tabSwitches = 0;
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden && testActive && !finished) {
+            tabSwitches++;
+          } else if (!document.hidden && testActive && !finished && tabSwitches > 0) {
+            showToast(`Warning: tab switch detected (${tabSwitches}). Stay on this tab.`);
           }
+        });
+        window.addEventListener("beforeunload", (e) => {
+          if (testActive && !finished) {
+            e.preventDefault();
+            e.returnValue = "";
+          }
+        });
+
+        // ── STAGE UI ──
+        function setStepState(el, state, full, short) {
+          el.className = `combo-step ${state}`.trim();
+          el.innerHTML = `<span class="step-full">${full}</span><span class="step-short">${short}</span>`;
         }
 
-        // Open step modal based on current stage
+        function updateHeaderButton() {
+          const lbl = (full, short) => `<span class="lbl-full">${full}</span><span class="lbl-short">${short}</span>`;
+          if (currentStage === 1) btnHeaderSubmit.innerHTML = lbl("Submit MCQ & Next →", "Submit →");
+          else if (currentStage === 2) btnHeaderSubmit.innerHTML = lbl("Submit Typing 1 & Next →", "Submit P1 →");
+          else btnHeaderSubmit.innerHTML = lbl("Final Submit Combo", "Final Submit");
+        }
+
+        function goToStage(n) {
+          currentStage = n;
+          if (n === 2) {
+            setStepState(step1, "completed", "MCQ", "MCQ");
+            setStepState(step2, "active", "Passage 1", "P1");
+            panel1.classList.remove("active");
+            panel2.classList.add("active");
+            const mobNav = document.getElementById("mobile-nav-bar");
+            if (mobNav) mobNav.style.display = "none";
+            const palToggle = document.getElementById("palette-toggle");
+            if (palToggle) palToggle.style.display = "none";
+            closeSidebarMob();
+          } else if (n === 3) {
+            setStepState(step2, "completed", "Passage 1", "P1");
+            setStepState(step3, "active", "Passage 2", "P2");
+            panel2.classList.remove("active");
+            panel3.classList.add("active");
+          }
+          updateHeaderButton();
+        }
+
         function requestAdvanceStage() {
+          if (finished || busy) return;
           const answeredCount = Object.keys(answers).length;
           const markedCount = marked.size;
           const s1 = tt1.getStats();
@@ -1653,7 +1807,7 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
 
           if (currentStage === 1) {
             modalTitle.textContent = "Submit Section 1 (MCQ Test)?";
-            modalDesc.textContent = "You have answered " + answeredCount + " of " + questions.length + " questions. Once submitted, you will advance to Typing Test 1 and cannot return to the MCQ section.";
+            modalDesc.textContent = `You have answered ${answeredCount} of ${questions.length} questions. Once submitted, you will advance to Typing Test 1 and cannot return to the MCQ section.`;
             cardMcqAns.style.display = "block";
             cardMcqMark.style.display = "block";
             cardTt1.style.display = "none";
@@ -1661,13 +1815,13 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
             btnModalConfirm.textContent = "Submit & Proceed to Typing 1 →";
           } else if (currentStage === 2) {
             modalTitle.textContent = "Submit Section 2 (Typing Test 1)?";
-            modalDesc.textContent = "Your typing speed is " + s1.wpm + " WPM with " + s1.acc + " accuracy. Once submitted, you will proceed to Typing Test 2.";
+            modalDesc.textContent = `Your typing speed is ${s1.wpm} WPM with ${s1.acc} accuracy. Once submitted, you will proceed to Typing Test 2.`;
             cardMcqAns.style.display = "block";
             cardMcqMark.style.display = "none";
             cardTt1.style.display = "block";
             cardTt2.style.display = "none";
             btnModalConfirm.textContent = "Submit & Proceed to Typing 2 →";
-          } else if (currentStage === 3) {
+          } else {
             modalTitle.textContent = "Final Submit OSSSC Combo Test?";
             modalDesc.textContent = "Review your overall performance across MCQ and both Typing tests before final submission.";
             cardMcqAns.style.display = "block";
@@ -1676,206 +1830,162 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
             cardTt2.style.display = "block";
             btnModalConfirm.textContent = "Confirm Final Submission";
           }
-
+          btnModalConfirm.disabled = false;
           comboModal.style.display = "grid";
         }
 
         btnHeaderSubmit.addEventListener("click", requestAdvanceStage);
         btnModalCancel.addEventListener("click", () => {
+          if (busy) return;
           comboModal.style.display = "none";
         });
-
-        btnModalConfirm.addEventListener("click", () => {
-          comboModal.style.display = "none";
-
-          if (currentStage === 1) {
-            // Move 1 -> 2
-            currentStage = 2;
-            step1.className = "combo-step completed";
-            step1.innerHTML = `<span class="step-full">MCQ</span><span class="step-short">MCQ</span>`;
-
-            step2.className = "combo-step active";
-            step2.innerHTML = `<span class="step-full">Passage 1</span><span class="step-short">P1</span>`;
-
-            panel1.classList.remove("active");
-            panel2.classList.add("active");
-
-            // Hide mobile MCQ navigation bar
-            const mobNav = document.getElementById("mobile-nav-bar");
-            if (mobNav) mobNav.style.display = "none";
-            const palToggle = document.getElementById("palette-toggle");
-            if (palToggle) palToggle.style.display = "none";
-
-            updateHeaderButton();
-            document.getElementById("tt1-input")?.focus();
-          } else if (currentStage === 2) {
-            // Move 2 -> 3
-            currentStage = 3;
-            step2.className = "combo-step completed";
-            step2.innerHTML = `<span class="step-full">Passage 1</span><span class="step-short">P1</span>`;
-
-            step3.className = "combo-step active";
-            step3.innerHTML = `<span class="step-full">Passage 2</span><span class="step-short">P2</span>`;
-
-            panel2.classList.remove("active");
-            panel3.classList.add("active");
-
-            updateHeaderButton();
-            document.getElementById("tt2-input")?.focus();
-          } else if (currentStage === 3) {
-            // Final submit
-            performFinalSubmit();
-          }
-        });
-
         document.getElementById("tt1-submit-step")?.addEventListener("click", requestAdvanceStage);
         document.getElementById("tt2-submit-step")?.addEventListener("click", requestAdvanceStage);
 
-        // ── MOBILE SIDEBAR PALETTE CONTROLS ──
+        btnModalConfirm.addEventListener("click", async () => {
+          if (busy || finished) return;
+          busy = true;
+          btnModalConfirm.disabled = true;
+          btnModalCancel.disabled = true;
+          const originalLabel = btnModalConfirm.textContent;
+          btnModalConfirm.textContent = "Submitting...";
+
+          try {
+            if (currentStage === 1) {
+              // 1) Submit the MCQ attempt. Stay on stage 1 if it fails.
+              const ok = await submitMCQAttempt();
+              if (!ok) {
+                alert("Could not submit your MCQ answers. Please check your internet connection and try again.");
+                btnModalConfirm.textContent = originalLabel;
+                return;
+              }
+              comboModal.style.display = "none";
+              // 2) Move to typing panel 1, THEN call passage API for passage 1
+              goToStage(2);
+              tt1.load(null);
+            } else if (currentStage === 2) {
+              // 1) Post passage 1 result
+              await postTypingResult(1);
+              const p1Id = tt1.getPassageId();
+              comboModal.style.display = "none";
+              // 2) Move to typing panel 2, THEN call passage API for passage 2 excluding passage 1
+              goToStage(3);
+              tt2.load(p1Id);
+            } else {
+              await finalSubmit(false);
+            }
+          } finally {
+            busy = false;
+            btnModalCancel.disabled = false;
+            if (!finished) btnModalConfirm.disabled = false;
+          }
+        });
+
+        // ── MOBILE SIDEBAR ──
         const sidebar = document.getElementById("sidebar");
         const sidebarBackdrop = document.getElementById("sidebar-backdrop");
         const paletteToggle = document.getElementById("palette-toggle");
         const sidebarCloseBtn = document.getElementById("sidebar-close-btn");
 
         function closeSidebarMob() {
-          if (sidebar) sidebar.classList.remove("open");
-          if (sidebarBackdrop) sidebarBackdrop.classList.remove("open");
+          sidebar?.classList.remove("open");
+          sidebarBackdrop?.classList.remove("open");
         }
-
         paletteToggle?.addEventListener("click", () => {
           sidebar?.classList.add("open");
           sidebarBackdrop?.classList.add("open");
         });
-
         sidebarCloseBtn?.addEventListener("click", closeSidebarMob);
         sidebarBackdrop?.addEventListener("click", closeSidebarMob);
 
-        // ── MCQ ENGINE & API INTEGRATION ──
-        let questions = [];
-        let currentIndex = 0;
-        let answers = {};
-        let marked = new Set();
-        let visited = new Set();
-        let sessionId = null;
-        let startTime = Date.now();
-
+        // ── MCQ ENGINE ──
         const qNum = document.getElementById("q-num");
         const qText = document.getElementById("q-text");
         const optionsContainer = document.getElementById("options-container");
         const qSectionTag = document.getElementById("q-section-tag");
         const qProgressText = document.getElementById("q-progress-text");
         const qProgressFill = document.getElementById("q-progress-fill");
-
-        // Action row buttons (desktop)
         const btnPrev = document.getElementById("btn-prev");
         const btnNext = document.getElementById("btn-next");
         const btnMark = document.getElementById("btn-mark");
         const btnClear = document.getElementById("btn-clear");
-
-        // Mobile nav bar buttons
         const btnPrevMob = document.getElementById("btn-prev-mob");
         const btnNextMob = document.getElementById("btn-next-mob");
         const btnMarkMob = document.getElementById("btn-mark-mob");
-
         const paletteGrid = document.getElementById("palette-grid");
+        const paletteSections = document.getElementById("palette-sections");
 
         async function initMCQ() {
-          const token = localStorage.getItem("brinto_token") || "";
-          const guestId = localStorage.getItem("brinto_guest_id") || "";
-
-          // Step 1: Create session via POST /api/mocktests/sessions
-          const sessRes = await fetch("https://brintoapi.brinto.in/api/mocktests/sessions", {
+          // Step 1: create session
+          const sessRes = await fetch(`${API}/mocktests/sessions`, {
             method: "POST",
             headers: {
-              "Accept": "application/json",
+              Accept: "application/json",
               "Content-Type": "application/json",
-              "X-Guest-Id": guestId,
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              "X-Guest-Id": getGuestId(),
+              ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
             },
             body: JSON.stringify({ testId: parsedId }),
           });
-          const sessData = await sessRes.json();
+          const sessData = await sessRes.json().catch(() => null);
           if (sessData?.success && sessData?.data) {
-            if (sessData.data.id) {
-              sessionId = sessData.data.id;
-            }
-            if (sessData.data.guestId) {
-              localStorage.setItem("brinto_guest_id", sessData.data.guestId);
-            }
+            if (sessData.data.id) sessionId = sessData.data.id;
+            if (sessData.data.guestId) localStorage.setItem("brinto_guest_id", sessData.data.guestId);
           }
 
-          const currentGuestId = localStorage.getItem("brinto_guest_id") || guestId;
-
-          // Step 2: Fetch questions using session_id
+          // Step 2: fetch questions
           const qUrl = sessionId
-            ? `https://brintoapi.brinto.in/api/mocktests/${parsedId}?session_id=${sessionId}`
-            : `https://brintoapi.brinto.in/api/mocktests/${parsedId}`;
-          const qRes = await fetch(qUrl, {
-            headers: {
-              Accept: "*/*",
-              "X-Guest-Id": currentGuestId,
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          });
-          const qData = await qRes.json();
+            ? `${API}/mocktests/${parsedId}?session_id=${sessionId}`
+            : `${API}/mocktests/${parsedId}`;
+          const qRes = await fetch(qUrl, { headers: { Accept: "*/*", ...authHeaders() } });
+          const qData = await qRes.json().catch(() => null);
+
           if (qData?.success && Array.isArray(qData?.data?.questions) && qData.data.questions.length > 0) {
-            const raw = qData.data.questions;
-            // Properly extract question text and options format matching ExamUI
-            questions = raw.map((q) => ({
+            questions = qData.data.questions.map((q) => ({
               ...q,
               text: q.text || q.question || q.title || "Question",
               optionsObjects: Array.isArray(q.options) ? q.options : [],
               options: Array.isArray(q.options)
                 ? q.options.map((opt) => (typeof opt === "object" && opt !== null ? opt.text : opt))
-                : []
+                : [],
             }));
-
-            if (qData.data.duration) {
-              totalSeconds = qData.data.duration * 60;
-            }
-          } else {
-            // High quality fallback questions if API is unavailable
+            if (qData.data.duration) totalSeconds = qData.data.duration * 60;
+          } else if (ALLOW_FALLBACK_QUESTIONS) {
             questions = [
               {
                 id: 1,
                 text: "In which year was the Odisha Sub-ordinate Staff Selection Commission (OSSSC) established?",
                 options: ["2010", "2012", "2015", "2018"],
                 optionsObjects: [{ id: "opt-1", text: "2010" }, { id: "opt-2", text: "2012" }, { id: "opt-3", text: "2015" }, { id: "opt-4", text: "2018" }],
-                section: "General Awareness"
+                section: "General Awareness",
               },
-              {
-                id: 2,
-                text: "What is the standard minimum qualifying speed in the OSSSC English Typing Test?",
-                options: ["30 WPM", "35 WPM", "40 WPM", "45 WPM"],
-                optionsObjects: [{ id: "opt-5", text: "30 WPM" }, { id: "opt-6", text: "35 WPM" }, { id: "opt-7", text: "40 WPM" }, { id: "opt-8", text: "45 WPM" }],
-                section: "Computer Skill"
-              },
-              {
-                id: 3,
-                text: "Which shortcut key is commonly used to undo the last action in Microsoft Word?",
-                options: ["Ctrl + U", "Ctrl + Y", "Ctrl + Z", "Ctrl + X"],
-                optionsObjects: [{ id: "opt-9", text: "Ctrl + U" }, { id: "opt-10", text: "Ctrl + Y" }, { id: "opt-11", text: "Ctrl + Z" }, { id: "opt-12", text: "Ctrl + X" }],
-                section: "Computer Skill"
-              },
-              {
-                id: 4,
-                text: "Who is the head of the Revenue Administration in a district in Odisha?",
-                options: ["Collector and District Magistrate", "Sub-Collector", "Tahasildar", "Revenue Inspector"],
-                optionsObjects: [{ id: "opt-13", text: "Collector and District Magistrate" }, { id: "opt-14", text: "Sub-Collector" }, { id: "opt-15", text: "Tahasildar" }, { id: "opt-16", text: "Revenue Inspector" }],
-                section: "General Awareness"
-              },
-              {
-                id: 5,
-                text: "Which river in Odisha is also known as the 'Sorrow of Odisha' historically?",
-                options: ["Baitarani", "Brahmani", "Mahanadi", "Rushikulya"],
-                optionsObjects: [{ id: "opt-17", text: "Baitarani" }, { id: "opt-18", text: "Brahmani" }, { id: "opt-19", text: "Mahanadi" }, { id: "opt-20", text: "Rushikulya" }],
-                section: "Odisha GK"
-              }
             ];
+          } else {
+            throw new Error("Could not load questions. Please try again.");
           }
 
+          buildSectionTabs();
           renderPalette();
           renderQuestion(0);
+        }
+
+        function buildSectionTabs() {
+          const secs = [...new Set(questions.map((q) => q.section).filter(Boolean))];
+          paletteSections.innerHTML = "";
+          const mk = (label, key) => {
+            const b = document.createElement("button");
+            b.className = "sec-tab" + (key === activeSection ? " active" : "");
+            b.dataset.sec = key;
+            b.textContent = label;
+            b.addEventListener("click", () => {
+              activeSection = key;
+              paletteSections.querySelectorAll(".sec-tab").forEach((t) => t.classList.toggle("active", t.dataset.sec === key));
+              renderPalette();
+            });
+            paletteSections.appendChild(b);
+          };
+          mk("All", "all");
+          if (secs.length > 1) secs.forEach((s) => mk(s, s));
         }
 
         function getQState(i) {
@@ -1890,10 +2000,12 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
 
         function renderPalette() {
           paletteGrid.innerHTML = "";
-          questions.forEach((_, idx) => {
+          questions.forEach((q, idx) => {
+            if (activeSection !== "all" && q.section !== activeSection) return;
             const btn = document.createElement("button");
             btn.className = `pq-btn ${getQState(idx)}`;
             if (idx === currentIndex) btn.classList.add("current");
+            btn.dataset.idx = String(idx);
             btn.textContent = String(idx + 1);
             btn.setAttribute("aria-label", `Question ${idx + 1}`);
             btn.addEventListener("click", () => {
@@ -1905,48 +2017,40 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         }
 
         function updatePaletteButton(idx) {
-          const btn = paletteGrid.children[idx];
+          const btn = paletteGrid.querySelector(`[data-idx="${idx}"]`);
           if (!btn) return;
           btn.className = `pq-btn ${getQState(idx)}`;
           if (idx === currentIndex) btn.classList.add("current");
         }
 
         function renderQuestion(idx) {
+          const prevIdx = currentIndex;
           currentIndex = idx;
           visited.add(idx);
           const q = questions[idx];
           if (!q) return;
 
           qNum.textContent = `Question ${idx + 1}`;
-          // Correctly read question text from API response (q.text)
-          qText.textContent = q.text || q.question || q.title || "Question text unavailable";
+          qText.textContent = q.text || "Question text unavailable";
           qSectionTag.textContent = q.section || "General";
           qProgressText.textContent = `Question ${idx + 1} of ${questions.length}`;
           qProgressFill.style.width = `${((idx + 1) / questions.length) * 100}%`;
 
-          // If on the last question, change next button text
-          const nextText = idx === questions.length - 1 ? "Submit MCQ & Next →" : "Save & Next →";
-          if (btnNext) btnNext.textContent = nextText;
-          if (btnNextMob) btnNextMob.textContent = nextText;
+          const isLast = idx === questions.length - 1;
+          if (btnNext) btnNext.textContent = isLast ? "Submit MCQ & Next →" : "Save & Next →";
+          if (btnNextMob) btnNextMob.textContent = isLast ? "Submit →" : "Save & Next →";
 
-          // Update mark button state on desktop and mobile
           const isMarked = marked.has(idx);
-          [btnMark, btnMarkMob].forEach((b) => {
-            if (!b) return;
-            if (isMarked) {
-              b.classList.add("marked");
-            } else {
-              b.classList.remove("marked");
-            }
-          });
+          [btnMark, btnMarkMob].forEach((b) => b && b.classList.toggle("marked", isMarked));
 
           optionsContainer.innerHTML = "";
           const opts = Array.isArray(q.options) ? q.options : [];
           const keys = ["A", "B", "C", "D", "E", "F"];
 
           opts.forEach((opt, oIdx) => {
-            const optText = typeof opt === "object" && opt !== null ? (opt.text || opt.title || "") : String(opt);
+            const optText = typeof opt === "object" && opt !== null ? opt.text || opt.title || "" : String(opt);
             const btn = document.createElement("button");
+            btn.type = "button";
             btn.className = "option-btn";
             if (answers[idx] === oIdx) btn.classList.add("selected");
 
@@ -1960,7 +2064,6 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
 
             btn.appendChild(key);
             btn.appendChild(label);
-
             btn.addEventListener("click", () => {
               answers[idx] = oIdx;
               renderQuestion(idx);
@@ -1968,54 +2071,38 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
             optionsContainer.appendChild(btn);
           });
 
-          for (let i = 0; i < questions.length; i++) {
-            updatePaletteButton(i);
-          }
+          updatePaletteButton(prevIdx);
+          updatePaletteButton(idx);
         }
 
         function handlePrev() {
           if (currentIndex > 0) renderQuestion(currentIndex - 1);
         }
-
         function handleNext() {
-          if (currentIndex < questions.length - 1) {
-            renderQuestion(currentIndex + 1);
-          } else {
-            requestAdvanceStage();
-          }
+          if (currentIndex < questions.length - 1) renderQuestion(currentIndex + 1);
+          else requestAdvanceStage();
         }
-
         function handleMark() {
-          if (marked.has(currentIndex)) {
-            marked.delete(currentIndex);
-          } else {
-            marked.add(currentIndex);
-          }
+          if (marked.has(currentIndex)) marked.delete(currentIndex);
+          else marked.add(currentIndex);
           updatePaletteButton(currentIndex);
           const isMarked = marked.has(currentIndex);
-          [btnMark, btnMarkMob].forEach((b) => {
-            if (!b) return;
-            if (isMarked) b.classList.add("marked");
-            else b.classList.remove("marked");
-          });
+          [btnMark, btnMarkMob].forEach((b) => b && b.classList.toggle("marked", isMarked));
         }
 
         btnPrev?.addEventListener("click", handlePrev);
         btnPrevMob?.addEventListener("click", handlePrev);
-
         btnNext?.addEventListener("click", handleNext);
         btnNextMob?.addEventListener("click", handleNext);
-
         btnMark?.addEventListener("click", handleMark);
         btnMarkMob?.addEventListener("click", handleMark);
-
         btnClear?.addEventListener("click", () => {
           delete answers[currentIndex];
           renderQuestion(currentIndex);
         });
 
         // ═════════════════════════════════════════════
-        // TYPING TEST ENGINE (TYPING TEST 1 & 2)
+        // TYPING ENGINE
         // ═════════════════════════════════════════════
         function setupTypingTest(prefix) {
           const passageEl = document.getElementById(`${prefix}-passage`);
@@ -2025,96 +2112,198 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
           const errEl = document.getElementById(`${prefix}-errors`);
           const resetBtn = document.getElementById(`${prefix}-reset`);
 
-          let passage = passageEl?.dataset.passage || "";
+          let passage = "";
+          let passageId = null;
+          let loaded = false;
+          let expected = [];
           let charSpans = [];
-          let startTime = 0;
+          let startedAt = 0;
+          let keystrokes = 0;
+          let backspaces = 0;
+          let loadToken = 0;
+
+          const normalize = (t) => String(t || "").replace(/\s+/g, " ").trim();
+
+          function showStatus(html, isError = false) {
+            loaded = false;
+            charSpans = [];
+            expected = [];
+            passageEl.innerHTML = `<div class="tt-status ${isError ? "error" : ""}">${html}</div>`;
+            inputEl.disabled = true;
+          }
 
           function buildSpans() {
             passageEl.innerHTML = "";
             charSpans = [];
+            expected = [];
             const tokens = passage.match(/\S+|\s+/g) || [];
             tokens.forEach((token) => {
-              const isSpace = /^\s+$/.test(token);
-              if (isSpace) {
+              if (/^\s+$/.test(token)) {
                 for (const ch of token) {
                   const s = document.createElement("span");
                   s.className = "tt-ch";
-                  s.textContent = ch === " " ? "\u00A0" : ch;
+                  s.textContent = "\u00A0";
                   passageEl.appendChild(s);
                   charSpans.push(s);
+                  expected.push(" ");
                 }
               } else {
-                const wordWrap = document.createElement("span");
-                wordWrap.className = "tt-word";
+                const wrap = document.createElement("span");
+                wrap.className = "tt-word";
                 for (const ch of token) {
                   const s = document.createElement("span");
                   s.className = "tt-ch";
                   s.textContent = ch;
-                  wordWrap.appendChild(s);
+                  wrap.appendChild(s);
                   charSpans.push(s);
+                  expected.push(ch);
                 }
-                passageEl.appendChild(wordWrap);
+                passageEl.appendChild(wrap);
               }
             });
             if (charSpans[0]) charSpans[0].classList.add("current");
+            passageEl.scrollTop = 0;
           }
 
-          function reset() {
-            inputEl.value = "";
-            startTime = 0;
+          function compute() {
+            const val = inputEl.value;
+            let correct = 0;
+            let errors = 0;
+            const n = Math.min(val.length, expected.length);
+            for (let i = 0; i < n; i++) {
+              if (val[i] === expected[i]) correct++;
+              else errors++;
+            }
+            let wpm = 0;
+            if (startedAt > 0 && val.length > 0) {
+              // minimum 1 second to avoid huge spikes on the first keystroke
+              const mins = Math.max((Date.now() - startedAt) / 60000, 1 / 60);
+              wpm = correct / 5 / mins;
+            }
+            const accuracy = val.length > 0 ? Math.max(0, Math.round(((val.length - errors) / val.length) * 100)) : 100;
+            return { val, correct, errors, wpm, accuracy };
+          }
+
+          function resetStats() {
+            startedAt = 0;
+            keystrokes = 0;
+            backspaces = 0;
             wpmEl.textContent = "0";
             accEl.textContent = "100%";
             errEl.textContent = "0";
+          }
+
+          function reset() {
+            if (!loaded) return;
+            inputEl.value = "";
+            resetStats();
             buildSpans();
             inputEl.focus();
           }
 
-          inputEl.addEventListener("input", () => {
-            const val = inputEl.value;
-            if (!startTime && val.length > 0) {
-              startTime = Date.now();
-            }
+          function setPassage(text, id) {
+            passage = normalize(text);
+            passageId = id ?? null;
+            inputEl.value = "";
+            resetStats();
+            buildSpans();
+            loaded = true;
+            inputEl.disabled = false;
+            inputEl.maxLength = passage.length;
+            inputEl.focus();
+          }
 
-            let errors = 0;
-            let correct = 0;
+          async function fetchPassage(excludeId) {
+            let url = `${API}/mocktest-passages?test_name=${encodeURIComponent(passageTestName)}`;
+            if (excludeId !== null && excludeId !== undefined && !Number.isNaN(excludeId)) {
+              url += `&exclude_ids=${excludeId}`;
+            }
+            const res = await fetch(url, { headers: { Accept: "*/*" } });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const json = await res.json();
+            let d = json?.data;
+            if (Array.isArray(d)) d = d[0];
+            if (!d?.passage_text) throw new Error("No passage returned by server");
+            const rawId = d.id ?? d.passage_id;
+            const id = rawId !== undefined && rawId !== null ? Number(rawId) : null;
+            return { text: d.passage_text, id };
+          }
+
+          // Calls the passage API. Shows loader, and an error + Retry button on failure.
+          async function load(excludeId) {
+            const myToken = ++loadToken;
+            showStatus("Loading passage…");
+            try {
+              const p = await fetchPassage(excludeId);
+              if (myToken !== loadToken) return;
+              setPassage(p.text, p.id);
+            } catch (err) {
+              if (myToken !== loadToken) return;
+              console.error(`Error fetching passage (${prefix}):`, err);
+              showStatus(`Could not load the passage.<button type="button" class="tt-retry">Retry</button>`, true);
+              passageEl.querySelector(".tt-retry")?.addEventListener("click", () => load(excludeId));
+            }
+          }
+
+          // Block paste / drop / cut / copy / context menu / Enter
+          ["paste", "drop", "cut", "copy", "contextmenu"].forEach((evt) =>
+            inputEl.addEventListener(evt, (e) => e.preventDefault())
+          );
+          inputEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") e.preventDefault();
+          });
+
+          inputEl.addEventListener("input", (e) => {
+            if (!loaded) return;
+            const t = e.inputType || "";
+            if (t.startsWith("delete")) backspaces++;
+            else if (t.startsWith("insert")) keystrokes++;
+
+            const val = inputEl.value;
+            if (!startedAt && val.length > 0) startedAt = Date.now();
 
             for (let i = 0; i < charSpans.length; i++) {
               const span = charSpans[i];
               span.classList.remove("current", "correct", "wrong");
-              const expected = span.textContent === "\u00A0" ? " " : span.textContent;
-
               if (i < val.length) {
-                if (val[i] === expected) {
-                  span.classList.add("correct");
-                  correct++;
-                } else {
-                  span.classList.add("wrong");
-                  errors++;
-                }
+                span.classList.add(val[i] === expected[i] ? "correct" : "wrong");
               } else if (i === val.length) {
                 span.classList.add("current");
-                span.scrollIntoView({ block: "nearest", inline: "nearest" });
               }
             }
 
-            const elapsedMins = (Date.now() - startTime) / 60000;
-            const wpm = elapsedMins > 0 ? Math.round((correct / 5) / elapsedMins) : 0;
-            const accuracy = val.length > 0 ? Math.max(0, Math.round(((val.length - errors) / val.length) * 100)) : 100;
+            // scroll only the passage box (not the whole page)
+            const cur = charSpans[Math.min(val.length, charSpans.length - 1)];
+            if (cur) {
+              const top = cur.offsetTop;
+              if (top > passageEl.scrollTop + passageEl.clientHeight - 50 || top < passageEl.scrollTop) {
+                passageEl.scrollTop = Math.max(0, top - 60);
+              }
+            }
 
-            wpmEl.textContent = String(wpm);
-            accEl.textContent = `${accuracy}%`;
-            errEl.textContent = String(errors);
+            const s = compute();
+            wpmEl.textContent = String(Math.round(s.wpm));
+            accEl.textContent = `${s.accuracy}%`;
+            errEl.textContent = String(s.errors);
           });
 
           resetBtn.addEventListener("click", reset);
-          buildSpans();
 
           return {
-            getStats: () => ({
-              wpm: wpmEl.textContent,
-              acc: accEl.textContent,
-              errors: errEl.textContent
-            })
+            load,
+            isLoaded: () => loaded,
+            getPassageId: () => passageId,
+            getStats: () => {
+              const s = compute();
+              return {
+                wpm: Number(s.wpm.toFixed(1)),
+                acc: `${s.accuracy}%`,
+                keystrokes_count: keystrokes,
+                error_count: s.errors,
+                backspace_count: backspaces,
+                typed_word_count: Math.round(s.correct / 5),
+              };
+            },
           };
         }
 
@@ -2122,55 +2311,111 @@ const passage2 = `Good governance and administrative efficiency rely heavily on 
         const tt2 = setupTypingTest("tt2");
 
         // ═════════════════════════════════════════════
-        // FINAL ATTEMPT SUBMISSION
+        // SUBMISSIONS
         // ═════════════════════════════════════════════
-        async function performFinalSubmit() {
-          btnModalConfirm.disabled = true;
-          btnModalConfirm.textContent = "Submitting Attempt...";
-
+        // Returns true on success, false on failure. Never submits twice.
+        async function submitMCQAttempt() {
+          if (mcqSubmitted) return true;
           try {
-            const token = localStorage.getItem("brinto_token") || "";
-            const guestId = localStorage.getItem("brinto_guest_id") || "";
-            const timeTaken = Math.round((Date.now() - startTime) / 1000);
-
-            // Correctly map optionsObjects to get selectedOptionId
+            const timeTaken = Math.round((Date.now() - (mcqStartedAt || Date.now())) / 1000);
             const payloadAnswers = questions.map((q, i) => {
               const userOptIdx = answers[i];
               let selectedOptionId = null;
-              if (userOptIdx !== undefined && q.optionsObjects && q.optionsObjects[userOptIdx]) {
+              if (userOptIdx !== undefined && q.optionsObjects && q.optionsObjects[userOptIdx] !== undefined) {
                 const optObj = q.optionsObjects[userOptIdx];
-                selectedOptionId = typeof optObj === "object" && optObj !== null ? (optObj.id ?? optObj) : optObj;
+                selectedOptionId = typeof optObj === "object" && optObj !== null ? (optObj.id ?? null) : optObj;
               }
-              return {
-                questionId: q.id,
-                selectedOptionId: selectedOptionId,
-                isMarked: marked.has(i)
-              };
+              return { questionId: q.id, selectedOptionId, isMarked: marked.has(i) };
             });
 
-            if (sessionId) {
-              await fetch("https://brintoapi.brinto.in/api/mocktests/attempts", {
-                method: "POST",
-                headers: {
-                  "Accept": "application/json",
-                  "Content-Type": "application/json",
-                  "X-Guest-Id": guestId,
-                  ...(token ? { Authorization: `Bearer ${token}` } : {})
-                },
-                body: JSON.stringify({
-                  sessionId,
-                  timeTaken,
-                  answers: payloadAnswers
-                })
-              });
-            }
+            if (!sessionId) throw new Error("No active session");
+
+            const res = await fetch(`${API}/mocktests/attempts`, {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "X-Guest-Id": getGuestId(),
+                ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+              },
+              body: JSON.stringify({ sessionId, timeTaken, answers: payloadAnswers }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            mcqSubmitted = true;
+            return true;
           } catch (e) {
-            console.error("Error submitting attempt:", e);
+            console.error("Error submitting MCQ attempt:", e);
+            return false;
+          }
+        }
+
+        const fallbackTypingSession = "typing-session-" + Date.now();
+
+        async function postTypingResult(n) {
+          if (typingPosted[n]) return true;
+          const t = n === 1 ? tt1 : tt2;
+          if (!t.isLoaded()) return false; // nothing was shown, nothing to submit
+          const stats = t.getStats();
+          const pId = t.getPassageId();
+          try {
+            const res = await fetch(`${API}/mocktest-passages/results`, {
+              method: "POST",
+              headers: {
+                Accept: "*/*",
+                "Content-Type": "application/json",
+                ...authHeaders(),
+              },
+              body: JSON.stringify({
+                session_id: sessionId || fallbackTypingSession,
+                passage_id: pId ?? n,
+                passage_number: n,
+                keystrokes_count: stats.keystrokes_count,
+                error_count: stats.error_count,
+                backspace_count: stats.backspace_count,
+                typed_word_count: stats.typed_word_count,
+                wpm: stats.wpm,
+              }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            typingPosted[n] = true;
+            return true;
+          } catch (e) {
+            console.error(`Error submitting Passage ${n} results:`, e);
+            return false;
+          }
+        }
+
+        async function finalSubmit(timeUp) {
+          if (finished) return;
+          clearInterval(timerInterval);
+
+          const mcqOk = await submitMCQAttempt();
+          if (!mcqOk && !timeUp) {
+            alert("Could not submit your MCQ answers. Please check your internet connection and try again.");
+            // timer was stopped above; restart it so the user can retry
+            if (endAt > Date.now()) {
+              timerInterval = setInterval(() => {
+                const remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+                renderTimer(remaining);
+                if (remaining <= 0) {
+                  clearInterval(timerInterval);
+                  finalSubmit(true);
+                }
+              }, 1000);
+            }
+            return;
           }
 
-          alert("OSSSC Combo Test Submitted successfully! You completed the MCQ test and both typing practical tests.");
+          if (currentStage >= 2) await postTypingResult(1);
+          if (currentStage >= 3) await postTypingResult(2);
+
+          finished = true;
+          testActive = false;
+          alert("OSSSC Combo Test submitted successfully!");
           window.location.href = "/mocktest/osssc";
         }
+
+        updateHeaderButton();
       })();
     </script>
   </body>
