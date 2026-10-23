@@ -288,7 +288,8 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       {
         "unit": "Transportation & Blood Circulation",
         "unitOdia": "ପରିବହନ ଓ ସଞ୍ଚାଳନ",
-        "topics": []
+        "topics": [],
+        "testId": 15
       },
       {
         "unit": "Excretion",
