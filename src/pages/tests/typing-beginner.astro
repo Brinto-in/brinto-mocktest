@@ -4,6 +4,32 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import BeginnerTypingTest from "../../components/BeginnerTypingTest.astro";
 import GAd from "../../components/GAd.astro";
 import GAdRails from "../../components/GAdRails.astro";
+
+const words = [
+  "nine",
+  "learn",
+  "arena",
+  "lean",
+  "linen",
+  "eerie",
+  "real",
+  "line",
+  "nine",
+  "area",
+  "ear",
+  "near",
+  "real",
+  "lie",
+  "line",
+  "arena",
+  "inner",
+  "rear",
+  "eerie",
+  "nearer",
+  "lie",
+  "line",
+  "nine"
+];
 ---
 
 <BaseLayout
@@ -39,6 +65,7 @@ import GAdRails from "../../components/GAdRails.astro";
           title="Beginner Typing Practice"
           duration={900}
           wpmGoal={20}
+          words={words}
         />
       </div>
 
@@ -226,4 +253,3 @@ import GAdRails from "../../components/GAdRails.astro";
     .info { padding: 20px 14px 36px; }
   }
 </style>
-
