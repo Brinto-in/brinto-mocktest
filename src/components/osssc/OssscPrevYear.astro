@@ -1,0 +1,247 @@
+---
+// "Previous year papers" row on the OSSSC page.
+// Same poster cards as PosterRow; papers without an href render as "Coming soon".
+import { ossscPrevPapers } from "../../data/osssc";
+
+interface Props {
+  cols?: number;
+}
+
+const { cols = 6 } = Astro.props;
+---
+
+<section class="py-section" aria-labelledby="py-title" style={`--py-cols:${cols};`}>
+  <div class="wrap">
+    <div class="py-head">
+      <h2 id="py-title" class="py-title">Previous year papers</h2>
+      <span class="py-note">Real OSSSC papers in exam format</span>
+    </div>
+
+    <div class="py-row">
+      {ossscPrevPapers.map((p) => {
+        const Tag = p.href ? "a" : "div";
+        return (
+          <Tag
+            href={p.href}
+            class:list={["py-card", { "py-soon": !p.href }]}
+            style={`--tone-a:${p.tone[0]};--tone-b:${p.tone[1]};`}
+            aria-label={`${p.title} ${p.year} – ${p.href ? p.meta : "coming soon"}`}
+          >
+            <div class="py-poster">
+              <div class="py-art" aria-hidden="true">
+                <span class="py-pyq">PYQ</span>
+                <span class="py-year">{p.year}</span>
+              </div>
+
+              <span class="py-badge">{p.href ? p.year : "SOON"}</span>
+
+              <div class="py-overlay">
+                <span class="py-sub">{p.posts}</span>
+                <h3 class="py-name">{p.title}</h3>
+                <span class="py-meta">{p.href ? p.meta : "Coming soon"}</span>
+              </div>
+            </div>
+          </Tag>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<style>
+  .py-section {
+    background: var(--surface);
+    padding: 16px 0 20px;
+  }
+
+  /* ── Header (matches PosterRow) ── */
+  .py-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .py-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .py-note {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* ── Row (same column maths as PosterRow) ── */
+  .py-row {
+    --gap: 12px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - (var(--py-cols) - 1) * var(--gap)) / var(--py-cols));
+    gap: var(--gap);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 6px 14px 28px;
+    margin: 0 -14px -18px;
+    scroll-padding-inline: 14px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .py-row::-webkit-scrollbar { display: none; }
+
+  /* ── Card ── */
+  .py-card {
+    scroll-snap-align: start;
+    display: block;
+    border-radius: var(--radius-sm);
+    outline: none;
+  }
+
+  .py-poster {
+    position: relative;
+    aspect-ratio: 3 / 4.5;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: linear-gradient(160deg, var(--tone-a), var(--tone-b));
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  a.py-card:hover .py-poster,
+  a.py-card:focus-visible .py-poster {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 22px -8px rgba(15, 23, 42, 0.32);
+  }
+
+  a.py-card:focus-visible .py-poster {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  /* Poster art: gradient highlight + large year */
+  .py-art {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding-bottom: 34%;
+    color: #ffffff;
+    background:
+      radial-gradient(circle at 75% 15%, rgba(255, 255, 255, 0.22), transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(0, 0, 0, 0.25), transparent 55%);
+  }
+
+  .py-pyq {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.24em;
+    padding: 3px 8px 3px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 4px;
+    opacity: 0.9;
+  }
+
+  .py-year {
+    font-size: clamp(2rem, 3.6vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.4s ease;
+  }
+
+  a.py-card:hover .py-year { transform: scale(1.05); }
+
+  /* Badge (same as PosterRow) */
+  .py-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #ffffff;
+    background: var(--brand);
+    padding: 3px 7px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Bottom text overlay (same as PosterRow) */
+  .py-overlay {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 36px 10px 10px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .py-sub {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .py-name {
+    font-family: var(--font-body);
+    font-size: clamp(0.85rem, 1.3vw, 1rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+
+  .py-meta {
+    font-size: 0.68rem;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  /* Coming soon: muted poster, dark badge */
+  .py-soon { cursor: default; }
+  .py-soon .py-poster { filter: saturate(0.55); }
+  .py-soon .py-badge { background: rgba(15, 23, 42, 0.75); }
+
+  /* ── 4K ── */
+  @media (min-width: 2560px) {
+    .py-section { padding: 28px 0 36px; }
+    .py-row { --gap: 20px; }
+    .py-head { margin-bottom: 20px; }
+  }
+
+  /* ── Responsive (matches PosterRow) ── */
+  @media (max-width: 1100px) {
+    .py-row { --py-cols: 4.4; }
+  }
+
+  @media (max-width: 768px) {
+    .py-section { padding: 12px 0 16px; }
+    .py-row { --py-cols: 3.3; --gap: 10px; }
+    .py-poster { aspect-ratio: 3 / 5.5; }
+    .py-note { display: none; }
+  }
+
+  @media (max-width: 480px) {
+    .py-row { --py-cols: 2.4; --gap: 8px; }
+    .py-poster { aspect-ratio: 3 / 5.8; }
+    .py-overlay { padding: 28px 8px 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .py-poster,
+    .py-year { transition: none; }
+  }
+</style>

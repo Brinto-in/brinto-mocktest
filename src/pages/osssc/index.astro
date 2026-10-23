@@ -12,6 +12,7 @@ import StepCard from "../../components/StepCard.astro";
 import SectionHeader from "../../components/SectionHeader.astro";
 import OssscHero from "../../components/osssc/OssscHero.astro";
 import OssscPosts from "../../components/osssc/OssscPosts.astro";
+import OssscPrevYear from "../../components/osssc/OssscPrevYear.astro";
 
 import { ossscItems, ossscSteps } from "../../data/osssc";
 import { fetchMockTests } from "../../lib/api";
@@ -55,6 +56,9 @@ const allTests = [...ossscItems, ...apiItems];
 
   <!-- ── TESTS ─────────────────────────────────── -->
   <PosterRow sectionId="osssc-tests" title="OSSSC tests & practice" items={allTests} cols={6} />
+
+  <!-- ── PREVIOUS YEAR PAPERS ──────────────────── -->
+  <OssscPrevYear />
 
   <!-- ── POSTS COVERED ─────────────────────────── -->
   <OssscPosts />

@@ -69,6 +69,24 @@ export const ossscPosts: OssscPost[] = [
   { short: "JA", name: "Junior Assistant", icon: "🗂️", color: "#4338CA", href: "/mocktest/test/11" },
 ];
 
+// Previous year question papers. Leave `href` out to show the card as "Coming soon".
+export interface OssscPrevPaper {
+  id: string;
+  year: string;
+  title: string;
+  posts: string;
+  meta: string;
+  tone: [string, string];
+  href?: string;
+}
+
+export const ossscPrevPapers: OssscPrevPaper[] = [
+  { id: "pyq-cre-2024", year: "2024", title: "Combined Recruitment Exam", posts: "RI · ARI · Amin", meta: "100 Qs · 120 min", tone: ["#B00020", "#6D0014"] },
+  { id: "pyq-cre-2023", year: "2023", title: "Combined Recruitment Exam", posts: "RI · ARI · Amin", meta: "100 Qs · 120 min", tone: ["#B45309", "#78350F"] },
+  { id: "pyq-ctse-2023", year: "2023", title: "Combined Technical Service", posts: "ICDS · VAW", meta: "100 Qs · 120 min", tone: ["#0E7490", "#164E63"] },
+  { id: "pyq-ja-2022", year: "2022", title: "Junior Assistant Exam", posts: "Junior Assistant", meta: "100 Qs · 120 min", tone: ["#4338CA", "#312E81"] },
+];
+
 export const ossscSteps: Step[] = [
   {
     n: "01",
