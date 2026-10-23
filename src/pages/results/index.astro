@@ -850,8 +850,11 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         color: var(--ink-muted);
     }
 
+    /* `.wrap.x` selectors: global .wrap { padding: 0 24px } may load after this file in production,
+       so these need the extra specificity to keep their own padding. */
+
     /* ── MCQ / TYPING SWITCH ── */
-    .rt-switch-wrap {
+    .wrap.rt-switch-wrap {
         padding-top: 20px;
     }
     .rt-switch {
@@ -974,12 +977,12 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     }
 
     /* ── PERFORMANCE CHART ── */
-    .perf-wrap {
+    .wrap.perf-wrap {
         padding-top: 24px;
     }
 
     /* ── FILTER BAR ── */
-    .filter-bar {
+    .wrap.filter-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -1045,7 +1048,7 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     }
 
     /* ── BODY ── */
-    .results-body {
+    .wrap.results-body {
         padding: 24px 24px 64px;
     }
 
@@ -1634,10 +1637,10 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         .stat-l {
             font-size: 0.65rem;
         }
-        .perf-wrap {
+        .wrap.perf-wrap {
             padding-top: 16px;
         }
-        .rt-switch-wrap {
+        .wrap.rt-switch-wrap {
             padding-top: 14px;
         }
         .rt-switch {
@@ -1648,7 +1651,7 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
             justify-content: center;
             padding: 8px 10px;
         }
-        .filter-bar {
+        .wrap.filter-bar {
             padding: 14px 16px 0;
             flex-direction: column;
             align-items: stretch;
@@ -1661,7 +1664,7 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
             justify-content: space-between;
             width: 100%;
         }
-        .results-body {
+        .wrap.results-body {
             padding: 16px 16px 48px;
         }
         .result-card {

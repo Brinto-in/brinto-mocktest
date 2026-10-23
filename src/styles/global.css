@@ -80,7 +80,9 @@ button { cursor: pointer; font-family: inherit; }
 h1,h2,h3,h4 { margin: 0; font-family: var(--font-display); line-height: 1.15; }
 p { margin: 0; }
 
-.wrap {
+/* :where() gives this zero specificity, so a page/component class on the same element
+   (e.g. class="wrap results-body") always wins — regardless of CSS load order in production. */
+:where(.wrap) {
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 0 24px;
