@@ -5,14 +5,14 @@ import { fetchTestDetails } from "../../lib/api/mockTestService";
 
 const { slug } = Astro.params;
 
-if (!slug) {
-  return new Response("Test ID or slug is required", { status: 400 });
-}
-
-const testDetails = await fetchTestDetails(slug);
-if (!testDetails) {
-  return new Response("Test not found", { status: 404 });
+let testDetails = null;
+if (slug) {
+  try {
+    testDetails = await fetchTestDetails(slug);
+  } catch (err) {
+    console.warn("Server-side fetchTestDetails failed, falling back to client-side loading:", err);
+  }
 }
 ---
 
-<ExamUI slug={slug} test={testDetails} />
+<ExamUI slug={slug} test={testDetails || undefined} />
