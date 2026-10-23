@@ -8,10 +8,12 @@ if (!slug || slug === "combo") {
   return new Response("Test ID or slug is required", { status: 400 });
 }
 
-const testDetails = await fetchTestDetails(slug);
-if (!testDetails) {
-  return new Response("Test not found", { status: 404 });
+let testDetails = null;
+try {
+  testDetails = await fetchTestDetails(slug);
+} catch (err) {
+  console.warn("Server-side fetchTestDetails failed for OSSSC test, falling back to client-side loading:", err);
 }
 ---
 
-<ComboExamUI slug={slug} test={testDetails} />
+<ComboExamUI slug={slug} test={testDetails || undefined} />
