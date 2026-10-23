@@ -296,31 +296,47 @@ const {
     let passageId = 3;
     let passageNumber = 1;
 
-    async function initSession() {
+    async function initSession(isRetry = false): Promise<boolean> {
       try {
         const token = localStorage.getItem("brinto_token") || "";
+        const guestId = localStorage.getItem("brinto_guest_id") || "";
         const dbTestId = parseInt(root.dataset.dbTestId || "11", 10);
         const res = await fetch("https://brintoapi.brinto.in/api/mocktests/sessions", {
           method: "POST",
           headers: {
             "Accept": "application/json",
             "Content-Type": "application/json",
+            "X-Guest-Id": guestId,
             ...(token ? { Authorization: `Bearer ${token}` } : {})
           },
           body: JSON.stringify({ testId: dbTestId })
         });
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.success && json?.data) {
-            if (json.data.id) currentSessionId = json.data.id;
-            if (json.data.guestId) localStorage.setItem("brinto_guest_id", json.data.guestId);
-          }
+
+        const json = await res.json().catch(() => ({}));
+        const errorMsg = json?.error || json?.message || "";
+        const isGuestNotFound = errorMsg.toLowerCase().includes("guest identity not found") || errorMsg.toLowerCase().includes("unauthorized") || res.status === 401;
+
+        if (isGuestNotFound && !isRetry) {
+          localStorage.removeItem("brinto_token");
+          localStorage.removeItem("brinto_guest_id");
+          return await initSession(true);
         }
-      } catch (e) {
-        console.error("Failed to initialize typing session:", e);
+
+        if (!res.ok || json?.success === false || !json?.data?.id) {
+          throw new Error(errorMsg || `Failed to create test session (${res.status})`);
+        }
+
+        currentSessionId = json.data.id;
+        if (json.data.guestId) {
+          localStorage.setItem("brinto_guest_id", json.data.guestId);
+        }
+        return true;
+      } catch (e: any) {
+        console.error("Failed to initialize typing test session:", e);
+        alert("Unable to start test session: " + (e.message || "Please try again."));
+        return false;
       }
     }
-    initSession();
 
     // Fetch passage from API if configured
     async function fetchPassage() {
@@ -481,6 +497,16 @@ const {
 
     async function start() {
       if (state !== 'idle' || isFetching) return;
+
+      if (!currentSessionId) {
+        startBtn.classList.add('tt-btn-loading');
+        startBtn.disabled = true;
+        const success = await initSession();
+        startBtn.classList.remove('tt-btn-loading');
+        startBtn.disabled = false;
+        if (!success) return;
+      }
+
       if (apiUrl) {
         await fetchPassage();
         build();
