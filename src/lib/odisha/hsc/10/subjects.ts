@@ -296,7 +296,8 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "unitOdia": "ରେଚନ",
         "topics": [
           "ବୃକ୍କକ ଓ ନେଫ୍ରନ୍"
-        ]
+        ],
+        "testId": 16
       },
       {
         "unit": "Control & Coordination",
