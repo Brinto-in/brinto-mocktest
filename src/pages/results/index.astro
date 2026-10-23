@@ -180,6 +180,7 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
 
 <script>
     import { renderPerformanceChart, renderTypingChart, WPM_TARGET } from "../../components/result/performanceChart";
+    import { fetchMyAttempts, fetchAttemptDetails, fetchTypingResults } from "../../lib/api";
 
     let allResults = [];
     const perfChartEl = document.getElementById("perf-chart");
@@ -223,21 +224,10 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         amQuestionsContainer.innerHTML = "";
 
         try {
-            const token = localStorage.getItem("brinto_token") || "";
-            const guestId = localStorage.getItem("brinto_guest_id") || "";
-
-            const res = await fetch(`https://brintoapi.brinto.in/api/mocktests/my-attempts/${attemptId}`, {
-                headers: {
-                    "Accept": "*/*",
-                    "X-Guest-Id": guestId,
-                    "Authorization": token ? `Bearer ${token}` : ""
-                }
-            });
-
-            const json = await res.json();
-            if (json?.success && json?.data) {
-                currentAttemptDetails = json.data;
-                renderAttemptDetailsModal(json.data);
+            const data = await fetchAttemptDetails(attemptId);
+            if (data) {
+                currentAttemptDetails = data;
+                renderAttemptDetailsModal(data);
             } else {
                 amQuestionsContainer.innerHTML = `<p class="am-error">Unable to load details for this attempt.</p>`;
             }
@@ -392,28 +382,10 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     // Fetch dynamic attempts from API
     async function loadDynamicAttempts() {
         try {
-            const token = localStorage.getItem("brinto_token") || "";
-            const guestId = localStorage.getItem("brinto_guest_id") || "";
-
-            const headers = {
-                "Accept": "*/*",
-                "X-Guest-Id": guestId,
-            };
-            if (token) {
-                headers["Authorization"] = `Bearer ${token}`;
-            }
-
-            const res = await fetch("https://brintoapi.brinto.in/api/mocktests/my-attempts?page=1&limit=10&section=true", {
-                headers
-            });
-
-            if (!res.ok) return;
-
-            const json = await res.json();
-            if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
-                allResults = json.data.map(formatAttempt);
+            const data = await fetchMyAttempts(1, 10);
+            if (Array.isArray(data) && data.length > 0) {
+                allResults = data.map(formatAttempt);
                 activeExam = "All";
-                // Don't overwrite the typing view if the user is on it
                 if (!document.getElementById("view-mcq").hidden) updateUI(allResults);
             }
         } catch (err) {
@@ -476,14 +448,8 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         const loading = document.getElementById("typing-loading");
         loading.hidden = false;
         try {
-            const token = localStorage.getItem("brinto_token") || "";
-            const guestId = localStorage.getItem("brinto_guest_id") || "";
-            const headers = { Accept: "*/*", "X-Guest-Id": guestId };
-            if (token) headers["Authorization"] = `Bearer ${token}`;
-
-            const res = await fetch("https://brintoapi.brinto.in/api/mocktest-passages/results", { headers });
-            const json = res.ok ? await res.json() : null;
-            typingResults = (json?.success && Array.isArray(json.data) ? json.data : []).map((r) => ({
+            const rawData = await fetchTypingResults();
+            typingResults = rawData.map((r) => ({
                 id: r.id,
                 session: r.session_id,
                 passageNumber: r.passage_number,
