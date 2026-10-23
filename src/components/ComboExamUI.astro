@@ -189,6 +189,122 @@ const passageTestName = "Odisha RI Typing Test";
         background: var(--combo-purple-light);
         border-color: #ddd6fe;
       }
+      .rule-combo-enhanced {
+        background: linear-gradient(135deg, var(--combo-purple-light) 0%, #ffffff 100%);
+        border: 1.5px solid #ddd6fe;
+        border-radius: var(--radius-md);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .combo-flow-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .combo-flow-badge {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: var(--combo-purple-dark);
+        background: rgba(124, 58, 237, 0.12);
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .combo-flow-sub {
+        font-size: 0.75rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+      }
+      .combo-stages-grid {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr auto 1fr;
+        align-items: center;
+        gap: 6px;
+      }
+      .combo-stage-card {
+        background: var(--surface);
+        border: 1px solid #ddd6fe;
+        border-radius: var(--radius-sm);
+        padding: 10px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(124, 58, 237, 0.04);
+        transition: transform 0.15s ease, border-color 0.15s ease;
+        height: 100%;
+      }
+      .combo-stage-card:hover {
+        transform: translateY(-1px);
+        border-color: var(--combo-purple);
+      }
+      .csc-number {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--combo-purple);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .csc-content {
+        min-width: 0;
+        flex: 1;
+      }
+      .csc-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.25;
+      }
+      .csc-desc {
+        font-size: 0.72rem;
+        color: var(--ink-soft);
+        margin-top: 3px;
+        line-height: 1.4;
+        white-space: normal;
+      }
+      .combo-stage-connector {
+        color: var(--combo-purple);
+        font-weight: 800;
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 0 2px;
+      }
+      .combo-flow-footer {
+        font-size: 0.76rem;
+        color: var(--ink-soft);
+        background: rgba(124, 58, 237, 0.06);
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        border-left: 3px solid var(--combo-purple);
+        line-height: 1.4;
+      }
+      @media (max-width: 768px) {
+        .combo-stages-grid {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+        .combo-stage-connector {
+          display: none;
+        }
+        .combo-stage-card {
+          align-items: center;
+        }
+        .csc-number {
+          margin-top: 0;
+        }
+      }
       .instr-rule-icon {
         flex-shrink: 0;
         font-size: 1.1rem;
@@ -287,74 +403,161 @@ const passageTestName = "Odisha RI Typing Test";
         z-index: 50;
         background: var(--surface);
         border-bottom: 1px solid var(--rule);
-        padding: 0 18px;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+      .eh-top-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 14px;
-        height: 60px;
-        flex-shrink: 0;
+        padding: 0 20px;
+        height: 52px;
+        gap: 12px;
       }
       .eh-left {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         flex-shrink: 0;
+        min-width: 0;
       }
       .eh-title {
         font-weight: 700;
-        font-size: 0.92rem;
+        font-size: 0.95rem;
         color: var(--ink);
+        white-space: nowrap;
       }
       .eh-badge {
-        font-size: 0.72rem;
+        font-size: 0.65rem;
         font-weight: 800;
         color: #fff;
         background: var(--combo-purple);
-        padding: 3px 8px;
+        padding: 2px 8px;
         border-radius: var(--radius-pill);
         letter-spacing: 0.04em;
         text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .eh-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+      .timer-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 5px 12px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+      }
+      .timer-box svg { color: var(--ink-muted); flex-shrink: 0; }
+      .btn-submit-header {
+        background: var(--brand);
+        color: #fff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 7px 16px;
+        border: none;
+        border-radius: var(--radius-pill);
+        transition: background 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .btn-submit-header:hover {
+        background: var(--brand-dark);
       }
 
-      /* ── COMBO STEP INDICATORS (NON-CLICKABLE TABS) ── */
+      /* ── COMBO STEP PROGRESS BAR (2nd row) ── */
+      .combo-tabs-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px 8px;
+        gap: 0;
+      }
       .combo-tabs {
         display: flex;
+        align-items: center;
         background: var(--surface-2);
-        padding: 4px;
+        padding: 3px;
         border-radius: var(--radius-pill);
         border: 1px solid var(--rule);
-        gap: 4px;
+        gap: 2px;
         user-select: none;
+        position: relative;
       }
       .combo-step {
         border: none;
         background: transparent;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 600;
         color: var(--ink-muted);
-        padding: 6px 14px;
+        padding: 5px 16px;
         border-radius: var(--radius-pill);
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         cursor: default;
         pointer-events: none;
-        transition: all 0.2s ease;
+        transition: all 0.25s ease;
+        position: relative;
       }
       .combo-step.active {
         background: #fff;
         color: var(--combo-purple-dark);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 1px 6px rgba(124, 58, 237, 0.15);
         font-weight: 700;
       }
       .combo-step.completed {
-        background: rgba(27, 107, 58, 0.12);
+        background: rgba(27, 107, 58, 0.1);
         color: var(--green);
         font-weight: 700;
       }
+      .combo-step .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        font-size: 0.68rem;
+        font-weight: 800;
+        background: var(--rule);
+        color: var(--ink-muted);
+        flex-shrink: 0;
+      }
+      .combo-step.active .step-num {
+        background: var(--combo-purple);
+        color: #fff;
+      }
+      .combo-step.completed .step-num {
+        background: var(--green);
+        color: #fff;
+      }
       .combo-step .step-short {
         display: none;
+      }
+      /* Connector lines between steps */
+      .step-connector {
+        width: 24px;
+        height: 2px;
+        background: var(--rule);
+        flex-shrink: 0;
+        border-radius: 1px;
+      }
+      .step-connector.done {
+        background: var(--green);
       }
       @media (max-width: 640px) {
         .combo-step .step-full {
@@ -363,43 +566,9 @@ const passageTestName = "Odisha RI Typing Test";
         .combo-step .step-short {
           display: inline;
         }
-      }
-
-      /* ── HEADER RIGHT ── */
-      .eh-right {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-shrink: 0;
-      }
-      .timer-box {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: var(--surface-2);
-        border: 1px solid var(--rule);
-        border-radius: var(--radius-sm);
-        padding: 6px 12px;
-        font-size: 0.95rem;
-        font-weight: 700;
-        font-variant-numeric: tabular-nums;
-      }
-      .timer-box svg { color: var(--ink-muted); }
-      .btn-submit-header {
-        background: var(--brand);
-        color: #fff;
-        font-size: 0.85rem;
-        font-weight: 700;
-        padding: 8px 18px;
-        border: none;
-        border-radius: var(--radius-pill);
-        transition: background 0.15s;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .btn-submit-header:hover {
-        background: var(--brand-dark);
+        .step-connector {
+          width: 16px;
+        }
       }
 
       /* ── PANELS CONTAINER ── */
@@ -1054,7 +1223,7 @@ const passageTestName = "Odisha RI Typing Test";
         .sidebar {
           position: fixed;
           right: 0;
-          top: 60px;
+          top: 0;
           bottom: 0;
           width: 290px;
           transform: translateX(100%);
@@ -1096,18 +1265,30 @@ const passageTestName = "Odisha RI Typing Test";
       }
 
       @media (max-width: 600px) {
-        .exam-header {
+        .eh-top-row {
           padding: 0 10px;
-          gap: 6px;
+          height: 46px;
+          gap: 8px;
+        }
+        .combo-tabs-row {
+          padding: 0 10px 6px;
         }
         .combo-tabs {
           padding: 2px;
-          gap: 2px;
+          gap: 1px;
         }
         .combo-step {
-          padding: 4px 8px;
+          padding: 4px 10px;
           font-size: 0.72rem;
           gap: 3px;
+        }
+        .combo-step .step-num {
+          width: 16px;
+          height: 16px;
+          font-size: 0.62rem;
+        }
+        .step-connector {
+          width: 12px;
         }
         .btn-submit-header {
           padding: 6px 10px;
@@ -1139,11 +1320,14 @@ const passageTestName = "Odisha RI Typing Test";
       }
 
       @media (max-width: 480px) {
-        .exam-header {
+        .eh-top-row {
           padding: 0 8px;
         }
         .eh-badge {
           display: none;
+        }
+        .combo-tabs-row {
+          padding: 0 8px 6px;
         }
       }
 
@@ -1275,11 +1459,38 @@ const passageTestName = "Odisha RI Typing Test";
         <div class="instr-body">
           <div class="instr-section-label">General & Combo Instructions</div>
           <ul class="instr-rules">
-            <li class="instr-rule rule-combo">
-              <span class="instr-rule-icon">📝</span>
-              <div class="instr-rule-text">
-                <strong>Sequential 3-Stage Exam</strong>
-                This test contains 3 stages in order: <strong>Stage 1: MCQ Test</strong>, <strong>Stage 2: Typing Test 1</strong>, and <strong>Stage 3: Typing Test 2</strong>. Once you submit a stage, you advance to the next stage and cannot change answers in completed stages.
+            <li class="instr-rule-enhanced rule-combo-enhanced">
+              <div class="combo-flow-header">
+                <span class="combo-flow-badge">🧭 Sequential 3-Stage Workflow</span>
+                <span class="combo-flow-sub">Strict sequential progression · No going back</span>
+              </div>
+              <div class="combo-stages-grid">
+                <div class="combo-stage-card">
+                  <div class="csc-number">1</div>
+                  <div class="csc-content">
+                    <div class="csc-title">MCQ Test</div>
+                    <div class="csc-desc">Objective questions & marking scheme</div>
+                  </div>
+                </div>
+                <div class="combo-stage-connector">→</div>
+                <div class="combo-stage-card">
+                  <div class="csc-number">2</div>
+                  <div class="csc-content">
+                    <div class="csc-title">Passage 1</div>
+                    <div class="csc-desc">Typing accuracy & WPM test</div>
+                  </div>
+                </div>
+                <div class="combo-stage-connector">→</div>
+                <div class="combo-stage-card">
+                  <div class="csc-number">3</div>
+                  <div class="csc-content">
+                    <div class="csc-title">Passage 2</div>
+                    <div class="csc-desc">Typing accuracy & WPM test</div>
+                  </div>
+                </div>
+              </div>
+              <div class="combo-flow-footer">
+                <span>🔒 <strong>Submission Lock:</strong> Submitting a stage locks your responses and advances you immediately to the next stage.</span>
               </div>
             </li>
             <li class="instr-rule rule-warn">
@@ -1353,34 +1564,41 @@ const passageTestName = "Odisha RI Typing Test";
 
     <!-- ── EXAM HEADER ── -->
     <header class="exam-header">
-      <div class="eh-left">
-        <a href="/mocktest/osssc" class="eh-title" id="eh-title">OSSSC Combo</a>
-        <span class="eh-badge">MCQ + Typing</span>
+      <div class="eh-top-row">
+        <div class="eh-left">
+          <a href="/mocktest/osssc" class="eh-title" id="eh-title">OSSSC Combo</a>
+          <span class="eh-badge">MCQ + Typing</span>
+        </div>
+        <div class="eh-right">
+          <div class="timer-box" title="Remaining time">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span id="combo-timer">120:00</span>
+          </div>
+          <button type="button" class="btn-submit-header" id="btn-header-submit">
+            <span class="lbl-full">Submit MCQ & Next →</span><span class="lbl-short">Submit →</span>
+          </button>
+        </div>
       </div>
-
-      <nav class="combo-tabs" aria-label="Combo test progress" id="combo-step-nav">
-        <div class="combo-step active" id="step-1">
-          <span class="step-full">MCQ</span>
-          <span class="step-short">MCQ</span>
-        </div>
-        <div class="combo-step" id="step-2">
-          <span class="step-full">Passage 1</span>
-          <span class="step-short">P1</span>
-        </div>
-        <div class="combo-step" id="step-3">
-          <span class="step-full">Passage 2</span>
-          <span class="step-short">P2</span>
-        </div>
-      </nav>
-
-      <div class="eh-right">
-        <div class="timer-box" title="Remaining time">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          <span id="combo-timer">120:00</span>
-        </div>
-        <button type="button" class="btn-submit-header" id="btn-header-submit">
-          <span class="lbl-full">Submit MCQ & Next →</span><span class="lbl-short">Submit →</span>
-        </button>
+      <div class="combo-tabs-row">
+        <nav class="combo-tabs" aria-label="Combo test progress" id="combo-step-nav">
+          <div class="combo-step active" id="step-1">
+            <span class="step-num">1</span>
+            <span class="step-full">MCQ Test</span>
+            <span class="step-short">MCQ</span>
+          </div>
+          <div class="step-connector" id="conn-1-2"></div>
+          <div class="combo-step" id="step-2">
+            <span class="step-num">2</span>
+            <span class="step-full">Passage 1</span>
+            <span class="step-short">P1</span>
+          </div>
+          <div class="step-connector" id="conn-2-3"></div>
+          <div class="combo-step" id="step-3">
+            <span class="step-num">3</span>
+            <span class="step-full">Passage 2</span>
+            <span class="step-short">P2</span>
+          </div>
+        </nav>
       </div>
     </header>
 
@@ -1452,12 +1670,12 @@ const passageTestName = "Odisha RI Typing Test";
       </div>
     </main>
 
-    <!-- 2. TYPING TEST 1 PANEL (STAGE 2) -->
+    <!-- 2. PASSAGE 1 PANEL (STAGE 2) -->
     <section id="typing-panel-1" class="test-panel">
       <div class="typing-panel-content">
         <div class="tt-header">
           <div class="tt-header-left">
-            <h2>Stage 2 · Typing Test 1 (General & Office Norms)</h2>
+            <h2>Stage 2 · Passage 1 (General & Office Norms)</h2>
             <p>OSSSC Standard English Typing · 40 WPM Benchmark</p>
           </div>
           <div class="tt-stats">
@@ -1497,7 +1715,7 @@ const passageTestName = "Odisha RI Typing Test";
                 <button type="button" class="btn-restart" id="tt1-reset">Reset Passage</button>
               </div>
               <button type="button" class="btn-step-submit" id="tt1-submit-step">
-                <span class="lbl-full">Submit Typing 1 & Proceed to Test 2 →</span><span class="lbl-short">Submit & Next →</span>
+                <span class="lbl-full">Submit Passage 1 & Proceed to Passage 2 →</span><span class="lbl-short">Submit & Next →</span>
               </button>
             </div>
           </div>
@@ -1505,12 +1723,12 @@ const passageTestName = "Odisha RI Typing Test";
       </div>
     </section>
 
-    <!-- 3. TYPING TEST 2 PANEL (STAGE 3) -->
+    <!-- 3. PASSAGE 2 PANEL (STAGE 3) -->
     <section id="typing-panel-2" class="test-panel">
       <div class="typing-panel-content">
         <div class="tt-header">
           <div class="tt-header-left">
-            <h2>Stage 3 · Typing Test 2 (Administrative Drafting)</h2>
+            <h2>Stage 3 · Passage 2 (Administrative Drafting)</h2>
             <p>OSSSC Official Communication & Accuracy Test</p>
           </div>
           <div class="tt-stats">
@@ -1531,7 +1749,7 @@ const passageTestName = "Odisha RI Typing Test";
 
         <div class="typing-card">
           <div class="passage-box" id="tt2-passage">
-            <div class="tt-status">Passage will load after you submit Typing Test 1…</div>
+            <div class="tt-status">Passage will load after you submit Passage 1…</div>
           </div>
           <div class="input-area-wrap">
             <textarea
@@ -1574,11 +1792,11 @@ const passageTestName = "Odisha RI Typing Test";
             <div class="summary-card-val" id="sum-mcq-marked">0</div>
           </div>
           <div class="summary-card" id="mcard-tt1" style="display:none;">
-            <div class="summary-card-hd">Typing Test 1 Speed</div>
+            <div class="summary-card-hd">Passage 1 Speed</div>
             <div class="summary-card-val" id="sum-tt1">0 WPM (100%)</div>
           </div>
           <div class="summary-card" id="mcard-tt2" style="display:none;">
-            <div class="summary-card-hd">Typing Test 2 Speed</div>
+            <div class="summary-card-hd">Passage 2 Speed</div>
             <div class="summary-card-val" id="sum-tt2">0 WPM (100%)</div>
           </div>
         </div>
@@ -1755,9 +1973,13 @@ const passageTestName = "Odisha RI Typing Test";
         });
 
         // ── STAGE UI ──
-        function setStepState(el, state, full, short) {
+        function setStepState(el, state, num, full, short) {
           el.className = `combo-step ${state}`.trim();
-          el.innerHTML = `<span class="step-full">${full}</span><span class="step-short">${short}</span>`;
+          el.innerHTML = `<span class="step-num">${num}</span><span class="step-full">${full}</span><span class="step-short">${short}</span>`;
+        }
+        function setConnector(id, done) {
+          const c = document.getElementById(id);
+          if (c) c.className = done ? "step-connector done" : "step-connector";
         }
 
         function updateHeaderButton() {
@@ -1770,8 +1992,9 @@ const passageTestName = "Odisha RI Typing Test";
         function goToStage(n) {
           currentStage = n;
           if (n === 2) {
-            setStepState(step1, "completed", "MCQ", "MCQ");
-            setStepState(step2, "active", "Passage 1", "P1");
+            setStepState(step1, "completed", "✓", "MCQ Test", "MCQ");
+            setStepState(step2, "active", "2", "Passage 1", "P1");
+            setConnector("conn-1-2", true);
             panel1.classList.remove("active");
             panel2.classList.add("active");
             const mobNav = document.getElementById("mobile-nav-bar");
@@ -1780,8 +2003,9 @@ const passageTestName = "Odisha RI Typing Test";
             if (palToggle) palToggle.style.display = "none";
             closeSidebarMob();
           } else if (n === 3) {
-            setStepState(step2, "completed", "Passage 1", "P1");
-            setStepState(step3, "active", "Passage 2", "P2");
+            setStepState(step2, "completed", "✓", "Passage 1", "P1");
+            setStepState(step3, "active", "3", "Passage 2", "P2");
+            setConnector("conn-2-3", true);
             panel2.classList.remove("active");
             panel3.classList.add("active");
           }
@@ -1807,23 +2031,23 @@ const passageTestName = "Odisha RI Typing Test";
 
           if (currentStage === 1) {
             modalTitle.textContent = "Submit Section 1 (MCQ Test)?";
-            modalDesc.textContent = `You have answered ${answeredCount} of ${questions.length} questions. Once submitted, you will advance to Typing Test 1 and cannot return to the MCQ section.`;
+            modalDesc.textContent = `You have answered ${answeredCount} of ${questions.length} questions. Once submitted, you will advance to Passage 1 and cannot return to the MCQ section.`;
             cardMcqAns.style.display = "block";
             cardMcqMark.style.display = "block";
             cardTt1.style.display = "none";
             cardTt2.style.display = "none";
-            btnModalConfirm.textContent = "Submit & Proceed to Typing 1 →";
+            btnModalConfirm.textContent = "Submit & Proceed to Passage 1 →";
           } else if (currentStage === 2) {
-            modalTitle.textContent = "Submit Section 2 (Typing Test 1)?";
-            modalDesc.textContent = `Your typing speed is ${s1.wpm} WPM with ${s1.acc} accuracy. Once submitted, you will proceed to Typing Test 2.`;
+            modalTitle.textContent = "Submit Section 2 (Passage 1)?";
+            modalDesc.textContent = `Your typing speed is ${s1.wpm} WPM with ${s1.acc} accuracy. Once submitted, you will proceed to Passage 2.`;
             cardMcqAns.style.display = "block";
             cardMcqMark.style.display = "none";
             cardTt1.style.display = "block";
             cardTt2.style.display = "none";
-            btnModalConfirm.textContent = "Submit & Proceed to Typing 2 →";
+            btnModalConfirm.textContent = "Submit & Proceed to Passage 2 →";
           } else {
             modalTitle.textContent = "Final Submit OSSSC Combo Test?";
-            modalDesc.textContent = "Review your overall performance across MCQ and both Typing tests before final submission.";
+            modalDesc.textContent = "Review your overall performance across MCQ and both passages before final submission.";
             cardMcqAns.style.display = "block";
             cardMcqMark.style.display = "block";
             cardTt1.style.display = "block";
