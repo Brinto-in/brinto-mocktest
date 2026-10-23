@@ -343,20 +343,30 @@ const tips = [
       setTimeout(() => { tipText.textContent = tips[tipIdx]; tipText.style.opacity = '1'; }, 300);
     }
 
+    let isChecking = false;
     // ── Check input ──
     function check() {
+      if (isChecking) return;
       const typed = inputEl.value.trim();
       const target = words[wordIdx];
 
       if (typed === target) {
+        isChecking = true;
+        inputEl.value = '';
         // Correct!
         spotWord.classList.add('btt-spot-correct');
         inputEl.classList.add('btt-input-ok');
         inputIcon.textContent = '✓';
         if (!wordErrors[wordIdx]) correct += target.length;
         toast(praises[Math.floor(Math.random() * praises.length)]);
-        setTimeout(() => { wordIdx++; if (wordIdx < words.length) setCurrent(); else finish(); }, 300);
+        setTimeout(() => {
+          wordIdx++;
+          isChecking = false;
+          if (wordIdx < words.length) setCurrent();
+          else finish();
+        }, 300);
       } else {
+        isChecking = true;
         // Wrong
         errors++;
         wordErrors[wordIdx] = true;
@@ -368,6 +378,7 @@ const tips = [
           inputEl.classList.remove('btt-input-err');
           inputIcon.textContent = '→';
           inputEl.value = '';
+          isChecking = false;
         }, 500);
       }
       draw();
@@ -427,14 +438,26 @@ const tips = [
     // ── Events ──
     inputEl.addEventListener('keydown', e => {
       if ((e.key === ' ' || e.key === 'Enter') && state === 'running') {
-        e.preventDefault(); check();
+        e.preventDefault();
+        const typed = inputEl.value.trim();
+        const target = words[wordIdx];
+        if (typed === target) {
+          check();
+        }
       }
     });
-    // Also check on space in mobile (input event fires after)
+    // Automatically advance as soon as the typed word matches the target word
     inputEl.addEventListener('input', () => {
-      if (inputEl.value.endsWith(' ') && state === 'running') {
-        inputEl.value = inputEl.value.trimEnd();
+      if (state !== 'running' || isChecking) return;
+      const typed = inputEl.value.trim();
+      const target = words[wordIdx];
+      if (typed === target) {
         check();
+      } else if (inputEl.value.endsWith(' ')) {
+        inputEl.value = inputEl.value.trimEnd();
+        if (inputEl.value.trim() === target) {
+          check();
+        }
       }
     });
 
