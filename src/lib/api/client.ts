@@ -1,6 +1,10 @@
 // src/lib/api/client.ts
 
-export const API_BASE = "https://brintoapi.brinto.in";
+export const API_BASE =
+  (typeof import.meta !== "undefined" && (import.meta.env.PUBLIC_API_BASE || import.meta.env.PUBLIC_API_BASE_URL || import.meta.env.API_BASE)) ||
+  "https://brintoapi.brinto.in";
+
+console.log(`🔌 Connected to API base: ${API_BASE}`);
 
 export function getAuthToken(): string {
   if (typeof window !== "undefined") {
