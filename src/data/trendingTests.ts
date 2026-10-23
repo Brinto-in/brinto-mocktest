@@ -28,7 +28,7 @@ export const TRENDING_TESTS: TrendingTest[] = [
     href: "/mocktest/tests/osssc-typing",
     isNew: true,
     isFree: true,
-    comingSoon: true,
+    comingSoon: false,
     info: "Typing test",
   },
   {
@@ -38,11 +38,11 @@ export const TRENDING_TESTS: TrendingTest[] = [
     questions: 50,
     duration: 45,
     difficulty: "Medium",
-    href: "/mocktest/test/11",
+    href: "/mocktest/osssc/test/11",
     isNew: true,
     isFree: true,
-    image: "/images/osssc.png",
-    comingSoon: true,
+    image: "/images/osssc-combo.png",
+    comingSoon: false,
   },
   {
     id: "odisha-10th",
@@ -54,7 +54,6 @@ export const TRENDING_TESTS: TrendingTest[] = [
     href: "/mocktest/odisha-10th-mock-test",
     isNew: true,
     isFree: true,
-    image: "/images/odisha-10th/math.png",
     comingSoon: true,
   },
   {
