@@ -1,13 +1,4 @@
 ---
 export const prerender = false;
-import ComboExamUI from "../../../components/ComboExamUI.astro";
-import { fetchTestDetails } from "../../../lib/api";
-
-const testId = "11";
-
-let testDetails = null;
-testDetails = await fetchTestDetails(testId);
+return Astro.redirect("/mocktest/osssc");
 ---
-
-<ComboExamUI slug={testId} test={testDetails || undefined} />
-

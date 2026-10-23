@@ -2472,7 +2472,8 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             const qRes = await fetch(`https://brintoapi.brinto.in/api/mocktests/${testIdRaw}?session_id=${sessionId}`, {
               headers: {
                 "Accept": "*/*",
-                "Authorization": `Bearer ${token}`
+                "Authorization": `Bearer ${token}`,
+                ...(guestId ? { "X-Guest-Id": guestId } : {})
               }
             });
 

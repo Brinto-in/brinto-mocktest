@@ -31,7 +31,7 @@ export async function apiClient<T = any>(endpoint: string, options: RequestOptio
   const headers: Record<string, string> = {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "X-Guest-Id": guestId,
+    ...(guestId ? { "X-Guest-Id": guestId } : {}),
     ...(options.headers as Record<string, string> || {}),
   };
 

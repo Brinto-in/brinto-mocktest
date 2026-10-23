@@ -1,14 +1,18 @@
 ---
 export const prerender = false;
 import ExamUI from "../../components/ExamUI.astro";
-import { fetchTestDetails } from "../../lib/api";
+import { fetchTestDetails } from "../../lib/api/mockTestService";
 
 const { slug } = Astro.params;
 
-let testDetails = null;
-if (slug) {
-  testDetails = await fetchTestDetails(slug);
+if (!slug) {
+  return new Response("Test ID or slug is required", { status: 400 });
+}
+
+const testDetails = await fetchTestDetails(slug);
+if (!testDetails) {
+  return new Response("Test not found", { status: 404 });
 }
 ---
 
-<ExamUI slug={slug} test={testDetails || undefined} />
+<ExamUI slug={slug} test={testDetails} />

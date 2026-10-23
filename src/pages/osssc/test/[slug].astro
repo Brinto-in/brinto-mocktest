@@ -3,14 +3,15 @@ export const prerender = false;
 import ComboExamUI from "../../../components/ComboExamUI.astro";
 import { fetchTestDetails } from "../../../lib/api";
 
-const { slug = "11" } = Astro.params;
-const testId = !slug || slug === "combo" ? "11" : slug;
+const { slug } = Astro.params;
+if (!slug || slug === "combo") {
+  return new Response("Test ID or slug is required", { status: 400 });
+}
 
-let testDetails = null;
-if (testId) {
-  testDetails = await fetchTestDetails(testId);
+const testDetails = await fetchTestDetails(slug);
+if (!testDetails) {
+  return new Response("Test not found", { status: 404 });
 }
 ---
 
-<ComboExamUI slug={testId} test={testDetails || undefined} />
-
+<ComboExamUI slug={slug} test={testDetails} />

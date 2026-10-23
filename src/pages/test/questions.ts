@@ -1,31 +1,6 @@
+// src/pages/test/questions.ts
 import type { APIRoute } from "astro";
-
-async function startSession(testId: string | number, authHeader: string, guestIdHeader: string) {
-  const parsedId = typeof testId === "number" ? testId : parseInt(testId, 10);
-  if (!parsedId || isNaN(parsedId)) {
-    return null;
-  }
-
-  const headers: Record<string, string> = {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-    "X-Guest-Id": guestIdHeader || "",
-  };
-  if (authHeader) {
-    headers["Authorization"] = authHeader;
-  }
-
-  const sessRes = await fetch("https://brintoapi.brinto.in/api/mocktests/sessions", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ testId: parsedId }),
-  });
-  const sessJson = await sessRes.json();
-  if (sessJson?.success && sessJson?.data?.id) {
-    return sessJson.data.id as string;
-  }
-  return null;
-}
+import { createMockTestSession, apiClient } from "../../lib/api";
 
 export const GET: APIRoute = async ({ request, params }) => {
   const urlParams = new URL(request.url).searchParams;
@@ -40,24 +15,24 @@ export const GET: APIRoute = async ({ request, params }) => {
 
   try {
     if (!sessionId) {
-      sessionId = await startSession(id, authHeader, guestIdHeader);
+      sessionId = await createMockTestSession(id);
       if (!sessionId) {
         return new Response(JSON.stringify({ message: "Failed to create session for test" }), { status: 400 });
       }
     }
 
-    const reqHeaders: Record<string, string> = {
+    const headers: Record<string, string> = {
       "Accept": "*/*",
+      "X-Guest-Id": guestIdHeader,
     };
     if (authHeader) {
-      reqHeaders["Authorization"] = authHeader;
+      headers["Authorization"] = authHeader;
     }
 
-    const res = await fetch(`https://brintoapi.brinto.in/api/mocktests/${id}?session_id=${sessionId}`, {
-      headers: reqHeaders
+    const json = await apiClient(`/api/mocktests/${id}?session_id=${sessionId}`, {
+      headers
     });
 
-    const json = await res.json();
     if (json?.success && json?.data?.questions) {
       const rawQuestions = json.data.questions;
       const formattedQuestions = rawQuestions.map((q: any) => ({
@@ -90,23 +65,23 @@ export const POST: APIRoute = async ({ request }) => {
     const authHeader = request.headers.get("authorization") || "";
     const guestIdHeader = request.headers.get("x-guest-id") || "";
 
-    const sessionId = await startSession(testId, authHeader, guestIdHeader);
+    const sessionId = await createMockTestSession(testId);
     if (!sessionId) {
       return new Response(JSON.stringify({ message: "Failed to create test session" }), { status: 400 });
     }
 
-    const reqHeaders: Record<string, string> = {
+    const headers: Record<string, string> = {
       "Accept": "*/*",
+      "X-Guest-Id": guestIdHeader,
     };
     if (authHeader) {
-      reqHeaders["Authorization"] = authHeader;
+      headers["Authorization"] = authHeader;
     }
 
-    const res = await fetch(`https://brintoapi.brinto.in/api/mocktests/${testId}?session_id=${sessionId}`, {
-      headers: reqHeaders
+    const json = await apiClient(`/api/mocktests/${testId}?session_id=${sessionId}`, {
+      headers
     });
 
-    const json = await res.json();
     if (json?.success && json?.data?.questions) {
       const rawQuestions = json.data.questions;
       const formattedQuestions = rawQuestions.map((q: any) => ({
