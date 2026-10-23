@@ -282,7 +282,8 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "unitOdia": "ଶ୍ୱସନ",
         "topics": [
           "ବାୟୁ ଉପଜୀବୀ ଓ ଅପଜୀବୀ"
-        ]
+        ],
+        "testId": 14
       },
       {
         "unit": "Transportation & Blood Circulation",
@@ -609,5 +610,14 @@ export const ODISHA_10TH_ACTIVE: ActiveTest[] = [
     subtitle: 'ଜୀବ ବିଜ୍ଞାନ (SCL)',
     poster: '/images/odisha-10th/life-science.png',
     testId: 13,
+  },
+  {
+    id: 'scl-swasana',
+    subjectId: 'scl',
+    title: 'ଶ୍ୱସନ',
+    titleEn: 'Respiration',
+    subtitle: 'ଜୀବ ବିଜ୍ଞାନ (SCL)',
+    poster: '/images/odisha-10th/life-science.png',
+    testId: 14,
   },
 ];

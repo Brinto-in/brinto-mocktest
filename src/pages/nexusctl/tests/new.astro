@@ -175,7 +175,7 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
             alertContainer.innerHTML = `<div class="alert alert-success">✓ Test created successfully! Redirecting...</div>`;
             setTimeout(() => {
-                window.location.href = `/mocktest/admin/tests/${newId}?created=1`;
+                window.location.href = `/mocktest/nexusctl/tests/${newId}?created=1`;
             }, 800);
         } catch (err) {
             console.error("Error creating test:", err);
