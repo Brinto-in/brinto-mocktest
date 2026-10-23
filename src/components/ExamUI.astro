@@ -1,5 +1,6 @@
 ---
 import type { Test } from "../lib/types";
+import TestResultsView from "./TestResultsView.astro";
 
 interface Props {
   slug?: string;
@@ -1429,78 +1430,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
     </div><!-- end exam-body -->
 
     <!-- ── RESULTS VIEW ── -->
-    <div id="results-view">
-      <div class="results-hero">
-        <p id="res-test-name" style="font-size:0.9rem;margin-bottom:8px;"></p>
-        <h1>Test Submitted!</h1>
-        <p>Here's how you performed.</p>
-        <div class="score-ring-wrap">
-          <svg viewBox="0 0 140 140" width="140" height="140">
-            <circle
-              cx="70"
-              cy="70"
-              r="60"
-              fill="none"
-              stroke="rgba(255,255,255,0.1)"
-              stroke-width="12"></circle>
-            <circle
-              id="score-ring-circle"
-              cx="70"
-              cy="70"
-              r="60"
-              fill="none"
-              stroke="#B00020"
-              stroke-width="12"
-              stroke-dasharray="376.99"
-              stroke-dashoffset="376.99"
-              stroke-linecap="round"
-              transform="rotate(-90 70 70)"></circle>
-          </svg>
-          <span class="score-pct" id="score-pct-text">0%</span>
-        </div>
-        <div class="result-cards">
-          <div class="rc rc-correct">
-            <div class="rc-n" id="rc-correct">0</div><div class="rc-l">
-              Correct
-            </div>
-          </div>
-          <div class="rc rc-wrong">
-            <div class="rc-n" id="rc-wrong">0</div>
-            <div class="rc-l">Wrong</div>
-          </div>
-          <div class="rc rc-skipped">
-            <div class="rc-n" id="rc-skipped">0</div><div class="rc-l">
-              Skipped
-            </div>
-          </div>
-          <div class="rc rc-marked">
-            <div class="rc-n" id="rc-marked">0</div>
-            <div class="rc-l">Marked</div>
-          </div>
-        </div>
-      </div>
-      <div class="results-body">
-        <div class="res-section-title">Section-wise Analysis</div>
-        <table class="section-table" id="section-table">
-          <thead>
-            <tr>
-              <th>Section</th><th>Total</th>
-              <th>Correct</th><th>Wrong</th><th>Skipped</th><th>Score</th>
-            </tr>
-          </thead>
-          <tbody id="section-table-body"></tbody>
-        </table>
-        <div class="res-section-title">Review Answers</div>
-        <div class="review-list" id="review-list"></div>
-        <div style="text-align:center;padding-bottom:48px;">
-          <a
-            href="/mocktest/tests"
-            style="display:inline-block;background:var(--brand);color:#fff;font-weight:700;padding:14px 32px;border-radius:999px;font-size:1rem;"
-            >← Back to All Tests</a
-          >
-        </div>
-      </div>
-    </div>
+    <TestResultsView />
 
     <!-- ── ERROR / NO DATA UI ── -->
     <div class="exam-error-view" id="exam-error-view" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:99999;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
@@ -2087,8 +2017,25 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             const json = await res.json();
             if (json?.success && json?.data) {
               serverData = json.data;
-            } else {
-              console.warn("Attempt submission response warning:", json);
+            }
+
+            // Fetch GET /api/mocktests/attempts/{sessionId} for complete results analysis
+            if (state.sessionId) {
+              try {
+                const getRes = await fetch(`https://brintoapi.brinto.in/api/mocktests/attempts/${state.sessionId}`, {
+                  headers: {
+                    "Accept": "application/json",
+                    ...(guestId ? { "X-Guest-Id": guestId } : {}),
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+                  }
+                });
+                const getJson = await getRes.json();
+                if (getJson?.success && getJson?.data) {
+                  serverData = getJson.data;
+                }
+              } catch (e) {
+                console.warn("Error fetching attempt details by session:", e);
+              }
             }
           } catch (err) {
             console.error("Error submitting mock test attempt to API:", err);
@@ -2100,6 +2047,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         const mobNav = document.querySelector(".mobile-nav-bar");
         if (mobNav) mobNav.style.display = "none";
         document.getElementById("btn-submit-header").style.display = "none";
+        exitFullscreen();
         document.getElementById("results-view").classList.add("show");
         document.getElementById("res-test-name").textContent = testMeta?.title || document.getElementById("eh-title")?.textContent || "Online Mock Test";
 
@@ -2144,15 +2092,16 @@ const { slug = "", test, questionsData = [] } = Astro.props;
 
         if (Array.isArray(serverData?.sections) && serverData.sections.length > 0) {
           serverData.sections.forEach((sec) => {
-            const secTotal = sec.total || (sec.correct + sec.wrong + sec.skipped);
-            const secPct = secTotal > 0 ? Math.round((sec.correct / secTotal) * 100) : 0;
+            const secTotal = sec.total || 0;
+            const secCorrect = sec.correct || 0;
+            const secWrong = sec.wrong !== undefined ? sec.wrong : Math.max(0, secTotal - secCorrect);
+            const secPct = secTotal > 0 ? Math.round((secCorrect / secTotal) * 100) : 0;
             tbody.innerHTML += `
         <tr>
-          <td><strong>${sec.sectionName || sec.section || "General"}</strong></td>
+          <td><strong>${sec.name || sec.sectionName || sec.section || "General"}</strong></td>
           <td>${secTotal}</td>
-          <td class="td-correct">${sec.correct}</td>
-          <td class="td-wrong">${sec.wrong}</td>
-          <td>${sec.skipped}</td>
+          <td class="td-correct">${secCorrect}</td>
+          <td class="td-wrong">${secWrong}</td>
           <td><strong>${secPct}%</strong></td>
         </tr>`;
           });
@@ -2160,22 +2109,20 @@ const { slug = "", test, questionsData = [] } = Astro.props;
           sections.forEach((sec) => {
             const qs = questions.filter((q) => q.section === sec);
             let sc = 0,
-              sw = 0,
-              ss = 0;
+              sw = 0;
             qs.forEach((q) => {
               const i = questions.indexOf(q);
-              if (state.answers[i] === undefined) ss++;
-              else if (state.answers[i] === q.correct) sc++;
-              else sw++;
+              if (state.answers[i] !== undefined && state.answers[i] === q.correct) sc++;
+              else if (state.answers[i] !== undefined) sw++;
             });
-            const secPct = qs.length > 0 ? Math.round((sc / qs.length) * 100) : 0;
+            const secTotal = qs.length;
+            const secPct = secTotal > 0 ? Math.round((sc / secTotal) * 100) : 0;
             tbody.innerHTML += `
         <tr>
           <td><strong>${sec}</strong></td>
-          <td>${qs.length}</td>
+          <td>${secTotal}</td>
           <td class="td-correct">${sc}</td>
           <td class="td-wrong">${sw}</td>
-          <td>${ss}</td>
           <td><strong>${secPct}%</strong></td>
         </tr>`;
           });
@@ -2191,57 +2138,62 @@ const { slug = "", test, questionsData = [] } = Astro.props;
 
         // Review list
         const reviewList = document.getElementById("review-list");
-        reviewList.innerHTML = "";
-        const keys = ["A", "B", "C", "D"];
-        questions.forEach((q, i) => {
-          const sq = resQuestionMap.get(Number(q.id));
-          const userAns = state.answers[i];
-          const isCorrect = sq ? sq.isCorrect : (userAns !== undefined && userAns === q.correct);
-          const isSkipped = sq ? (sq.selectedOptionId === null || sq.selectedOptionId === undefined) : (userAns === undefined);
+        if (reviewList) {
+          reviewList.innerHTML = "";
+          const keys = ["A", "B", "C", "D"];
+          const qList = Array.isArray(serverData?.questions) && serverData.questions.length > 0 ? serverData.questions : questions;
 
-          const statusClass = isSkipped
-            ? "rs-skipped"
-            : isCorrect
-              ? "rs-correct"
-              : "rs-wrong";
-          const statusIcon = isSkipped ? "–" : isCorrect ? "✓" : "✗";
+          qList.forEach((q, i) => {
+            const sq = resQuestionMap.get(Number(q.questionId || q.id));
+            const userAns = state.answers[i];
+            const isCorrect = q.isCorrect !== undefined ? q.isCorrect : (sq ? sq.isCorrect : (userAns !== undefined && userAns === q.correct));
+            const isSkipped = q.isSkipped !== undefined ? q.isSkipped : (sq ? (sq.selectedOptionId === null || sq.selectedOptionId === undefined) : (userAns === undefined));
 
-          const correctAnsId = sq ? sq.answer : null;
-          const selectedOptId = sq ? sq.selectedOptionId : (userAns !== undefined && q.optionsObjects && q.optionsObjects[userAns] ? (q.optionsObjects[userAns].id ?? q.optionsObjects[userAns]) : null);
+            const statusClass = isSkipped ? "rs-skipped" : isCorrect ? "rs-correct" : "rs-wrong";
+            const statusIcon = isSkipped ? "–" : isCorrect ? "✓" : "✗";
 
-          const card = document.createElement("div");
-          card.className = "review-card";
-          const optionsHtml = q.options
-            .map((opt, oi) => {
-              const optObj = q.optionsObjects && q.optionsObjects[oi];
-              const optId = typeof optObj === 'object' && optObj !== null ? (optObj.id ?? optObj) : optObj;
+            const optionsList = q.options || [];
+            const optionsHtml = optionsList
+              .map((opt, oi) => {
+                let cls = "";
+                if (opt.isCorrect !== undefined || opt.isSelected !== undefined) {
+                  if (opt.isCorrect) cls = "rev-correct";
+                  else if (opt.isSelected) cls = "rev-wrong";
+                } else {
+                  const optObj = q.optionsObjects && q.optionsObjects[oi];
+                  const optId = typeof optObj === 'object' && optObj !== null ? (optObj.id ?? optObj) : optObj;
+                  const correctAnsId = sq ? sq.answer : q.correct;
+                  const selectedOptId = sq ? sq.selectedOptionId : (userAns !== undefined && q.optionsObjects && q.optionsObjects[userAns] ? (q.optionsObjects[userAns].id ?? q.optionsObjects[userAns]) : null);
 
-              let cls = "";
-              if (correctAnsId !== null && correctAnsId !== undefined) {
-                if (optId === correctAnsId) cls = "rev-correct";
-                else if (optId === selectedOptId) cls = "rev-wrong";
-              } else {
-                if (oi === q.correct) cls = "rev-correct";
-                else if (oi === userAns) cls = "rev-wrong";
-              }
-              return `<div class="rev-opt ${cls}"><span class="rev-key">${keys[oi]}.</span> ${opt}</div>`;
-            })
-            .join("");
+                  if (correctAnsId !== null && correctAnsId !== undefined) {
+                    if (optId === correctAnsId) cls = "rev-correct";
+                    else if (optId === selectedOptId) cls = "rev-wrong";
+                  } else {
+                    if (oi === q.correct) cls = "rev-correct";
+                    else if (oi === userAns) cls = "rev-wrong";
+                  }
+                }
+                return `<div class="rev-opt ${cls}"><span class="rev-key">${keys[oi] || (oi + 1)}.</span> ${opt.text || opt}</div>`;
+              })
+              .join("");
 
-          card.innerHTML = `
-      <div class="review-header" onclick="this.parentElement.classList.toggle('rh-open')">
-        <div class="review-status ${statusClass}">${statusIcon}</div>
-        <span class="rh-qnum">Q${i + 1}</span>
-        <span class="rh-text">${q.text}</span>
-        <svg class="rh-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-      <div class="review-body">
-        <div class="review-q-text">${q.text}</div>
-        <div class="review-options">${optionsHtml}</div>
-        <div class="review-expl"><strong>Explanation:</strong> ${q.explanation || "No explanation provided."}</div>
-      </div>`;
-          reviewList.appendChild(card);
-        });
+            const card = document.createElement("div");
+            card.className = "review-card";
+            card.innerHTML = `
+              <div class="review-header" onclick="this.parentElement.classList.toggle('rh-open')">
+                <div class="review-status ${statusClass}">${statusIcon}</div>
+                <span class="rh-qnum">Q${q.questionNumber || (i + 1)}</span>
+                <span class="rh-text">${q.text}</span>
+                <svg class="rh-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="review-body">
+                <div class="review-q-text">${q.text}</div>
+                <div class="review-options">${optionsHtml}</div>
+                <div class="review-expl"><strong>Explanation:</strong> ${q.explanation || "No explanation provided."}</div>
+              </div>`;
+            reviewList.appendChild(card);
+          });
+        }
       }
 
       // ─────────────────────────────────────────────
@@ -2279,15 +2231,22 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         }
       }
 
+      function exitFullscreen() {
+        if (!isFullscreen()) return;
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+
       function toggleFullscreen() {
         if (!isFullscreen()) {
           enterFullscreen();
         } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen().catch(() => {});
-          } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-          }
+          exitFullscreen();
         }
       }
 

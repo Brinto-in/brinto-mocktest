@@ -181,3 +181,20 @@ export async function fetchAttemptDetails(attemptId: string) {
     return null;
   }
 }
+
+export async function fetchAttemptDetailsBySession(sessionId: string) {
+  try {
+    if (!sessionId) return null;
+    const json = await apiClient(`/api/mocktests/attempts/${sessionId}`, {
+      headers: { "Accept": "application/json" }
+    });
+
+    if (json?.success && json?.data) {
+      return json.data;
+    }
+    return null;
+  } catch (err) {
+    console.error("Error fetching attempt details by session:", err);
+    return null;
+  }
+}

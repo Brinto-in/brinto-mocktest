@@ -7,7 +7,6 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "dev:local": "astro dev --host 0.0.0.0 --port 3000",
     "build": "astro build",
     "build:cf": "astro build",
     "preview": "astro preview",

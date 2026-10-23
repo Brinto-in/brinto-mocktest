@@ -1,5 +1,7 @@
 ---
 import type { Test } from "../lib/types";
+import TestResultsView from "./TestResultsView.astro";
+import TypingResultsView from "./TypingResultsView.astro";
 
 interface Props {
   slug?: string;
@@ -459,6 +461,23 @@ const passageTestName = "Odisha RI Typing Test";
         flex-shrink: 0;
       }
       .timer-box svg { color: var(--ink-muted); flex-shrink: 0; }
+      .btn-fullscreen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-sm);
+        padding: 6px;
+        color: var(--ink-soft);
+        transition: all 0.15s ease;
+      }
+      .btn-fullscreen:hover {
+        background: var(--surface);
+        border-color: var(--brand);
+        color: var(--brand);
+      }
       .btn-submit-header {
         background: var(--brand);
         color: #fff;
@@ -1198,6 +1217,49 @@ const passageTestName = "Odisha RI Typing Test";
         cursor: not-allowed;
       }
 
+      /* ── RESULT TABS ── */
+      #combo-results {
+        display: none;
+        flex: 1;
+      }
+      #combo-results.show {
+        display: block;
+      }
+      .result-tabs[hidden] {
+        display: none !important;
+      }
+      .result-tabs {
+        display: flex;
+        gap: 2px;
+        padding: 3px;
+        background: var(--surface-2);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-pill);
+      }
+      .result-tab {
+        border: none;
+        background: transparent;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--ink-soft);
+        padding: 5px 14px;
+        border-radius: var(--radius-pill);
+        white-space: nowrap;
+        transition: all 0.2s ease;
+      }
+      @media (max-width: 600px) {
+        .result-tab { padding: 4px 10px; font-size: 0.78rem; }
+      }
+      .result-tab.active {
+        background: #fff;
+        color: var(--combo-purple-dark);
+        font-weight: 700;
+        box-shadow: 0 1px 6px rgba(124, 58, 237, 0.15);
+      }
+      @media (max-width: 380px) {
+        .result-tab { padding: 6px 12px; font-size: 0.8rem; }
+      }
+
       /* ── TOAST (tab-switch warning etc.) ── */
       .toast {
         position: fixed;
@@ -1570,6 +1632,9 @@ const passageTestName = "Odisha RI Typing Test";
           <span class="eh-badge">MCQ + Typing</span>
         </div>
         <div class="eh-right">
+          <button type="button" class="btn-fullscreen" id="btn-fullscreen" title="Enter Fullscreen" aria-label="Enter Fullscreen">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
           <div class="timer-box" title="Remaining time">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             <span id="combo-timer">120:00</span>
@@ -1599,6 +1664,14 @@ const passageTestName = "Odisha RI Typing Test";
             <span class="step-short">P2</span>
           </div>
         </nav>
+        <div class="result-tabs" id="result-tabs" role="tablist" hidden>
+          <button type="button" class="result-tab active" role="tab" data-target="results-view" aria-selected="true">
+            <span class="lbl-full">📝 MCQ Result</span><span class="lbl-short">MCQ</span>
+          </button>
+          <button type="button" class="result-tab" role="tab" data-target="typing-results-view" aria-selected="false">
+            <span class="lbl-full">⌨️ Typing Result</span><span class="lbl-short">Typing</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -1776,6 +1849,12 @@ const passageTestName = "Odisha RI Typing Test";
       </div>
     </section>
 
+    <!-- ── RESULTS VIEW (MCQ / Typing tabs) ── -->
+    <div id="combo-results">
+      <TestResultsView />
+      <TypingResultsView benchmarkWpm={40} />
+    </div>
+
     <!-- ── CONFIRMATION MODAL ── -->
     <div class="modal-backdrop" id="combo-modal">
       <div class="modal-box">
@@ -1809,7 +1888,7 @@ const passageTestName = "Odisha RI Typing Test";
     </div>
 
     <!-- ── CLIENT SCRIPT ── -->
-    <script define:vars={{ testIdRaw: slug, passageTestName }}>
+    <script define:vars={{ testIdRaw: slug, passageTestName, testTitle: test?.title || "" }}>
       (() => {
         const API = "https://brintoapi.brinto.in/api";
         // Set to true ONLY for local dev if you want dummy questions when the API is down.
@@ -1908,7 +1987,41 @@ const passageTestName = "Odisha RI Typing Test";
           btnStart.disabled = !instrCb.checked;
         });
 
+        // ── FULLSCREEN ──
+        const ENTER_FS_SVG = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
+        const EXIT_FS_SVG = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>`;
+        const btnFullscreen = document.getElementById("btn-fullscreen");
+
+        function isFullscreen() {
+          return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+        }
+        function updateFullscreenIcon() {
+          if (!btnFullscreen) return;
+          const fs = isFullscreen();
+          btnFullscreen.innerHTML = fs ? EXIT_FS_SVG : ENTER_FS_SVG;
+          btnFullscreen.title = fs ? "Exit Fullscreen" : "Enter Fullscreen";
+          btnFullscreen.setAttribute("aria-label", btnFullscreen.title);
+        }
+        function enterFullscreen() {
+          const elem = document.documentElement;
+          if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
+          else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+          else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+        }
+        function exitFullscreen() {
+          if (!isFullscreen()) return;
+          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+          else if (document.msExitFullscreen) document.msExitFullscreen();
+        }
+        btnFullscreen?.addEventListener("click", () => (isFullscreen() ? exitFullscreen() : enterFullscreen()));
+        document.addEventListener("fullscreenchange", updateFullscreenIcon);
+        document.addEventListener("webkitfullscreenchange", updateFullscreenIcon);
+        document.addEventListener("msfullscreenchange", updateFullscreenIcon);
+
         btnStart.addEventListener("click", async () => {
+          // Must run synchronously inside the click so the browser allows it.
+          enterFullscreen();
           btnStart.disabled = true;
           btnStart.textContent = "Starting Test...";
           try {
@@ -2096,6 +2209,7 @@ const passageTestName = "Odisha RI Typing Test";
               goToStage(3);
               tt2.load(p1Id);
             } else {
+              comboModal.style.display = "none";
               await finalSubmit(false);
             }
           } finally {
@@ -2538,8 +2652,9 @@ const passageTestName = "Odisha RI Typing Test";
         // SUBMISSIONS
         // ═════════════════════════════════════════════
         // Returns true on success, false on failure. Never submits twice.
+        let mcqResultData = null;
         async function submitMCQAttempt() {
-          if (mcqSubmitted) return true;
+          if (mcqSubmitted) return mcqResultData || true;
           try {
             const timeTaken = Math.round((Date.now() - (mcqStartedAt || Date.now())) / 1000);
             const payloadAnswers = questions.map((q, i) => {
@@ -2565,8 +2680,30 @@ const passageTestName = "Odisha RI Typing Test";
               body: JSON.stringify({ sessionId, timeTaken, answers: payloadAnswers }),
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const json = await res.json().catch(() => null);
+
+            let attemptDetails = json?.success && json?.data ? json.data : null;
+            if (sessionId) {
+              try {
+                const getRes = await fetch(`${API}/mocktests/attempts/${sessionId}`, {
+                  headers: {
+                    Accept: "application/json",
+                    "X-Guest-Id": getGuestId(),
+                    ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+                  },
+                });
+                const getJson = await getRes.json().catch(() => null);
+                if (getJson?.success && getJson?.data) {
+                  attemptDetails = getJson.data;
+                }
+              } catch (e) {
+                console.warn("Error fetching attempt details by session in ComboExamUI:", e);
+              }
+            }
+
             mcqSubmitted = true;
-            return true;
+            mcqResultData = attemptDetails;
+            return mcqResultData || true;
           } catch (e) {
             console.error("Error submitting MCQ attempt:", e);
             return false;
@@ -2616,7 +2753,6 @@ const passageTestName = "Odisha RI Typing Test";
           const mcqOk = await submitMCQAttempt();
           if (!mcqOk && !timeUp) {
             alert("Could not submit your MCQ answers. Please check your internet connection and try again.");
-            // timer was stopped above; restart it so the user can retry
             if (endAt > Date.now()) {
               timerInterval = setInterval(() => {
                 const remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
@@ -2635,9 +2771,206 @@ const passageTestName = "Odisha RI Typing Test";
 
           finished = true;
           testActive = false;
-          alert("OSSSC Combo Test submitted successfully!");
-          window.location.href = "/mocktest/osssc";
+          exitFullscreen();
+
+          document.querySelectorAll(".test-panel").forEach(p => p.style.display = "none");
+          // Keep the header: hide timer/submit and swap the stage progress for the result tabs.
+          btnHeaderSubmit.style.display = "none";
+          const stepNav = document.getElementById("combo-step-nav");
+          if (stepNav) stepNav.style.display = "none";
+          const timerBox = document.querySelector(".timer-box");
+          if (timerBox) timerBox.style.display = "none";
+          document.getElementById("result-tabs")?.removeAttribute("hidden");
+          const mobNav = document.querySelector(".mobile-nav-bar");
+          if (mobNav) mobNav.style.display = "none";
+          const mcqPanel = document.getElementById("mcq-panel");
+          if (mcqPanel) mcqPanel.style.display = "none";
+
+          const resView = document.getElementById("results-view");
+          const comboResults = document.getElementById("combo-results");
+          if (comboResults) comboResults.classList.add("show");
+
+          // Typing results come from the API; fall back to local stats if the fetch fails.
+          const typingFallback = [tt1, tt2]
+            .map((t, i) => ({ t, n: i + 1 }))
+            .filter(({ t, n }) => t.isLoaded() && typingPosted[n])
+            .map(({ t, n }) => {
+              const s = t.getStats();
+              return { passage_number: n, ...s };
+            });
+          if (typeof window.renderTypingResults === "function") {
+            window.renderTypingResults(sessionId || fallbackTypingSession, typingFallback);
+          }
+
+          if (resView) {
+            resView.classList.add("show");
+            try {
+              document.getElementById("res-test-name").textContent = testTitle || document.getElementById("eh-title")?.textContent || "OSSSC Combo Test";
+
+              const serverData = mcqResultData || {};
+              let correct = serverData.correct;
+              let wrong = serverData.wrong;
+              let skipped = serverData.skipped;
+              const markedCount = marked.size;
+
+              if (correct === undefined || wrong === undefined || skipped === undefined) {
+                correct = 0; wrong = 0; skipped = 0;
+                questions.forEach((q, i) => {
+                  if (answers[i] === undefined) skipped++;
+                  else if (answers[i] === q.correct) correct++;
+                  else wrong++;
+                });
+              }
+
+              const total = questions.length || serverData.totalQuestions || 1;
+              const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+              document.getElementById("rc-correct").textContent = correct;
+              document.getElementById("rc-wrong").textContent = wrong;
+              document.getElementById("rc-skipped").textContent = skipped;
+              document.getElementById("rc-marked").textContent = markedCount;
+              document.getElementById("score-pct-text").textContent = pct + "%";
+
+              const circ = document.getElementById("score-ring-circle");
+              if (circ) {
+                const circumference = 376.99;
+                circ.style.transition = "stroke-dashoffset 1.2s ease";
+                circ.style.stroke = pct >= 60 ? "#6EE7B7" : pct >= 40 ? "#FCD34D" : "#FCA5A5";
+                circ.style.strokeDashoffset = circumference - (circumference * pct) / 100;
+              }
+
+              // Section table
+              const tbody = document.getElementById("section-table-body");
+              if (tbody) {
+                tbody.innerHTML = "";
+                if (Array.isArray(serverData?.sections) && serverData.sections.length > 0) {
+                  serverData.sections.forEach((sec) => {
+                    const secTotal = sec.total || 0;
+                    const secCorrect = sec.correct || 0;
+                    const secWrong = sec.wrong !== undefined ? sec.wrong : Math.max(0, secTotal - secCorrect);
+                    const secPct = secTotal > 0 ? Math.round((secCorrect / secTotal) * 100) : 0;
+                    tbody.innerHTML += `
+                      <tr>
+                        <td><strong>${sec.name || sec.sectionName || sec.section || "General"}</strong></td>
+                        <td>${secTotal}</td>
+                        <td class="td-correct">${secCorrect}</td>
+                        <td class="td-wrong">${secWrong}</td>
+                        <td><strong>${secPct}%</strong></td>
+                      </tr>`;
+                  });
+                } else {
+                  const sections = [...new Set(questions.map((q) => q.section || "General"))];
+                  sections.forEach((sec) => {
+                    const qs = questions.filter((q) => (q.section || "General") === sec);
+                    let sc = 0, sw = 0;
+                    qs.forEach((q) => {
+                      const i = questions.indexOf(q);
+                      if (answers[i] !== undefined && answers[i] === q.correct) sc++;
+                      else if (answers[i] !== undefined) sw++;
+                    });
+                    const secTotal = qs.length;
+                    const secPct = secTotal > 0 ? Math.round((sc / secTotal) * 100) : 0;
+                    tbody.innerHTML += `
+                      <tr>
+                        <td><strong>${sec}</strong></td>
+                        <td>${secTotal}</td>
+                        <td class="td-correct">${sc}</td>
+                        <td class="td-wrong">${sw}</td>
+                        <td><strong>${secPct}%</strong></td>
+                      </tr>`;
+                  });
+                }
+              }
+
+              // Build map from server response questions array
+              const resQuestionMap = new Map();
+              if (Array.isArray(serverData?.questions)) {
+                serverData.questions.forEach((sq) => {
+                  resQuestionMap.set(Number(sq.questionId), sq);
+                });
+              }
+
+              // Review list
+              const reviewList = document.getElementById("review-list");
+              if (reviewList) {
+                reviewList.innerHTML = "";
+                const keys = ["A", "B", "C", "D"];
+                const qList = Array.isArray(serverData?.questions) && serverData.questions.length > 0 ? serverData.questions : questions;
+
+                qList.forEach((q, i) => {
+                  const sq = resQuestionMap.get(Number(q.questionId || q.id));
+                  const userAns = answers[i];
+                  const isCorrect = q.isCorrect !== undefined ? q.isCorrect : (sq ? sq.isCorrect : (userAns !== undefined && userAns === q.correct));
+                  const isSkipped = q.isSkipped !== undefined ? q.isSkipped : (sq ? (sq.selectedOptionId === null || sq.selectedOptionId === undefined) : (userAns === undefined));
+
+                  const statusClass = isSkipped ? "rs-skipped" : isCorrect ? "rs-correct" : "rs-wrong";
+                  const statusIcon = isSkipped ? "–" : isCorrect ? "✓" : "✗";
+
+                  const optionsList = q.options || [];
+                  const optionsHtml = optionsList
+                    .map((opt, oi) => {
+                      let cls = "";
+                      if (opt.isCorrect !== undefined || opt.isSelected !== undefined) {
+                        if (opt.isCorrect) cls = "rev-correct";
+                        else if (opt.isSelected) cls = "rev-wrong";
+                      } else {
+                        const optObj = q.optionsObjects && q.optionsObjects[oi];
+                        const optId = typeof optObj === 'object' && optObj !== null ? (optObj.id ?? optObj) : optObj;
+                        const correctAnsId = sq ? sq.answer : q.correct;
+                        const selectedOptId = sq ? sq.selectedOptionId : (userAns !== undefined && q.optionsObjects && q.optionsObjects[userAns] ? (q.optionsObjects[userAns].id ?? q.optionsObjects[userAns]) : null);
+
+                        if (correctAnsId !== null && correctAnsId !== undefined) {
+                          if (optId === correctAnsId) cls = "rev-correct";
+                          else if (optId === selectedOptId) cls = "rev-wrong";
+                        } else {
+                          if (oi === q.correct) cls = "rev-correct";
+                          else if (oi === userAns) cls = "rev-wrong";
+                        }
+                      }
+                      return `<div class="rev-opt ${cls}"><span class="rev-key">${keys[oi] || (oi + 1)}.</span> ${opt.text || opt}</div>`;
+                    })
+                    .join("");
+
+                  {
+                    const card = document.createElement("div");
+                    card.className = "review-card";
+                    card.innerHTML = `
+                      <div class="review-header" onclick="this.parentElement.classList.toggle('rh-open')">
+                        <div class="review-status ${statusClass}">${statusIcon}</div>
+                        <span class="rh-qnum">Q${q.questionNumber || (i + 1)}</span>
+                        <span class="rh-text">${q.text}</span>
+                        <svg class="rh-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                      </div>
+                      <div class="review-body">
+                        <div class="review-q-text">${q.text}</div>
+                        <div class="review-options">${optionsHtml}</div>
+                        <div class="review-expl"><strong>Explanation:</strong> ${q.explanation || "No explanation provided."}</div>
+                      </div>`;
+                    reviewList.appendChild(card);
+                  }
+                });
+              }
+            } catch (renderErr) {
+              console.error("Error rendering results view:", renderErr);
+            }
+          } else {
+            alert("OSSSC Combo Test submitted successfully!");
+            window.location.href = "/mocktest/osssc";
+          }
         }
+
+        // ── RESULT TAB SWITCH ──
+        document.querySelectorAll(".result-tab").forEach((tab) => {
+          tab.addEventListener("click", () => {
+            document.querySelectorAll(".result-tab").forEach((t) => {
+              const isActive = t === tab;
+              t.classList.toggle("active", isActive);
+              t.setAttribute("aria-selected", String(isActive));
+              document.getElementById(t.dataset.target)?.classList.toggle("show", isActive);
+            });
+            window.scrollTo({ top: 0 });
+          });
+        });
 
         updateHeaderButton();
       })();

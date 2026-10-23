@@ -1,0 +1,306 @@
+---
+// src/components/TypingResultsView.astro
+// Reusable typing result panel. Render it once on the page, then call
+//   window.renderTypingResults(sessionId, fallbackRows?)
+// to fetch GET /api/mocktest-passages/results?session_id=... and show it.
+interface Props {
+  benchmarkWpm?: number;
+}
+
+const { benchmarkWpm = 40 } = Astro.props;
+---
+<div id="typing-results-view" data-benchmark={benchmarkWpm}>
+  <div class="trv-hero">
+    <h1>Typing Test Result</h1>
+    <p>Benchmark: {benchmarkWpm} WPM</p>
+    <div class="trv-hero-stats">
+      <div class="trv-hero-stat">
+        <div class="trv-hero-n" id="trv-avg-wpm">–</div>
+        <div class="trv-hero-l">Average WPM</div>
+      </div>
+      <div class="trv-hero-stat">
+        <div class="trv-hero-n" id="trv-total-errors">–</div>
+        <div class="trv-hero-l">Total Errors</div>
+      </div>
+      <div class="trv-hero-stat">
+        <div class="trv-hero-n" id="trv-total-words">–</div>
+        <div class="trv-hero-l">Words Typed</div>
+      </div>
+    </div>
+  </div>
+  <div class="trv-body">
+    <div class="trv-section-title">Passage-wise Analysis</div>
+    <div class="trv-list" id="trv-list">
+      <div class="trv-status">Loading typing results…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { API_BASE, getAuthToken, getGuestId } from "../lib/api/client";
+
+  type TypingRow = {
+    passage_id?: number;
+    passage_number?: number;
+    keystrokes_count?: number;
+    error_count?: number;
+    backspace_count?: number;
+    total_word_count?: number;
+    typed_word_count?: number;
+    pending_word_count?: number;
+    wpm?: number;
+  };
+
+  const num = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+
+  async function fetchTypingResults(sessionId: string): Promise<TypingRow[] | null> {
+    try {
+      const token = getAuthToken();
+      const guestId = getGuestId();
+      const res = await fetch(
+        `${API_BASE}/api/mocktest-passages/results?session_id=${encodeURIComponent(sessionId)}`,
+        {
+          headers: {
+            Accept: "*/*",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(guestId ? { "X-Guest-Id": guestId } : {}),
+          },
+        },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return json?.success && Array.isArray(json.data) ? json.data : null;
+    } catch (e) {
+      console.warn("Error fetching typing results:", e);
+      return null;
+    }
+  }
+
+  function render(rows: TypingRow[]) {
+    const root = document.getElementById("typing-results-view");
+    const list = document.getElementById("trv-list");
+    if (!root || !list) return;
+    const benchmark = num(root.dataset.benchmark) || 40;
+    const set = (id: string, v: string | number) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(v);
+    };
+
+    if (!rows.length) {
+      list.innerHTML = `<div class="trv-status">No typing results were recorded for this attempt.</div>`;
+      set("trv-avg-wpm", "–");
+      set("trv-total-errors", "–");
+      set("trv-total-words", "–");
+      return;
+    }
+
+    const sorted = [...rows].sort((a, b) => num(a.passage_number) - num(b.passage_number));
+    const avgWpm = sorted.reduce((s, r) => s + num(r.wpm), 0) / sorted.length;
+    set("trv-avg-wpm", Math.round(avgWpm));
+    set("trv-total-errors", sorted.reduce((s, r) => s + num(r.error_count), 0));
+    set("trv-total-words", sorted.reduce((s, r) => s + num(r.typed_word_count), 0));
+
+    list.innerHTML = sorted
+      .map((r, i) => {
+        const wpm = num(r.wpm);
+        const total = num(r.total_word_count);
+        const typed = num(r.typed_word_count);
+        const pending = r.pending_word_count !== undefined ? num(r.pending_word_count) : Math.max(0, total - typed);
+        const completion = total > 0 ? Math.min(100, Math.round((typed / total) * 100)) : 0;
+        const passed = wpm >= benchmark;
+        return `
+          <div class="trv-card">
+            <div class="trv-card-head">
+              <div class="trv-card-title">Passage ${r.passage_number ?? i + 1}</div>
+              <span class="trv-badge ${passed ? "trv-pass" : "trv-fail"}">
+                ${passed ? "✓ Meets" : "✗ Below"} ${benchmark} WPM
+              </span>
+            </div>
+            <div class="trv-grid">
+              <div class="trv-stat"><div class="trv-n trv-wpm">${Math.round(wpm)}</div><div class="trv-l">WPM</div></div>
+              <div class="trv-stat"><div class="trv-n">${typed} / ${total}</div><div class="trv-l">Words Typed</div></div>
+              <div class="trv-stat"><div class="trv-n">${pending}</div><div class="trv-l">Pending Words</div></div>
+              <div class="trv-stat"><div class="trv-n trv-err">${num(r.error_count)}</div><div class="trv-l">Errors</div></div>
+              <div class="trv-stat"><div class="trv-n">${num(r.backspace_count)}</div><div class="trv-l">Backspaces</div></div>
+              <div class="trv-stat"><div class="trv-n">${num(r.keystrokes_count)}</div><div class="trv-l">Keystrokes</div></div>
+            </div>
+            <div class="trv-progress-label"><span>Completion</span><strong>${completion}%</strong></div>
+            <div class="trv-progress"><div class="trv-progress-fill" style="width:${completion}%"></div></div>
+          </div>`;
+      })
+      .join("");
+  }
+
+  async function renderTypingResults(sessionId: string, fallbackRows: TypingRow[] = []) {
+    const list = document.getElementById("trv-list");
+    if (list) list.innerHTML = `<div class="trv-status">Loading typing results…</div>`;
+    const rows = sessionId ? await fetchTypingResults(sessionId) : null;
+    render(rows && rows.length ? rows : fallbackRows);
+  }
+
+  (window as any).renderTypingResults = renderTypingResults;
+</script>
+
+<style is:global>
+  #typing-results-view {
+    display: none;
+    flex: 1;
+  }
+  #typing-results-view.show {
+    display: block;
+  }
+  .trv-hero {
+    background: var(--ink);
+    color: #fff;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .trv-hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: #fff;
+    margin: 0 0 6px;
+  }
+  .trv-hero p {
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0 0 24px;
+  }
+  .trv-hero-stats {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .trv-hero-stat {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 14px 20px;
+    min-width: 110px;
+  }
+  .trv-hero-n {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #c4b5fd;
+  }
+  .trv-hero-l {
+    font-size: 0.72rem;
+    opacity: 0.6;
+    margin-top: 2px;
+  }
+  .trv-body {
+    padding: 36px 32px 48px;
+    max-width: 840px;
+    margin: 0 auto;
+  }
+  .trv-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin-bottom: 14px;
+  }
+  .trv-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .trv-status {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 24px;
+    border: 1px dashed var(--rule);
+    border-radius: var(--radius-md);
+  }
+  .trv-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+  }
+  .trv-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .trv-card-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+  .trv-badge {
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+  }
+  .trv-pass {
+    background: var(--green-light);
+    color: var(--green);
+  }
+  .trv-fail {
+    background: var(--brand-light);
+    color: var(--brand);
+  }
+  .trv-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .trv-stat {
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .trv-n {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .trv-n.trv-wpm {
+    color: var(--purple);
+  }
+  .trv-n.trv-err {
+    color: var(--brand);
+  }
+  .trv-l {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+  }
+  .trv-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .trv-progress {
+    height: 6px;
+    background: var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .trv-progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+  @media (max-width: 600px) {
+    .trv-body {
+      padding: 24px 16px 40px;
+    }
+    .trv-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
