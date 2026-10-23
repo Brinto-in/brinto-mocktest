@@ -698,9 +698,10 @@ function isNavActive(href: string) {
   // Initial render based on stored auth state
   renderAuth();
 
-  // Re-run renderAuth whenever hamburger button is clicked or storage updates
+  // Re-run renderAuth whenever hamburger button is clicked or storage/auth updates
   document.getElementById('hamburger-btn')?.addEventListener('click', renderAuth);
   window.addEventListener('storage', renderAuth);
+  window.addEventListener('brinto:auth-changed', renderAuth);
 
   // Open modal if URL has ?login=true
   if (new URLSearchParams(window.location.search).get('login') === 'true') {

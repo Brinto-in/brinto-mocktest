@@ -395,6 +395,17 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
 
     loadDynamicAttempts();
 
+    window.addEventListener("brinto:auth-changed", () => {
+        loadDynamicAttempts();
+        if (!viewTyping.hidden) loadTypingResults();
+        else typingResults = null;
+    });
+    window.addEventListener("storage", () => {
+        loadDynamicAttempts();
+        if (!viewTyping.hidden) loadTypingResults();
+        else typingResults = null;
+    });
+
     // ── MCQ / TYPING SWITCH ──
     const viewMcq = document.getElementById("view-mcq");
     const viewTyping = document.getElementById("view-typing");
