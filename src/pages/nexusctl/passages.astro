@@ -1,0 +1,278 @@
+---
+export const prerender = false;
+import AdminLayout from "../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Passage Results" section="passages">
+    <div slot="topbar-actions" style="display:flex;gap:8px">
+        <a href="/mocktest/nexusctl" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <!-- Stats -->
+    <div class="stats-strip">
+        <div class="stat-box">
+            <div class="sn" id="stat-total" style="color:var(--brand)">0</div>
+            <div class="sl">Total Attempts</div>
+        </div>
+        <div class="stat-box">
+            <div class="sn" id="stat-wpm" style="color:var(--green)">0</div>
+            <div class="sl">Avg WPM</div>
+        </div>
+    </div>
+
+    <!-- Passage Results Table Card -->
+    <div class="card" style="padding:0;overflow:hidden">
+        <div
+            class="card-header"
+            style="padding:18px 20px;border-bottom:1px solid var(--rule);margin:0"
+        >
+            <div>
+                <div class="card-title">Typing Passage Results</div>
+                <div class="card-sub" id="table-sub">Loading passage results from API...</div>
+            </div>
+        </div>
+
+        <div id="results-container">
+            <div class="empty-state" style="padding: 60px 0;">
+                <div class="am-spinner" style="margin: 0 auto 12px; width: 32px; height: 32px; border: 3px solid var(--rule); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <p>Loading passage results...</p>
+            </div>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div class="pagination-footer" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-top:1px solid var(--rule);background:var(--surface)">
+            <div style="font-size:0.85rem;color:var(--ink-soft)" id="pagination-info">Page 1</div>
+            <div style="display:flex;gap:8px">
+                <button type="button" class="btn btn-secondary btn-sm" id="prev-page-btn" disabled>← Previous</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="next-page-btn">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sliding Sheet / Drawer for JSON Details -->
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    <div class="session-drawer" id="session-drawer">
+        <div class="drawer-header">
+            <h3>Passage Result Details (JSON)</h3>
+            <button type="button" class="drawer-close" id="drawer-close-btn" aria-label="Close">✕</button>
+        </div>
+        <div class="drawer-body">
+            <pre><code id="session-json-content">Select a result to view details...</code></pre>
+        </div>
+    </div>
+</AdminLayout>
+
+<script is:inline>
+  let currentPage = 1;
+  const limit = 20;
+  let resultsCache = [];
+
+  async function loadPassageResults(page = 1) {
+    currentPage = page;
+    const container = document.getElementById("results-container");
+    const subEl = document.getElementById("table-sub");
+    const statTotal = document.getElementById("stat-total");
+    const statWpm = document.getElementById("stat-wpm");
+    const prevBtn = document.getElementById("prev-page-btn");
+    const nextBtn = document.getElementById("next-page-btn");
+    const infoEl = document.getElementById("pagination-info");
+
+    const token = localStorage.getItem("brinto_token") || "";
+
+    try {
+      const res = await fetch(`https://brintoapi.brinto.in/api/admin/mocktest-passages/results?page=${currentPage}&limit=${limit}`, {
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) throw new Error("API error: " + res.status);
+      const json = await res.json();
+      const results = json?.data || (Array.isArray(json) ? json : []);
+      resultsCache = results;
+      const pagination = json?.pagination || {};
+
+      statTotal.textContent = pagination.total || results.length;
+      const avgWpm = results.length > 0 ? (results.reduce((s, r) => s + (Number(r.wpm) || 0), 0) / results.length).toFixed(1) : 0;
+      statWpm.textContent = avgWpm;
+
+      subEl.textContent = `Page ${currentPage} of ${pagination.totalPages || 1} · ${pagination.total || results.length} total results`;
+      infoEl.textContent = `Page ${currentPage} of ${pagination.totalPages || 1}`;
+
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= (pagination.totalPages || 1) || results.length < limit;
+
+      if (results.length === 0 && currentPage === 1) {
+        container.innerHTML = `
+          <div class="empty-state">
+              <div class="empty-icon">⌨️</div>
+              <p>No passage typing results found.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="overflow-x:auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Test Name / Passage</th>
+                        <th>WPM</th>
+                        <th>Errors / Backspaces</th>
+                        <th>Words Typed</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${results.map((r, i) => {
+                      const userObj = r.user || {};
+                      const userName = userObj.display_name || (userObj.is_guest ? 'Guest' : 'User');
+                      const mobileNum = userObj.mobile ? ` (${userObj.mobile})` : '';
+                      const passageObj = r.passage || {};
+                      const testName = passageObj.test_name || 'Typing Test';
+                      const passageNum = passageObj.passage_number || 1;
+                      const rowNum = (currentPage - 1) * limit + (i + 1);
+                      const wpmVal = Number(r.wpm) || 0;
+                      const wpmColor = wpmVal >= 40 ? 'var(--green)' : wpmVal >= 25 ? 'var(--gold)' : 'var(--brand)';
+
+                      return `
+                        <tr>
+                            <td style="color:var(--ink-muted);font-weight:600">${rowNum}</td>
+                            <td><strong>${userName}</strong><div style="font-size:0.72rem;color:var(--ink-muted)">${mobileNum}</div></td>
+                            <td>
+                                <div><strong>${testName}</strong></div>
+                                <div style="font-size:0.75rem;color:var(--ink-muted)">Passage #${passageNum}</div>
+                            </td>
+                            <td><span style="font-weight:800;color:${wpmColor}">${wpmVal} WPM</span></td>
+                            <td style="color:var(--ink-soft)">${r.error_count ?? 0} errors · ${r.backspace_count ?? 0} ⌫</td>
+                            <td>${r.typed_word_count ?? 0} / ${r.total_word_count ?? 0}</td>
+                            <td>${r.created_at ? new Date(r.created_at).toLocaleString("en-IN") : '—'}</td>
+                            <td>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="openResultDetails(${i})">View Details</button>
+                            </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+      `;
+    } catch (err) {
+      console.error("Error loading passage results:", err);
+      container.innerHTML = `<div class="empty-state" style="padding: 40px; color: var(--brand);">Failed to load passage results. Please check your token or connection.</div>`;
+      subEl.textContent = "Error loading data";
+    }
+  }
+
+  window.openResultDetails = function(index) {
+    const r = resultsCache[index];
+    const contentEl = document.getElementById("session-json-content");
+    contentEl.textContent = JSON.stringify(r, null, 2);
+    document.getElementById("session-drawer").classList.add("open");
+    document.getElementById("drawer-backdrop").style.display = "block";
+  };
+
+  function closeDrawer() {
+    document.getElementById("session-drawer").classList.remove("open");
+    document.getElementById("drawer-backdrop").style.display = "none";
+  }
+
+  document.getElementById("drawer-close-btn")?.addEventListener("click", closeDrawer);
+  document.getElementById("drawer-backdrop")?.addEventListener("click", closeDrawer);
+
+  document.getElementById("prev-page-btn")?.addEventListener("click", () => {
+    if (currentPage > 1) loadPassageResults(currentPage - 1);
+  });
+  document.getElementById("next-page-btn")?.addEventListener("click", () => {
+    loadPassageResults(currentPage + 1);
+  });
+
+  loadPassageResults(1);
+</script>
+
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+  }
+
+  .session-drawer {
+    position: fixed;
+    top: 0;
+    right: -520px;
+    width: 100%;
+    max-width: 520px;
+    height: 100vh;
+    background: var(--surface);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.25s ease-in-out;
+  }
+
+  .session-drawer.open {
+    right: 0;
+  }
+
+  .drawer-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .drawer-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .drawer-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--ink-soft);
+    padding: 4px;
+    border-radius: 4px;
+  }
+
+  .drawer-close:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .drawer-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+    background: #0f172a;
+    color: #38bdf8;
+    font-family: monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .drawer-body pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+</style>

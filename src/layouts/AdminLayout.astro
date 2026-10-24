@@ -3,7 +3,7 @@ import "../styles/global.css";
 
 interface Props {
     title: string;
-    section?: "tests" | "questions" | "dashboard" | "sessions";
+    section?: "tests" | "questions" | "dashboard" | "sessions" | "passages";
 }
 const { title, section = "dashboard" } = Astro.props;
 const fullTitle = `${title} — Admin | Brinto MockTest`;
@@ -12,6 +12,7 @@ const nav = [
     { href: "/mocktest/nexusctl", label: "Dashboard", icon: "⊞", key: "dashboard" },
     { href: "/mocktest/nexusctl/tests", label: "Tests", icon: "📋", key: "tests" },
     { href: "/mocktest/nexusctl/sessions", label: "Sessions", icon: "🕒", key: "sessions" },
+    { href: "/mocktest/nexusctl/passages", label: "Passage Results", icon: "⌨️", key: "passages" },
 ];
 ---
 
