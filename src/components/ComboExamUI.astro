@@ -1271,25 +1271,52 @@ const passageTestName = "Odisha RI Typing Test";
       }
       .modal-actions {
         display: flex;
+        align-items: center;
         justify-content: flex-end;
-        gap: 10px;
+        gap: 12px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+      }
+      .btn-cancel,
+      .btn-confirm {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        border-radius: var(--radius-pill);
+        font-size: 0.92rem;
+        cursor: pointer;
+        text-align: center;
+        white-space: normal;
+        line-height: 1.35;
+        transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
       }
       .btn-cancel {
-        padding: 10px 18px;
-        border: 1px solid var(--rule);
-        background: #fff;
-        border-radius: var(--radius-pill);
+        border: 1.5px solid var(--rule);
+        background: var(--surface);
+        color: var(--ink-soft);
         font-weight: 600;
-        font-size: 0.88rem;
+        flex: 1 1 0;
+        min-width: 140px;
+      }
+      .btn-cancel:hover {
+        background: var(--surface-2);
+        color: var(--ink);
       }
       .btn-confirm {
-        padding: 10px 24px;
-        border: none;
+        border: 1.5px solid var(--brand);
         background: var(--brand);
-        color: #fff;
-        border-radius: var(--radius-pill);
+        color: #ffffff;
         font-weight: 700;
-        font-size: 0.88rem;
+        box-shadow: 0 4px 14px rgba(176, 0, 32, 0.22);
+        flex: 1 1 0;
+        min-width: 180px;
+      }
+      .btn-confirm:hover {
+        background: var(--brand-dark);
+        border-color: var(--brand-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(176, 0, 32, 0.28);
       }
       .btn-confirm:disabled,
       .btn-cancel:disabled {
@@ -1993,7 +2020,7 @@ const passageTestName = "Odisha RI Typing Test";
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="btn-modal-cancel">Continue Current Section</button>
-          <button type="button" class="btn-confirm" id="btn-modal-confirm">Submit & Proceed →</button>
+          <button type="button" class="btn-confirm" id="btn-modal-confirm">Submit and Proceed →</button>
         </div>
       </div>
     </div>
@@ -2321,7 +2348,7 @@ const passageTestName = "Odisha RI Typing Test";
             cardMcqMark.style.display = "block";
             cardTt1.style.display = "none";
             cardTt2.style.display = "none";
-            btnModalConfirm.textContent = "Submit & Proceed to Passage 1 →";
+            btnModalConfirm.textContent = "Submit and Proceed →";
           } else if (currentStage === 2) {
             modalTitle.textContent = "Submit Section 2 (Passage 1)?";
             modalDesc.textContent = `Your typing speed is ${s1.wpm} WPM with ${s1.acc} accuracy. Once submitted, you will proceed to Passage 2.`;
@@ -2329,7 +2356,7 @@ const passageTestName = "Odisha RI Typing Test";
             cardMcqMark.style.display = "none";
             cardTt1.style.display = "block";
             cardTt2.style.display = "none";
-            btnModalConfirm.textContent = "Submit & Proceed to Passage 2 →";
+            btnModalConfirm.textContent = "Submit and Proceed →";
           } else {
             modalTitle.textContent = "Final Submit OSSSC Combo Test?";
             modalDesc.textContent = "Review your overall performance across MCQ and both passages before final submission.";
