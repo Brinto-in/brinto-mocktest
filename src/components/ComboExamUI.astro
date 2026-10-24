@@ -1981,7 +1981,7 @@ const passageTestName = "Odisha RI Typing Test";
                 <button type="button" class="btn-restart" id="tt2-reset">Reset Passage</button>
               </div>
               <button type="button" class="btn-step-submit" id="tt2-submit-step">
-                <span class="lbl-full">Final Submit Combo Test</span><span class="lbl-short">Final Submit</span>
+                <span class="lbl-full">Submit Passage 2 →</span><span class="lbl-short">Submit P2 →</span>
               </button>
             </div>
           </div>
@@ -2278,7 +2278,7 @@ const passageTestName = "Odisha RI Typing Test";
           const lbl = (full, short) => `<span class="lbl-full">${full}</span><span class="lbl-short">${short}</span>`;
           if (currentStage === 1) btnHeaderSubmit.innerHTML = lbl("Submit MCQ & Next →", "Submit →");
           else if (currentStage === 2) btnHeaderSubmit.innerHTML = lbl("Submit Passage 1 →", "Submit P1 →");
-          else btnHeaderSubmit.innerHTML = lbl("Final Submit Combo", "Final Submit");
+          else btnHeaderSubmit.innerHTML = lbl("Submit Passage 2 →", "Submit P2 →");
         }
 
         function goToStage(n) {
@@ -2556,6 +2556,18 @@ const passageTestName = "Odisha RI Typing Test";
           qSectionTag.textContent = q.section || "General";
           qProgressText.textContent = `Question ${idx + 1} of ${questions.length}`;
           qProgressFill.style.width = `${((idx + 1) / questions.length) * 100}%`;
+
+          const isFirst = idx === 0;
+          if (btnPrev) {
+            btnPrev.disabled = isFirst;
+            btnPrev.style.opacity = isFirst ? "0.4" : "1";
+            btnPrev.style.pointerEvents = isFirst ? "none" : "auto";
+          }
+          if (btnPrevMob) {
+            btnPrevMob.disabled = isFirst;
+            btnPrevMob.style.opacity = isFirst ? "0.4" : "1";
+            btnPrevMob.style.pointerEvents = isFirst ? "none" : "auto";
+          }
 
           const isLast = idx === questions.length - 1;
           if (btnNext) btnNext.textContent = isLast ? "Submit MCQ & Next →" : "Save & Next →";

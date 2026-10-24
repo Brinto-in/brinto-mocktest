@@ -1205,7 +1205,7 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         background: rgba(15, 23, 42, 0.4);
         backdrop-filter: blur(2px);
         -webkit-backdrop-filter: blur(2px);
-        z-index: 35;
+        z-index: 999;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.25s ease;
@@ -1262,13 +1262,15 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         .sidebar {
           position: fixed;
           right: 0;
-          top: 60px;
+          top: 0;
           bottom: 0;
-          width: 280px;
+          height: 100vh;
+          width: 300px;
+          max-width: 85vw;
           transform: translateX(100%);
-          transition: transform 0.25s;
-          z-index: 40;
-          box-shadow: -8px 0 24px rgba(26, 20, 16, 0.12);
+          transition: transform 0.25s ease;
+          z-index: 1000;
+          box-shadow: -8px 0 24px rgba(26, 20, 16, 0.2);
         }
         .sidebar.open {
           transform: translateX(0);
@@ -1885,8 +1887,22 @@ const { slug = "", test, questionsData = [] } = Astro.props;
           } else b.classList.remove("marked");
         });
 
-        // Next/Submit button label
+        // Next/Submit & Prev button state
+        const isFirst = i === 0;
         const isLast = i === questions.length - 1;
+        const btnPrev = document.getElementById("btn-prev");
+        const btnPrevMob = document.getElementById("btn-prev-mob");
+        if (btnPrev) {
+          btnPrev.disabled = isFirst;
+          btnPrev.style.opacity = isFirst ? "0.4" : "1";
+          btnPrev.style.pointerEvents = isFirst ? "none" : "auto";
+        }
+        if (btnPrevMob) {
+          btnPrevMob.disabled = isFirst;
+          btnPrevMob.style.opacity = isFirst ? "0.4" : "1";
+          btnPrevMob.style.pointerEvents = isFirst ? "none" : "auto";
+        }
+
         const btnNext = document.getElementById("btn-next");
         const btnNextMob = document.getElementById("btn-next-mob");
         if (btnNext) btnNext.textContent = isLast ? "Submit →" : "Save & Next →";
