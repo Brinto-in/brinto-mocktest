@@ -1308,6 +1308,13 @@ const { slug = "", test, questionsData = [] } = Astro.props;
     </style>
   </head>
   <body>
+    <div
+      id="exam-config"
+      data-test-meta={JSON.stringify(test || {})}
+      data-questions-data={JSON.stringify(questionsData || [])}
+      data-slug={slug || ""}
+      style="display:none"
+    ></div>
     <!-- ── EXAM HEADER ── -->
     <header class="exam-header" id="exam-header">
       <a href="/mocktest" class="eh-brand">
@@ -1780,9 +1787,20 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       >
       <button class="btn-next" id="btn-next-mob" style="flex:1">Next →</button>
     </div>
-    <script
-      define:vars={{ testMeta: test, questionsData: questionsData, slug: slug }}
-    >
+    <script>
+      import {
+        createMockTestSession,
+        submitMockTestAttempt,
+        fetchTestDetails,
+        fetchAttemptDetailsBySession
+      } from "../lib/api/mockTestService";
+      import { apiClient } from "../lib/api/client";
+
+      const configEl = document.getElementById("exam-config");
+      const testMeta = configEl?.dataset.testMeta ? JSON.parse(configEl.dataset.testMeta) : null;
+      const questionsData = configEl?.dataset.questionsData ? JSON.parse(configEl.dataset.questionsData) : [];
+      const slug = configEl?.dataset.slug || "";
+
       // ─────────────────────────────────────────────
       //  QUESTION BANK  (15 questions × 3 sections)
       // ─────────────────────────────────────────────
@@ -1996,46 +2014,19 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         let serverData = null;
         if (state.sessionId) {
           try {
-            const token = localStorage.getItem("brinto_token") || "";
-            const guestId = localStorage.getItem("brinto_guest_id") || "";
-            const headers = {
-              "Accept": "application/json",
-              "Content-Type": "application/json"
-            };
-            if (token && token !== "null" && token !== "undefined") headers["Authorization"] = `Bearer ${token}`;
-            if (guestId && guestId !== "null" && guestId !== "undefined") headers["X-Guest-Id"] = guestId;
-
-            const res = await fetch("https://brintoapi.brinto.in/api/mocktests/attempts", {
-              method: "POST",
-              headers: headers,
-              body: JSON.stringify({
-                sessionId: state.sessionId,
-                timeTaken: timeTaken,
-                answers: answersPayload
-              })
+            const attemptResult = await submitMockTestAttempt({
+              sessionId: state.sessionId,
+              timeTaken: timeTaken,
+              answers: answersPayload
             });
-            const json = await res.json();
-            if (json?.success && json?.data) {
-              serverData = json.data;
+            if (attemptResult) {
+              serverData = attemptResult;
             }
 
             // Fetch GET /api/mocktests/attempts/{sessionId} for complete results analysis
-            if (state.sessionId) {
-              try {
-                const getRes = await fetch(`https://brintoapi.brinto.in/api/mocktests/attempts/${state.sessionId}`, {
-                  headers: {
-                    "Accept": "application/json",
-                    ...(guestId ? { "X-Guest-Id": guestId } : {}),
-                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
-                  }
-                });
-                const getJson = await getRes.json();
-                if (getJson?.success && getJson?.data) {
-                  serverData = getJson.data;
-                }
-              } catch (e) {
-                console.warn("Error fetching attempt details by session:", e);
-              }
+            const fullAttempt = await fetchAttemptDetailsBySession(state.sessionId);
+            if (fullAttempt) {
+              serverData = fullAttempt;
             }
           } catch (err) {
             console.error("Error submitting mock test attempt to API:", err);
@@ -2370,13 +2361,10 @@ const { slug = "", test, questionsData = [] } = Astro.props;
       // Fetch details from API on client load
       const testIdRaw = slug || testMeta?.id;
       if (testIdRaw) {
-        fetch(`https://brintoapi.brinto.in/api/mocktests/${testIdRaw}/details`, {
-          headers: { "Accept": "*/*" }
-        })
-          .then((r) => r.json())
-          .then((json) => {
-            if (json?.success && json?.data) {
-              applyDetailsToModal(json.data);
+        fetchTestDetails(String(testIdRaw))
+          .then((data) => {
+            if (data) {
+              applyDetailsToModal(data);
             }
           })
           .catch((err) => console.warn("Failed to fetch test details in modal:", err));
@@ -2396,8 +2384,6 @@ const { slug = "", test, questionsData = [] } = Astro.props;
           if (Array.isArray(questionsData) && questionsData.length > 0) {
             questions = questionsData;
           } else {
-            const token = localStorage.getItem("brinto_token") || "";
-            const guestId = localStorage.getItem("brinto_guest_id") || "";
             const testIdRaw = slug || testMeta?.id;
             if (!testIdRaw) {
               throw new Error("Test ID is required to start the test.");
@@ -2408,37 +2394,17 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             }
 
             // Step 1: Create session via POST /api/mocktests/sessions
-            const sessHeaders = {
-              "Accept": "application/json",
-              "Content-Type": "application/json",
-            };
-            if (token && token !== "null" && token !== "undefined") sessHeaders["Authorization"] = `Bearer ${token}`;
-            if (guestId && guestId !== "null" && guestId !== "undefined") sessHeaders["X-Guest-Id"] = guestId;
-
-            const sessRes = await fetch("https://brintoapi.brinto.in/api/mocktests/sessions", {
-              method: "POST",
-              headers: sessHeaders,
-              body: JSON.stringify({ testId: parsedTestId })
-            });
-
-            const sessJson = await sessRes.json();
-            if (!sessJson?.success || !sessJson?.data?.id) {
-              throw new Error(sessJson?.error || sessJson?.message || "Failed to create test session.");
+            const sessionId = await createMockTestSession(parsedTestId);
+            if (!sessionId) {
+              throw new Error("Failed to create test session.");
             }
-
-            const sessionId = sessJson.data.id;
             state.sessionId = sessionId;
 
             // Step 2: Fetch questions using returned session_id
-            const qRes = await fetch(`https://brintoapi.brinto.in/api/mocktests/${testIdRaw}?session_id=${sessionId}`, {
-              headers: {
-                "Accept": "*/*",
-                "Authorization": `Bearer ${token}`,
-                ...(guestId ? { "X-Guest-Id": guestId } : {})
-              }
+            const qJson = await apiClient(`/api/mocktests/${testIdRaw}?session_id=${sessionId}`, {
+              headers: { "Accept": "*/*" }
             });
 
-            const qJson = await qRes.json();
             if (!qJson?.success || !qJson?.data?.questions) {
               throw new Error(qJson?.error || qJson?.message || "Failed to load test questions.");
             }

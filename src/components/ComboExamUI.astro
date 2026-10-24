@@ -1458,6 +1458,13 @@ const passageTestName = "Odisha RI Typing Test";
     </style>
   </head>
   <body>
+    <div
+      id="combo-config"
+      data-test-id-raw={slug}
+      data-passage-test-name={passageTestName}
+      data-test-title={test?.title || ""}
+      style="display:none"
+    ></div>
     <!-- ── INSTRUCTION / START MODAL ── -->
     <div
       class="instr-overlay"
@@ -1888,9 +1895,25 @@ const passageTestName = "Odisha RI Typing Test";
     </div>
 
     <!-- ── CLIENT SCRIPT ── -->
-    <script define:vars={{ testIdRaw: slug, passageTestName, testTitle: test?.title || "" }}>
+    <script>
+      import {
+        createMockTestSession,
+        submitMockTestAttempt,
+        fetchTestDetails,
+        fetchAttemptDetailsBySession
+      } from "../lib/api/mockTestService";
+      import {
+        fetchMockTestPassage,
+        submitTypingResult
+      } from "../lib/api/passageService";
+      import { apiClient } from "../lib/api/client";
+
       (() => {
-        const API = "https://brintoapi.brinto.in/api";
+        const configEl = document.getElementById("combo-config");
+        const testIdRaw = configEl?.dataset.testIdRaw || "";
+        const passageTestName = configEl?.dataset.passageTestName || "Odisha RI Typing Test";
+        const testTitle = configEl?.dataset.testTitle || "";
+
         // Set to true ONLY for local dev if you want dummy questions when the API is down.
         const ALLOW_FALLBACK_QUESTIONS = false;
 
@@ -1955,11 +1978,9 @@ const passageTestName = "Odisha RI Typing Test";
         }
 
         // ── LOAD TEST DETAILS FOR START MODAL ──
-        fetch(`${API}/mocktests/${parsedId}/details`, { headers: { Accept: "*/*" } })
-          .then((r) => r.json())
-          .then((json) => {
-            if (!(json?.success && json?.data)) return;
-            const d = json.data;
+        fetchTestDetails(String(parsedId))
+          .then((d) => {
+            if (!d) return;
             const set = (id, v) => {
               const el = document.getElementById(id);
               if (el) el.textContent = v;
@@ -2263,28 +2284,16 @@ const passageTestName = "Odisha RI Typing Test";
 
         async function initMCQ() {
           // Step 1: create session
-          const sessRes = await fetch(`${API}/mocktests/sessions`, {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-              "X-Guest-Id": getGuestId(),
-              ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-            },
-            body: JSON.stringify({ testId: parsedId }),
-          });
-          const sessData = await sessRes.json().catch(() => null);
-          if (sessData?.success && sessData?.data) {
-            if (sessData.data.id) sessionId = sessData.data.id;
-            if (sessData.data.guestId) localStorage.setItem("brinto_guest_id", sessData.data.guestId);
+          const createdSessionId = await createMockTestSession(parsedId);
+          if (createdSessionId) {
+            sessionId = createdSessionId;
           }
 
           // Step 2: fetch questions
-          const qUrl = sessionId
-            ? `${API}/mocktests/${parsedId}?session_id=${sessionId}`
-            : `${API}/mocktests/${parsedId}`;
-          const qRes = await fetch(qUrl, { headers: { Accept: "*/*", ...authHeaders() } });
-          const qData = await qRes.json().catch(() => null);
+          const endpoint = sessionId
+            ? `/api/mocktests/${parsedId}?session_id=${sessionId}`
+            : `/api/mocktests/${parsedId}`;
+          const qData = await apiClient(endpoint, { headers: { Accept: "*/*" } }).catch(() => null);
 
           if (qData?.success && Array.isArray(qData?.data?.questions) && qData.data.questions.length > 0) {
             questions = qData.data.questions.map((q) => ({
@@ -2560,19 +2569,9 @@ const passageTestName = "Odisha RI Typing Test";
           }
 
           async function fetchPassage(excludeId) {
-            let url = `${API}/mocktest-passages?test_name=${encodeURIComponent(passageTestName)}`;
-            if (excludeId !== null && excludeId !== undefined && !Number.isNaN(excludeId)) {
-              url += `&exclude_ids=${excludeId}`;
-            }
-            const res = await fetch(url, { headers: { Accept: "*/*" } });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const json = await res.json();
-            let d = json?.data;
-            if (Array.isArray(d)) d = d[0];
-            if (!d?.passage_text) throw new Error("No passage returned by server");
-            const rawId = d.id ?? d.passage_id;
-            const id = rawId !== undefined && rawId !== null ? Number(rawId) : null;
-            return { text: d.passage_text, id };
+            const passageRes = await fetchMockTestPassage(passageTestName, excludeId);
+            if (!passageRes?.text) throw new Error("No passage returned by server");
+            return { text: passageRes.text, id: passageRes.id };
           }
 
           // Calls the passage API. Shows loader, and an error + Retry button on failure.
@@ -2677,32 +2676,17 @@ const passageTestName = "Odisha RI Typing Test";
 
             if (!sessionId) throw new Error("No active session");
 
-            const res = await fetch(`${API}/mocktests/attempts`, {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                "X-Guest-Id": getGuestId(),
-                ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-              },
-              body: JSON.stringify({ sessionId, timeTaken, answers: payloadAnswers }),
+            let attemptDetails = await submitMockTestAttempt({
+              sessionId,
+              timeTaken,
+              answers: payloadAnswers
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const json = await res.json().catch(() => null);
 
-            let attemptDetails = json?.success && json?.data ? json.data : null;
             if (sessionId) {
               try {
-                const getRes = await fetch(`${API}/mocktests/attempts/${sessionId}`, {
-                  headers: {
-                    Accept: "application/json",
-                    "X-Guest-Id": getGuestId(),
-                    ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-                  },
-                });
-                const getJson = await getRes.json().catch(() => null);
-                if (getJson?.success && getJson?.data) {
-                  attemptDetails = getJson.data;
+                const fullAttempt = await fetchAttemptDetailsBySession(sessionId);
+                if (fullAttempt) {
+                  attemptDetails = fullAttempt;
                 }
               } catch (e) {
                 console.warn("Error fetching attempt details by session in ComboExamUI:", e);
@@ -2727,25 +2711,17 @@ const passageTestName = "Odisha RI Typing Test";
           const stats = t.getStats();
           const pId = t.getPassageId();
           try {
-            const res = await fetch(`${API}/mocktest-passages/results`, {
-              method: "POST",
-              headers: {
-                Accept: "*/*",
-                "Content-Type": "application/json",
-                ...authHeaders(),
-              },
-              body: JSON.stringify({
-                session_id: sessionId || fallbackTypingSession,
-                passage_id: pId ?? n,
-                passage_number: n,
-                keystrokes_count: stats.keystrokes_count,
-                error_count: stats.error_count,
-                backspace_count: stats.backspace_count,
-                typed_word_count: stats.typed_word_count,
-                wpm: stats.wpm,
-              }),
+            await submitTypingResult({
+              session_id: sessionId || fallbackTypingSession,
+              passage_id: pId ?? n,
+              passage_number: n,
+              keystrokes_count: stats.keystrokes_count,
+              error_count: stats.error_count,
+              backspace_count: stats.backspace_count,
+              total_word_count: stats.totalWords || 0,
+              typed_word_count: stats.typed_word_count,
+              wpm: Number(stats.wpm),
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             typingPosted[n] = true;
             return true;
           } catch (e) {
