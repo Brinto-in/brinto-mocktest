@@ -84,7 +84,7 @@ export interface OssscPrevPaper {
 }
 
 export const ossscPrevPapers: OssscPrevPaper[] = [
-  { id: "pyq-cre-2023", year: "2023", title: "OSSC CGLRE 2023", posts: "RI · ARI · Amin · ICDS Supervisor · VAW", meta: "50 Qs · 60 min", tone: ["#B00020", "#6D0014"], image: "/images/osssc/ossc_cglre_2023.jpeg" },
+  { id: "pyq-cre-2025", year: "2025", title: "OSSC CGL 2025 Computer Skill Test", posts: "RI · ARI · Amin · ICDS Supervisor · VAW", meta: "50 Qs · 60 min", tone: ["#B00020", "#6D0014"], image: "/images/osssc/ossc_cglre_2023.jpeg", href: "/mocktest/test/23" },
 ];
 
 export const ossscSteps: Step[] = [
