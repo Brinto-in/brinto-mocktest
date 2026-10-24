@@ -304,12 +304,14 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "unitOdia": "ନିୟନ୍ତ୍ରଣ ଓ ସମନ୍ୱୟ",
         "topics": [
           "ସ୍ନାୟୁତନ୍ତ୍ର ଓ ହରମୋନ୍"
-        ]
+        ],
+        "testId": 17
       },
       {
         "unit": "Reproduction in Plants & Animals",
-        "unitOdia": "ପ୍ରଜନନ",
-        "topics": []
+        "unitOdia": "ଜନନ",
+        "topics": [],
+        "testId": 18
       },
       {
         "unit": "Heredity & Evolution",
