@@ -1792,7 +1792,8 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         createMockTestSession,
         submitMockTestAttempt,
         fetchTestDetails,
-        fetchAttemptDetailsBySession
+        fetchAttemptDetailsBySession,
+        fetchTestWithSession
       } from "../lib/api/mockTestService";
       import { apiClient } from "../lib/api/client";
 
@@ -2401,15 +2402,13 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             state.sessionId = sessionId;
 
             // Step 2: Fetch questions using returned session_id
-            const qJson = await apiClient(`/api/mocktests/${testIdRaw}?session_id=${sessionId}`, {
-              headers: { "Accept": "*/*" }
-            });
+            const qData = await fetchTestWithSession(testIdRaw, sessionId);
 
-            if (!qJson?.success || !qJson?.data?.questions) {
-              throw new Error(qJson?.error || qJson?.message || "Failed to load test questions.");
+            if (!qData || !Array.isArray(qData.questions)) {
+              throw new Error("Failed to load test questions.");
             }
 
-            const raw = qJson.data.questions;
+            const raw = qData.questions;
             questions = raw.map((q) => ({
               ...q,
               optionsObjects: Array.isArray(q.options) ? q.options : [],
@@ -2418,8 +2417,8 @@ const { slug = "", test, questionsData = [] } = Astro.props;
                 : []
             }));
 
-            const testTitle = qJson.data.title || initialTitle;
-            const duration = qJson.data.duration || initialDuration;
+            const testTitle = qData.title || initialTitle;
+            const duration = qData.duration || initialDuration;
 
             // Update Header and Page title
             document.title = `${testTitle} | Brinto MockTest`;

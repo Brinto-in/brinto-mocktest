@@ -68,6 +68,28 @@ export async function submitMockTestAttempt(payload: AttemptPayload) {
   }
 }
 
+export async function fetchTestWithSession(testId: string | number, sessionId?: string | null) {
+  try {
+    if (!testId) return null;
+    const endpoint = sessionId
+      ? `/api/mocktests/${testId}?session_id=${sessionId}`
+      : `/api/mocktests/${testId}`;
+
+    const json = await apiClient(endpoint, {
+      headers: { "Accept": "*/*" }
+    });
+
+    if (json?.success && json?.data) {
+      return json.data;
+    }
+    console.error("fetchTestWithSession failed:", json);
+    return null;
+  } catch (err) {
+    console.error("Error fetching test with session:", err);
+    return null;
+  }
+}
+
 export async function fetchTestBySlug(idOrSlug?: string) {
   try {
     if (!idOrSlug) {
@@ -82,12 +104,9 @@ export async function fetchTestBySlug(idOrSlug?: string) {
       return null;
     }
 
-    const json = await apiClient(`/api/mocktests/${testId}?session_id=${sessionId}`, {
-      headers: { "Accept": "*/*" }
-    });
+    const t = await fetchTestWithSession(testId, sessionId);
 
-    if (json?.success && json?.data) {
-      const t = json.data;
+    if (t) {
       const rawQuestions = Array.isArray(t.questions) ? t.questions : [];
 
       const formattedQuestions = rawQuestions.map((q: any) => ({
@@ -115,10 +134,9 @@ export async function fetchTestBySlug(idOrSlug?: string) {
         sessionId
       };
     } else {
-      const errMsg = json?.error || json?.message || "Failed to fetch test details";
-      console.error("fetchTestBySlug failed:", json);
+      console.error("fetchTestBySlug failed for testId:", testId);
       if (typeof window !== "undefined") {
-        alert(`API Error: ${errMsg}`);
+        alert("API Error: Failed to fetch test details");
       }
     }
     return null;

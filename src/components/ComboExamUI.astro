@@ -1900,7 +1900,8 @@ const passageTestName = "Odisha RI Typing Test";
         createMockTestSession,
         submitMockTestAttempt,
         fetchTestDetails,
-        fetchAttemptDetailsBySession
+        fetchAttemptDetailsBySession,
+        fetchTestWithSession
       } from "../lib/api/mockTestService";
       import {
         fetchMockTestPassage,
@@ -2290,13 +2291,10 @@ const passageTestName = "Odisha RI Typing Test";
           }
 
           // Step 2: fetch questions
-          const endpoint = sessionId
-            ? `/api/mocktests/${parsedId}?session_id=${sessionId}`
-            : `/api/mocktests/${parsedId}`;
-          const qData = await apiClient(endpoint, { headers: { Accept: "*/*" } }).catch(() => null);
+          const qData = await fetchTestWithSession(parsedId, sessionId);
 
-          if (qData?.success && Array.isArray(qData?.data?.questions) && qData.data.questions.length > 0) {
-            questions = qData.data.questions.map((q) => ({
+          if (qData && Array.isArray(qData.questions) && qData.questions.length > 0) {
+            questions = qData.questions.map((q) => ({
               ...q,
               text: q.text || q.question || q.title || "Question",
               optionsObjects: Array.isArray(q.options) ? q.options : [],
@@ -2304,7 +2302,7 @@ const passageTestName = "Odisha RI Typing Test";
                 ? q.options.map((opt) => (typeof opt === "object" && opt !== null ? opt.text : opt))
                 : [],
             }));
-            if (qData.data.duration) totalSeconds = qData.data.duration * 60;
+            if (qData.duration) totalSeconds = qData.duration * 60;
           } else if (ALLOW_FALLBACK_QUESTIONS) {
             questions = [
               {
