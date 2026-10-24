@@ -1,0 +1,157 @@
+---
+export const prerender = false;
+import AdminLayout from "../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Test Sessions" section="sessions">
+    <div slot="topbar-actions" style="display:flex;gap:8px">
+        <a href="/mocktest/nexusctl" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <!-- Stats -->
+    <div class="stats-strip">
+        <div class="stat-box">
+            <div class="sn" id="stat-total" style="color:var(--brand)">0</div>
+            <div class="sl">Total Sessions</div>
+        </div>
+        <div class="stat-box">
+            <div class="sn" id="stat-active" style="color:var(--green)">0</div>
+            <div class="sl">Active / Completed</div>
+        </div>
+    </div>
+
+    <!-- Sessions Table Card -->
+    <div class="card" style="padding:0;overflow:hidden">
+        <div
+            class="card-header"
+            style="padding:18px 20px;border-bottom:1px solid var(--rule);margin:0"
+        >
+            <div>
+                <div class="card-title">All Test Sessions</div>
+                <div class="card-sub" id="table-sub">Loading sessions from API...</div>
+            </div>
+        </div>
+
+        <div id="sessions-container">
+            <div class="empty-state" style="padding: 60px 0;">
+                <div class="am-spinner" style="margin: 0 auto 12px; width: 32px; height: 32px; border: 3px solid var(--rule); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <p>Loading test sessions...</p>
+            </div>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div class="pagination-footer" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-top:1px solid var(--rule);background:var(--surface)">
+            <div style="font-size:0.85rem;color:var(--ink-soft)" id="pagination-info">Page 1</div>
+            <div style="display:flex;gap:8px">
+                <button type="button" class="btn btn-secondary btn-sm" id="prev-page-btn" disabled>← Previous</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="next-page-btn">Next →</button>
+            </div>
+        </div>
+    </div>
+</AdminLayout>
+
+<script is:inline>
+  let currentPage = 1;
+  const limit = 20;
+
+  async function loadSessions(page = 1) {
+    currentPage = page;
+    const container = document.getElementById("sessions-container");
+    const subEl = document.getElementById("table-sub");
+    const statTotal = document.getElementById("stat-total");
+    const statActive = document.getElementById("stat-active");
+    const prevBtn = document.getElementById("prev-page-btn");
+    const nextBtn = document.getElementById("next-page-btn");
+    const infoEl = document.getElementById("pagination-info");
+
+    const token = localStorage.getItem("brinto_token") || "";
+
+    try {
+      const res = await fetch(`https://brintoapi.brinto.in/api/admin/mocktests/sessions?page=${currentPage}&limit=${limit}`, {
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) throw new Error("API error: " + res.status);
+      const json = await res.json();
+      const sessions = json?.data || json?.sessions || (Array.isArray(json) ? json : []);
+      const pagination = json?.pagination || json?.meta || {};
+
+      statTotal.textContent = pagination.total || sessions.length;
+      statActive.textContent = sessions.length;
+      subEl.textContent = `Page ${currentPage} · ${sessions.length} sessions loaded`;
+      infoEl.textContent = `Page ${currentPage}`;
+
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = sessions.length < limit;
+
+      if (sessions.length === 0 && currentPage === 1) {
+        container.innerHTML = `
+          <div class="empty-state">
+              <div class="empty-icon">🕒</div>
+              <p>No test sessions found.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="overflow-x:auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Session ID</th>
+                        <th>Test Title</th>
+                        <th>Mobile / User</th>
+                        <th>Created At</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sessions.map((s, i) => {
+                      const testTitle = s.test?.title || s.testTitle || s.title || `Test #${s.testId || s.test_id || '—'}`;
+                      const mobileNum = s.user?.phone || s.user?.mobile || s.mobile || s.user?.user_name || s.userId || s.user_id || s.guestId || s.guest_id || 'Guest';
+                      const rowNum = (currentPage - 1) * limit + (i + 1);
+
+                      return `
+                        <tr>
+                            <td style="color:var(--ink-muted);font-weight:600">${rowNum}</td>
+                            <td><code style="font-size:0.78rem;background:var(--surface-2);padding:2px 6px;border-radius:4px">${s.id || s.sessionId || '—'}</code></td>
+                            <td><strong>${testTitle}</strong></td>
+                            <td style="color:var(--ink-soft);font-weight:600">${mobileNum}</td>
+                            <td>${s.createdAt || s.created_at ? new Date(s.createdAt || s.created_at).toLocaleString("en-IN") : '—'}</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                        </tr>
+                      `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+      `;
+    } catch (err) {
+      console.error("Error loading sessions:", err);
+      container.innerHTML = `<div class="empty-state" style="padding: 40px; color: var(--brand);">Failed to load test sessions. Please check your token or connection.</div>`;
+      subEl.textContent = "Error loading data";
+    }
+  }
+
+  document.getElementById("prev-page-btn")?.addEventListener("click", () => {
+    if (currentPage > 1) loadSessions(currentPage - 1);
+  });
+  document.getElementById("next-page-btn")?.addEventListener("click", () => {
+    loadSessions(currentPage + 1);
+  });
+
+  loadSessions(1);
+</script>
+
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
