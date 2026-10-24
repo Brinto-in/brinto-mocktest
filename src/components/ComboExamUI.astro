@@ -1122,19 +1122,65 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
         transform: translateY(-1px);
         background: var(--brand-dark);
       }
+      .passage-wrap {
+        position: relative;
+        flex-shrink: 0;
+        border-bottom: 1.5px solid var(--rule);
+      }
       .passage-box {
         position: relative; /* needed so offsetTop-based auto scroll works */
-        padding: 20px 24px;
+        padding: 20px 40px 20px 24px; /* right padding leaves room for the custom scrollbar */
         background: #fafafc;
-        border-bottom: 1.5px solid var(--rule);
         font-family: var(--font-mono);
         font-size: 1.05rem;
         line-height: 1.9;
         color: var(--ink-soft);
         height: 200px;
-        overflow-y: auto;
+        overflow-y: scroll;
+        overscroll-behavior: contain;
         user-select: none;
         -webkit-user-select: none;
+        /* hide the native scrollbar; a custom draggable one is rendered instead */
+        scrollbar-width: none;
+      }
+      .passage-box::-webkit-scrollbar {
+        display: none;
+      }
+      /* ── CUSTOM DRAGGABLE PASSAGE SCROLLBAR ── */
+      .passage-scrollbar {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        bottom: 6px;
+        width: 14px;
+        background: #eef2f7;
+        border: 1px solid var(--rule);
+        border-radius: 7px;
+        cursor: pointer;
+        touch-action: none;
+        z-index: 5;
+      }
+      .passage-scrollbar.hidden {
+        display: none;
+      }
+      .passage-thumb {
+        position: absolute;
+        left: 1px;
+        right: 1px;
+        top: 0;
+        min-height: 32px;
+        background: #a5b4c8;
+        border-radius: 6px;
+        cursor: grab;
+        touch-action: none;
+        transition: background 0.15s ease;
+      }
+      .passage-thumb:hover {
+        background: #7c8aa3;
+      }
+      .passage-thumb.dragging {
+        background: var(--combo-purple);
+        cursor: grabbing;
       }
       .tt-status {
         display: flex;
@@ -1183,6 +1229,14 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
         line-height: 1.6;
         color: var(--ink);
         resize: none;
+        background: transparent;
+      }
+      .typing-input {
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+      }
+      .typing-input::selection {
         background: transparent;
       }
       .typing-input:disabled {
@@ -1550,7 +1604,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
         .tt-header-left p { font-size: 0.78rem; }
         .stat-pill { flex: 1; min-width: 0; padding: 6px 8px; }
         .typing-card { min-height: 340px; }
-        .passage-box { height: 170px; padding: 14px; font-size: 0.95rem; }
+        .passage-box { height: 170px; padding: 14px 32px 14px 14px; font-size: 0.95rem; }
         .input-area-wrap { padding: 12px 14px; }
         .typing-input { font-size: 1rem; }
         .typing-footer-left { width: 100%; justify-content: space-between; }
@@ -1910,8 +1964,13 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             </div>
           </div>
 
-          <div class="passage-box" id="tt1-passage">
-            <div class="tt-status">Passage will load after you click Start Passage 1…</div>
+          <div class="passage-wrap">
+            <div class="passage-box" id="tt1-passage">
+              <div class="tt-status">Passage will load after you click Start Passage 1…</div>
+            </div>
+            <div class="passage-scrollbar hidden" id="tt1-scrollbar" aria-hidden="true">
+              <div class="passage-thumb" id="tt1-thumb"></div>
+            </div>
           </div>
           <div class="input-area-wrap">
             <textarea
@@ -1973,8 +2032,13 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             </div>
           </div>
 
-          <div class="passage-box" id="tt2-passage">
-            <div class="tt-status">Passage will load after you click Start Passage 2…</div>
+          <div class="passage-wrap">
+            <div class="passage-box" id="tt2-passage">
+              <div class="tt-status">Passage will load after you click Start Passage 2…</div>
+            </div>
+            <div class="passage-scrollbar hidden" id="tt2-scrollbar" aria-hidden="true">
+              <div class="passage-thumb" id="tt2-thumb"></div>
+            </div>
           </div>
           <div class="input-area-wrap">
             <textarea
@@ -2687,6 +2751,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             expected = [];
             passageEl.innerHTML = `<div class="tt-status ${isError ? "error" : ""}">${html}</div>`;
             inputEl.disabled = true;
+            updateScrollbar();
           }
 
           function buildSpans() {
@@ -2720,6 +2785,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             });
             if (charSpans[0]) charSpans[0].classList.add("current");
             passageEl.scrollTop = 0;
+            updateScrollbar();
           }
 
           function compute() {
@@ -2805,9 +2871,110 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
           ["paste", "drop", "cut", "copy", "contextmenu"].forEach((evt) =>
             inputEl.addEventListener(evt, (e) => e.preventDefault())
           );
+          // Caret is locked to the end: no arrow keys, no selecting / editing already-typed text
+          const BLOCKED_KEYS = new Set([
+            "Enter", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+            "Home", "End", "PageUp", "PageDown"
+          ]);
+          const caretToEnd = () => {
+            const len = inputEl.value.length;
+            if (inputEl.selectionStart !== len || inputEl.selectionEnd !== len) {
+              inputEl.setSelectionRange(len, len);
+            }
+          };
           inputEl.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") e.preventDefault();
+            const mod = e.ctrlKey || e.metaKey;
+            if (
+              BLOCKED_KEYS.has(e.key) ||
+              (mod && ["a", "A", "z", "Z", "y", "Y"].includes(e.key)) ||
+              // Ctrl/Alt+Backspace/Delete would wipe whole words at once
+              ((mod || e.altKey) && (e.key === "Backspace" || e.key === "Delete")) ||
+              e.key === "Delete"
+            ) {
+              e.preventDefault();
+              return;
+            }
+            caretToEnd();
           });
+          // Mouse/touch can't place the caret or drag-select; just focus with caret at end
+          inputEl.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            if (!inputEl.disabled) {
+              inputEl.focus();
+              caretToEnd();
+            }
+          });
+          ["selectstart", "dragstart"].forEach((evt) =>
+            inputEl.addEventListener(evt, (e) => e.preventDefault())
+          );
+          ["select", "focus", "click", "keyup", "touchend"].forEach((evt) =>
+            inputEl.addEventListener(evt, caretToEnd)
+          );
+          document.addEventListener("selectionchange", () => {
+            if (document.activeElement === inputEl) caretToEnd();
+          });
+
+          // Passage can only be scrolled by dragging its scrollbar (no wheel / trackpad / touch swipe)
+          ["wheel", "touchmove"].forEach((evt) =>
+            passageEl.addEventListener(evt, (e) => e.preventDefault(), { passive: false })
+          );
+
+          // ── Custom draggable scrollbar ──
+          const trackEl = document.getElementById(`${prefix}-scrollbar`);
+          const thumbEl = document.getElementById(`${prefix}-thumb`);
+
+          function updateScrollbar() {
+            const { scrollHeight, clientHeight, scrollTop } = passageEl;
+            const maxScroll = scrollHeight - clientHeight;
+            if (maxScroll <= 1 || clientHeight === 0) {
+              trackEl.classList.add("hidden");
+              return;
+            }
+            trackEl.classList.remove("hidden");
+            const trackH = trackEl.clientHeight;
+            const thumbH = Math.max(32, (clientHeight / scrollHeight) * trackH);
+            thumbEl.style.height = `${thumbH}px`;
+            thumbEl.style.transform = `translateY(${(scrollTop / maxScroll) * (trackH - thumbH)}px)`;
+          }
+
+          // Maps a pointer Y (relative to the track) to the passage scroll position
+          function scrollToTrackY(y, grabOffset) {
+            const maxScroll = passageEl.scrollHeight - passageEl.clientHeight;
+            const range = trackEl.clientHeight - thumbEl.offsetHeight;
+            if (range <= 0) return;
+            const ratio = Math.min(1, Math.max(0, (y - grabOffset) / range));
+            passageEl.scrollTop = ratio * maxScroll;
+          }
+
+          let grabOffset = 0;
+          thumbEl.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            grabOffset = e.clientY - thumbEl.getBoundingClientRect().top;
+            thumbEl.setPointerCapture(e.pointerId);
+            thumbEl.classList.add("dragging");
+          });
+          thumbEl.addEventListener("pointermove", (e) => {
+            if (!thumbEl.hasPointerCapture(e.pointerId)) return;
+            scrollToTrackY(e.clientY - trackEl.getBoundingClientRect().top, grabOffset);
+          });
+          const endDrag = (e) => {
+            if (thumbEl.hasPointerCapture(e.pointerId)) thumbEl.releasePointerCapture(e.pointerId);
+            thumbEl.classList.remove("dragging");
+          };
+          thumbEl.addEventListener("pointerup", endDrag);
+          thumbEl.addEventListener("pointercancel", endDrag);
+
+          // Clicking the track jumps the thumb (centered) to that point
+          trackEl.addEventListener("pointerdown", (e) => {
+            if (e.target !== trackEl) return;
+            e.preventDefault();
+            scrollToTrackY(e.clientY - trackEl.getBoundingClientRect().top, thumbEl.offsetHeight / 2);
+          });
+
+          passageEl.addEventListener("scroll", updateScrollbar);
+          // Fires when the panel becomes visible or the layout resizes
+          new ResizeObserver(updateScrollbar).observe(passageEl);
 
           inputEl.addEventListener("input", (e) => {
             if (!loaded) return;
