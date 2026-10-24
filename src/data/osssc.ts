@@ -5,6 +5,28 @@ export const OSSSC_PAGE = "/mocktest/osssc";
 
 // Shared by the home page OSSSC row and the OSSSC page.
 export const ossscItems: PosterItem[] = [
+      {
+        id: "typing-beginner",
+        icon: "🌱",
+        title: "Typing Beginner",
+        sub: "Practice",
+        meta: "Start from scratch · Free",
+        image: "/images/typing-beginner.png",
+        tone: ["#15803D", "#14532D"],
+        href: "/mocktest/tests/typing-beginner",
+        isNew: true,
+      },
+    {
+      id: "osssc-typing",
+      icon: "⌨️",
+      title: "Typing Test",
+      sub: "OSSSC",
+      meta: "30 min · Speed & Accuracy",
+      image: "/images/osssc-typing.png",
+      tone: ["#1D4ED8", "#1E3A8A"],
+      href: "/mocktest/tests/osssc-typing",
+      isNew: false,
+    },
   {
     id: "osssc-combo",
     icon: "⚡",
@@ -19,36 +41,15 @@ export const ossscItems: PosterItem[] = [
   {
     id: "osssc-mcq",
     icon: "📝",
-    title: "MCQ Test",
+    title: "Computer MCQ Test",
     sub: "OSSSC",
     meta: "30 Qs · 30 min",
     image: "/images/osssc.png",
     tone: ["#B00020", "#6D0014"],
     href: "/mocktest/test/11",
     isNew: true,
-  },
-  {
-    id: "osssc-typing",
-    icon: "⌨️",
-    title: "Typing Test",
-    sub: "OSSSC",
-    meta: "30 min · Speed & Accuracy",
-    image: "/images/osssc-typing.png",
-    tone: ["#1D4ED8", "#1E3A8A"],
-    href: "/mocktest/tests/osssc-typing",
-    isNew: false,
-  },
-  {
-    id: "typing-beginner",
-    icon: "🌱",
-    title: "Typing Beginner",
-    sub: "Practice",
-    meta: "Start from scratch · Free",
-    image: "/images/typing-beginner.png",
-    tone: ["#15803D", "#14532D"],
-    href: "/mocktest/tests/typing-beginner",
-    isNew: true,
-  },
+  }
+
 ];
 
 // Posts covered by the OSSSC combined recruitment mock test.

@@ -35,8 +35,9 @@ const posters = [
       </p>
 
       <div class="ox-actions">
-        <a href="/mocktest/test/11" class="ox-btn-primary">Start MCQ mock test →</a>
-        <a href="/mocktest/tests/osssc-typing" class="ox-btn-ghost">Practise typing</a>
+        <a href="/mocktest/test/11" class="ox-btn-outline">Computer MCQ →</a>
+        <a href="/mocktest/tests/osssc-typing" class="ox-btn-outline">Typing Test</a>
+        <a href="/mocktest/tests/osssc-typing" class="ox-btn-primary">Computer skill test for OSSSC 2026 →</a>
       </div>
 
       <div class="ox-trust">
@@ -167,19 +168,23 @@ const posters = [
     box-shadow: 0 12px 26px rgba(176, 0, 32, 0.28);
   }
 
+  .ox-btn-outline,
   .ox-btn-ghost {
     font-weight: 600;
-    color: var(--ink);
-    background: var(--surface-2);
-    border: 1px solid var(--rule);
+    color: var(--brand);
+    background: transparent;
+    border: 1.5px solid var(--brand);
     padding: 14px 26px;
     border-radius: var(--radius-pill);
     font-size: 0.98rem;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
   }
 
+  .ox-btn-outline:hover,
   .ox-btn-ghost:hover {
-    border-color: var(--ink);
+    border-color: var(--brand-dark);
+    background: var(--brand-light);
+    color: var(--brand-dark);
   }
 
   .ox-trust {
