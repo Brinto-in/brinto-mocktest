@@ -10,7 +10,7 @@ import GAdRails from "../../components/GAdRails.astro";
  * OSSSC Typing Test page — uses the reusable TypingTest component.
  *
  * To change the passage: update the `passage` prop below.
- * Duration is 30 minutes (1800s) as per OSSSC norms; wpmGoal = 40 WPM.
+ * Duration is 15 minutes (900s) as per OSSSC norms; wpmGoal = 40 WPM.
  */
 
 const fallbackPassage = `The Odisha Sub-ordinate Staff Selection Commission conducts recruitment for various government posts in the state of Odisha. Candidates appearing for the typing test must demonstrate proficiency in English or Odia typewriting. The qualifying speed is generally forty words per minute for English and thirty words per minute for Odia. Regular practice is essential to achieve the desired speed and accuracy. Maintain a correct posture, keep your wrists relaxed, and use all ten fingers on the keyboard for efficient typing. Avoid looking at the keyboard while typing and focus on the text displayed on the screen. Speed will improve naturally with consistent daily practice sessions.`;
@@ -49,7 +49,7 @@ try {
       <span>Typing Test</span>
     </nav>
     <div class="page-meta">
-      <div class="meta-chip">⏱ 30 minutes</div>
+      <div class="meta-chip">⏱ 15 minutes</div>
       <div class="meta-chip">🎯 40 WPM target</div>
       <div class="meta-chip">🆓 Free</div>
     </div>
@@ -64,7 +64,7 @@ try {
           title="OSSSC Typing Test"
           examName="OSSSC"
           passage={passage}
-          duration={1800}
+          duration={900}
           wpmGoal={40}
           showTips={true}
           apiUrl="https://brintoapi.brinto.in/api/mocktest-passages?test_name=Odisha%20RI%20Typing%20Test"
@@ -85,7 +85,7 @@ try {
             <ul>
               <li>English: <strong>40 WPM</strong> minimum</li>
               <li>Odia: <strong>30 WPM</strong> minimum</li>
-              <li>Duration: <strong>30 minutes</strong></li>
+              <li>Duration: <strong>15 minutes</strong></li>
               <li>Accuracy must be <strong>≥ 80%</strong></li>
               <li>Errors reduce your effective WPM</li>
             </ul>
@@ -279,4 +279,3 @@ try {
     .info-section { padding: 20px 14px 36px; }
   }
 </style>
-
