@@ -334,7 +334,8 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       {
         "unit": "Environment & Natural Resources",
         "unitOdia": "ପ୍ରାକୃତିକ ସମ୍ପଦର ସଂରକ୍ଷଣ",
-        "topics": []
+        "topics": [],
+        "testId": 22
       }
     ]
   },
