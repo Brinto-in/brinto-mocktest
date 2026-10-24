@@ -3,21 +3,18 @@ const year = new Date().getFullYear();
 const links = {
   'Tests': [
     { href: '/mocktest/osssc', label: 'OSSSC' },
-    { href: '/mocktest/tests/opsc', label: 'OPSC' },
-    { href: '/mocktest/tests/ssc', label: 'SSC CGL' },
-    { href: '/mocktest/tests/railway', label: 'Railway RRB' },
-    { href: '/mocktest/tests/banking', label: 'Banking' },
+    { href: '/mocktest/tests/opsc', label: 'OPSC', comingSoon: true },
+    { href: '/mocktest/tests/ssc', label: 'SSC', comingSoon: true },
+    { href: '/mocktest/tests/railway', label: 'Railway', comingSoon: true },
+    { href: '/mocktest/tests/banking', label: 'Banking', comingSoon: true },
   ],
   'Platform': [
-    { href: '/mocktest/institutes', label: 'Institutes & Teachers' },
-    { href: '/mocktest/leaderboard', label: 'Leaderboard' },
     { href: '/mocktest/results', label: 'My Results' },
-    { href: '/mocktest/analysis', label: 'Test Analysis' },
   ],
   'Brinto': [
     { href: 'https://brinto.in', label: 'Main Site' },
     { href: 'https://blogs.brinto.in', label: 'Blog' },
-    { href: '/mocktest/contact', label: 'Contact' },
+    { href: 'https://www.brinto.in/contact', label: 'Contact' },
   ],
 };
 ---
@@ -34,14 +31,24 @@ const links = {
           onerror="this.onerror=null;this.src='/mocktest/logo.png';"
         />
       </a>
-      <p>Free mock tests for Odisha government job aspirants. Prepare smarter with timed tests, instant analysis, and rank tracking.</p>
+      <p>Free mock tests for government job aspirants. Prepare smarter with timed tests, instant analysis, and rank tracking.</p>
     </div>
 
     {Object.entries(links).map(([group, items]) => (
       <div class="footer-col">
         <h3>{group}</h3>
         <ul>
-          {items.map(item => <li><a href={item.href}>{item.label}</a></li>)}
+          {items.map(item => (
+            <li>
+              <a
+                href={item.comingSoon ? undefined : item.href}
+                style={item.comingSoon ? 'pointer-events: none; opacity: 0.6;' : undefined}
+              >
+                {item.label}
+                {item.comingSoon && <span class="footer-soon-badge">Soon</span>}
+              </a>
+            </li>
+          ))}
         </ul>
       </div>
     ))}
@@ -50,8 +57,8 @@ const links = {
   <div class="footer-bottom wrap">
     <span>© {year} Novagenix Lab. All rights reserved.</span>
     <span class="footer-bottom-links">
-      <a href="/mocktest/privacy">Privacy</a>
-      <a href="/mocktest/terms">Terms</a>
+      <a href="https://www.brinto.in/privacy">Privacy</a>
+      <a href="https://www.brinto.in/terms">Terms</a>
     </span>
   </div>
 </footer>
@@ -97,6 +104,20 @@ const links = {
   ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   a { font-size: 0.9rem; color: rgba(255,255,255,0.65); transition: color 0.15s; }
   a:hover { color: #fff; }
+  .footer-soon-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 1px 5px;
+    border-radius: 999px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.03em;
+  }
   .footer-bottom {
     border-top: 1px solid rgba(255,255,255,0.1);
     padding: 18px 24px;
