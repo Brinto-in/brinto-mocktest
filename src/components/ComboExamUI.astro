@@ -2210,12 +2210,16 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
 
             startStageTimer(totalSeconds);
 
-            if (typeof (window as any).gtag === 'function') {
-              (window as any).gtag('event', 'test_start', {
-                test_id: slug,
-                test_type: 'combo',
-                test_title: document.title
-              });
+            try {
+              if (typeof (window as any).gtag === 'function') {
+                (window as any).gtag('event', 'test_start', {
+                  test_id: testIdRaw || "11",
+                  test_type: 'combo',
+                  test_title: document.title
+                });
+              }
+            } catch (gtagErr) {
+              console.warn("gtag test_start error:", gtagErr);
             }
           } catch (err) {
             console.error("Error starting test:", err);
@@ -2964,12 +2968,16 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
           testActive = false;
           exitFullscreen();
 
-          if (typeof (window as any).gtag === 'function') {
-            (window as any).gtag('event', 'test_submit', {
-              test_id: slug,
-              test_type: 'combo',
-              test_title: document.title
-            });
+          try {
+            if (typeof (window as any).gtag === 'function') {
+              (window as any).gtag('event', 'test_submit', {
+                test_id: testIdRaw || "11",
+                test_type: 'combo',
+                test_title: document.title
+              });
+            }
+          } catch (gtagErr) {
+            console.warn("gtag test_submit error:", gtagErr);
           }
 
           document.querySelectorAll(".test-panel").forEach(p => p.style.display = "none");

@@ -2035,12 +2035,16 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
 
         const timeTaken = Math.max(0, state.totalDuration - state.timeLeft);
 
-        if (typeof (window as any).gtag === 'function') {
-          (window as any).gtag('event', 'test_submit', {
-            test_id: slug || testMeta?.id,
-            test_title: document.title,
-            time_taken_seconds: timeTaken
-          });
+        try {
+          if (typeof (window as any).gtag === 'function') {
+            (window as any).gtag('event', 'test_submit', {
+              test_id: slug || testMeta?.id || "",
+              test_title: document.title,
+              time_taken_seconds: timeTaken
+            });
+          }
+        } catch (gtagErr) {
+          console.warn("gtag test_submit error:", gtagErr);
         }
 
         // Build answers payload for attempt submission
@@ -2502,11 +2506,15 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
           // Start timer NOW
           timerEl.textContent = fmt(state.timeLeft);
 
-          if (typeof (window as any).gtag === 'function') {
-            (window as any).gtag('event', 'test_start', {
-              test_id: slug || testMeta?.id,
-              test_title: document.title
-            });
+          try {
+            if (typeof (window as any).gtag === 'function') {
+              (window as any).gtag('event', 'test_start', {
+                test_id: slug || testMeta?.id || "",
+                test_title: document.title
+              });
+            }
+          } catch (gtagErr) {
+            console.warn("gtag test_start error:", gtagErr);
           }
 
           timerInterval = setInterval(() => {
