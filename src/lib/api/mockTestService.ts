@@ -40,6 +40,9 @@ export async function createMockTestSession(testId: string | number): Promise<st
     });
 
     if (json?.success && json?.data?.id) {
+      if (typeof window !== "undefined" && json.data.guestId) {
+        localStorage.setItem("brinto_guest_id", json.data.guestId);
+      }
       return json.data.id;
     }
     console.error("createMockTestSession failed:", json);
