@@ -59,8 +59,9 @@ const nav = [
             }
             html,
             body {
-                height: 100%;
+                height: 100vh;
                 margin: 0;
+                overflow: hidden;
             }
             body {
                 font-family: var(--font-body);
@@ -69,8 +70,8 @@ const nav = [
                 color: var(--ink);
                 display: grid;
                 grid-template-columns: var(--sidebar-w) 1fr;
-                grid-template-rows: auto 1fr;
-                min-height: 100vh;
+                grid-template-rows: 56px 1fr;
+                height: 100vh;
                 -webkit-font-smoothing: antialiased;
             }
             a {
@@ -126,16 +127,31 @@ const nav = [
             }
 
             /* ── SIDEBAR ── */
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 9998;
+            }
             .sidebar {
                 grid-column: 1;
                 grid-row: 1/3;
                 background: var(--ink);
                 display: flex;
                 flex-direction: column;
-                position: sticky;
-                top: 0;
                 height: 100vh;
                 overflow-y: auto;
+                z-index: 100;
+            }
+            .sidebar-toggle-btn {
+                display: none;
+                background: none;
+                border: none;
+                font-size: 1.3rem;
+                cursor: pointer;
+                padding: 4px 8px;
+                color: var(--ink);
             }
             .sb-brand {
                 display: flex;
@@ -233,8 +249,6 @@ const nav = [
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                position: sticky;
-                top: 0;
                 z-index: 10;
             }
             .topbar h1 {
@@ -242,17 +256,15 @@ const nav = [
                 font-weight: 700;
                 color: var(--ink);
             }
-            .tb-actions {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
+
 
             /* ── MAIN ── */
+            .nexusctl-main,
             .admin-main {
                 grid-column: 2;
                 grid-row: 2;
                 padding: 28px;
+                height: calc(100vh - 56px);
                 overflow-y: auto;
             }
 
@@ -667,40 +679,67 @@ const nav = [
             }
 
             @media (max-width: 768px) {
+                html,
                 body {
-                    grid-template-columns: 1fr;
-                    grid-template-rows: 56px auto 1fr;
+                    height: auto;
+                    overflow: auto;
+                }
+                body {
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 100vh;
+                }
+                .sidebar-backdrop.open {
+                    display: block;
                 }
                 .sidebar {
-                    grid-column: 1;
-                    grid-row: 1;
-                    height: 56px;
-                    flex-direction: row;
-                    overflow-x: auto;
+                    position: fixed;
+                    top: 0;
+                    left: -260px;
+                    width: 260px;
+                    height: 100vh;
+                    z-index: 9999;
+                    flex-direction: column;
+                    transition: left 0.25s ease-in-out;
+                    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+                }
+                .sidebar.open {
+                    left: 0;
                 }
                 .sb-brand {
-                    padding: 12px;
-                    border-bottom: none;
-                    border-right: 1px solid rgba(255, 255, 255, 0.08);
+                    padding: 20px 16px 18px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                    border-right: none;
                 }
                 .sb-nav {
-                    flex-direction: row;
-                    padding: 8px;
-                    gap: 4px;
+                    flex-direction: column;
+                    padding: 12px 10px;
+                    gap: 2px;
                 }
                 .sb-label {
-                    display: none;
+                    display: block;
                 }
                 .sb-footer {
-                    display: none;
+                    display: block;
+                }
+                .sidebar-toggle-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }
                 .topbar {
-                    grid-column: 1;
-                    grid-row: 2;
+                    grid-column: auto;
+                    grid-row: auto;
+                    padding: 0 16px;
+                    position: sticky;
+                    top: 0;
                 }
+                .nexusctl-main,
                 .admin-main {
-                    grid-column: 1;
-                    grid-row: 3;
+                    grid-column: auto;
+                    grid-row: auto;
+                    height: auto;
+                    overflow-y: visible;
                     padding: 16px;
                 }
                 .form-grid-2,
@@ -708,14 +747,15 @@ const nav = [
                     grid-template-columns: 1fr;
                 }
                 .stats-strip {
-                    grid-template-columns: 1fr 1fr;
+                    grid-template-columns: repeat(2, 1fr);
                 }
             }
         </style>
     </head>
     <body>
-        <!-- ── SIDEBAR ── -->
-        <aside class="sidebar">
+        <!-- ── SIDEBAR BACKDROP & DRAWER ── -->
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+        <aside class="sidebar" id="admin-sidebar">
             <div class="sb-brand">
                 <div class="sb-logo">
                     <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
@@ -768,7 +808,12 @@ const nav = [
 
         <!-- ── TOPBAR ── -->
         <div class="topbar">
-            <h1>{title}</h1>
+            <div style="display:flex;align-items:center;gap:12px">
+                <button type="button" id="sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle sidebar">
+                    ☰
+                </button>
+                <h1>{title}</h1>
+            </div>
             <div class="tb-actions">
                 <slot name="topbar-actions" />
             </div>
@@ -780,6 +825,21 @@ const nav = [
         </main>
 
         <script is:inline>
+            // Toggle sidebar on mobile
+            const sidebar = document.getElementById("admin-sidebar");
+            const backdrop = document.getElementById("sidebar-backdrop");
+            const toggleBtn = document.getElementById("sidebar-toggle");
+
+            toggleBtn?.addEventListener("click", function() {
+                sidebar?.classList.toggle("open");
+                backdrop?.classList.toggle("open");
+            });
+
+            backdrop?.addEventListener("click", function() {
+                sidebar?.classList.remove("open");
+                backdrop?.classList.remove("open");
+            });
+
             // Toggle question expand/collapse
             document.addEventListener("click", function (e) {
                 const header = e.target.closest(".q-card-header");
