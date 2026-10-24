@@ -1756,7 +1756,7 @@ const passageTestName = "Odisha RI Typing Test";
         <div class="tt-header">
           <div class="tt-header-left">
             <h2>Stage 2 · Passage 1 (General & Office Norms)</h2>
-            <p>OSSSC Standard English Typing · 40 WPM Benchmark</p>
+            <p>OSSSC Standard English Typing · 15 Minutes · 40 WPM Benchmark</p>
           </div>
           <div class="tt-stats">
             <div class="stat-pill">
@@ -1809,7 +1809,7 @@ const passageTestName = "Odisha RI Typing Test";
         <div class="tt-header">
           <div class="tt-header-left">
             <h2>Stage 3 · Passage 2 (Administrative Drafting)</h2>
-            <p>OSSSC Official Communication & Accuracy Test</p>
+            <p>OSSSC Official Communication & Accuracy Test · 15 Minutes</p>
           </div>
           <div class="tt-stats">
             <div class="stat-pill">
@@ -2063,7 +2063,7 @@ const passageTestName = "Odisha RI Typing Test";
             instrOverlay.style.opacity = "0";
             setTimeout(() => (instrOverlay.style.display = "none"), 300);
 
-            startTimer();
+            startStageTimer(totalSeconds);
           } catch (err) {
             console.error("Error starting test:", err);
             alert("Unable to start test session: " + (err.message || "Network error. Please try again."));
@@ -2084,7 +2084,9 @@ const passageTestName = "Odisha RI Typing Test";
           timerEl.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
         }
 
-        function startTimer() {
+        function startStageTimer(seconds) {
+          clearInterval(timerInterval);
+          totalSeconds = seconds;
           endAt = Date.now() + totalSeconds * 1000;
           renderTimer(totalSeconds);
           timerInterval = setInterval(async () => {
@@ -2093,8 +2095,22 @@ const passageTestName = "Odisha RI Typing Test";
             if (remaining <= 0) {
               clearInterval(timerInterval);
               comboModal.style.display = "none";
-              alert("Time is up! Submitting your test.");
-              await finalSubmit(true);
+              if (currentStage === 1) {
+                showToast("MCQ section time up! Advancing to Passage 1…");
+                await submitMCQAttempt();
+                goToStage(2);
+                tt1.load(null);
+              } else if (currentStage === 2) {
+                showToast("Passage 1 time up! Advancing to Passage 2…");
+                await postTypingResult(1);
+                const p1Id = tt1.getPassageId();
+                goToStage(3);
+                tt2.load(p1Id);
+              } else {
+                showToast("Passage 2 time up! Submitting final test…");
+                await postTypingResult(2);
+                await finalSubmit(true);
+              }
             }
           }, 1000);
         }
@@ -2145,12 +2161,14 @@ const passageTestName = "Odisha RI Typing Test";
             const palToggle = document.getElementById("palette-toggle");
             if (palToggle) palToggle.style.display = "none";
             closeSidebarMob();
+            startStageTimer(15 * 60);
           } else if (n === 3) {
             setStepState(step2, "completed", "✓", "Passage 1", "P1");
             setStepState(step3, "active", "3", "Passage 2", "P2");
             setConnector("conn-2-3", true);
             panel2.classList.remove("active");
             panel3.classList.add("active");
+            startStageTimer(15 * 60);
           }
           updateHeaderButton();
         }
