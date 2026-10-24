@@ -1020,6 +1020,7 @@ const passageTestName = "Odisha RI Typing Test";
       .stat-val.err { color: var(--brand); }
 
       .typing-card {
+        position: relative;
         background: var(--surface);
         border: 1px solid var(--rule);
         border-radius: var(--radius-md);
@@ -1029,6 +1030,60 @@ const passageTestName = "Odisha RI Typing Test";
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
         flex: 1;
         min-height: 380px;
+      }
+      .stage-start-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(4px);
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        border-radius: var(--radius-md);
+      }
+      .sso-card {
+        text-align: center;
+        max-width: 440px;
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+        padding: 28px 24px;
+        border-radius: var(--radius-md);
+      }
+      .sso-card h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0 0 8px;
+      }
+      .sso-card p {
+        font-size: 0.9rem;
+        color: var(--ink-soft);
+        margin: 0 0 10px;
+      }
+      .sso-sub {
+        font-size: 0.82rem !important;
+        color: var(--ink-muted) !important;
+        margin-bottom: 18px !important;
+        line-height: 1.4;
+      }
+      .sso-btn {
+        font-weight: 700;
+        color: #ffffff;
+        background: var(--brand);
+        border: none;
+        padding: 12px 26px;
+        border-radius: var(--radius-pill);
+        font-size: 0.95rem;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(176, 0, 32, 0.22);
+        transition: transform 0.15s ease, background 0.15s ease;
+      }
+      .sso-btn:hover {
+        transform: translateY(-1px);
+        background: var(--brand-dark);
       }
       .passage-box {
         position: relative; /* needed so offsetTop-based auto scroll works */
@@ -1775,8 +1830,18 @@ const passageTestName = "Odisha RI Typing Test";
         </div>
 
         <div class="typing-card">
+          <!-- Start Overlay for Passage 1 -->
+          <div class="stage-start-overlay" id="tt1-start-overlay" style="display:none">
+            <div class="sso-card">
+              <h3>Passage 1 · Ready to Begin?</h3>
+              <p>⏱ <strong>15 Minutes Timer</strong> · 🎯 <strong>40 WPM Benchmark</strong></p>
+              <p class="sso-sub">Click the button below when you are ready to begin Passage 1. The 15-minute timer will start automatically.</p>
+              <button type="button" class="sso-btn" id="btn-start-p1">Start Passage 1 →</button>
+            </div>
+          </div>
+
           <div class="passage-box" id="tt1-passage">
-            <div class="tt-status">Passage will load after you submit the MCQ section…</div>
+            <div class="tt-status">Passage will load after you click Start Passage 1…</div>
           </div>
           <div class="input-area-wrap">
             <textarea
@@ -1828,8 +1893,18 @@ const passageTestName = "Odisha RI Typing Test";
         </div>
 
         <div class="typing-card">
+          <!-- Start Overlay for Passage 2 -->
+          <div class="stage-start-overlay" id="tt2-start-overlay" style="display:none">
+            <div class="sso-card">
+              <h3>Passage 2 · Ready to Begin?</h3>
+              <p>⏱ <strong>15 Minutes Timer</strong> · 🎯 <strong>Administrative Drafting</strong></p>
+              <p class="sso-sub">Click the button below when you are ready to begin Passage 2. The 15-minute timer will start automatically.</p>
+              <button type="button" class="sso-btn" id="btn-start-p2">Start Passage 2 →</button>
+            </div>
+          </div>
+
           <div class="passage-box" id="tt2-passage">
-            <div class="tt-status">Passage will load after you submit Passage 1…</div>
+            <div class="tt-status">Passage will load after you click Start Passage 2…</div>
           </div>
           <div class="input-area-wrap">
             <textarea
@@ -2150,6 +2225,9 @@ const passageTestName = "Odisha RI Typing Test";
 
         function goToStage(n) {
           currentStage = n;
+          clearInterval(timerInterval);
+          renderTimer(15 * 60);
+
           if (n === 2) {
             setStepState(step1, "completed", "✓", "MCQ Test", "MCQ");
             setStepState(step2, "active", "2", "Passage 1", "P1");
@@ -2161,17 +2239,34 @@ const passageTestName = "Odisha RI Typing Test";
             const palToggle = document.getElementById("palette-toggle");
             if (palToggle) palToggle.style.display = "none";
             closeSidebarMob();
-            startStageTimer(15 * 60);
+            const ov1 = document.getElementById("tt1-start-overlay");
+            if (ov1) ov1.style.display = "flex";
           } else if (n === 3) {
             setStepState(step2, "completed", "✓", "Passage 1", "P1");
             setStepState(step3, "active", "3", "Passage 2", "P2");
             setConnector("conn-2-3", true);
             panel2.classList.remove("active");
             panel3.classList.add("active");
-            startStageTimer(15 * 60);
+            const ov2 = document.getElementById("tt2-start-overlay");
+            if (ov2) ov2.style.display = "flex";
           }
           updateHeaderButton();
         }
+
+        document.getElementById("btn-start-p1")?.addEventListener("click", () => {
+          const ov = document.getElementById("tt1-start-overlay");
+          if (ov) ov.style.display = "none";
+          startStageTimer(15 * 60);
+          tt1.load(null);
+        });
+
+        document.getElementById("btn-start-p2")?.addEventListener("click", () => {
+          const ov = document.getElementById("tt2-start-overlay");
+          if (ov) ov.style.display = "none";
+          const p1Id = tt1.getPassageId();
+          startStageTimer(15 * 60);
+          tt2.load(p1Id);
+        });
 
         function requestAdvanceStage() {
           if (finished || busy) return;
@@ -2245,17 +2340,14 @@ const passageTestName = "Odisha RI Typing Test";
                 return;
               }
               comboModal.style.display = "none";
-              // 2) Move to typing panel 1, THEN call passage API for passage 1
+              // 2) Move to typing panel 1 & show start button
               goToStage(2);
-              tt1.load(null);
             } else if (currentStage === 2) {
               // 1) Post passage 1 result
               await postTypingResult(1);
-              const p1Id = tt1.getPassageId();
               comboModal.style.display = "none";
-              // 2) Move to typing panel 2, THEN call passage API for passage 2 excluding passage 1
+              // 2) Move to typing panel 2 & show start button
               goToStage(3);
-              tt2.load(p1Id);
             } else {
               comboModal.style.display = "none";
               await finalSubmit(false);
