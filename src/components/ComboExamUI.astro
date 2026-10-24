@@ -15,6 +15,7 @@ const { slug = "11", test } = Astro.props;
 //   Passage 1 -> right after the MCQ is submitted
 //   Passage 2 -> right after Passage 1 is submitted (with exclude_ids=<passage 1 id>)
 const passageTestName = "Odisha RI Typing Test";
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
 ---
 
 <!doctype html>
@@ -24,6 +25,17 @@ const passageTestName = "Odisha RI Typing Test";
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title id="page-title">{test?.title ? `${test.title} | Brinto MockTest` : "OSSSC MCQ + Typing Combo Test | Brinto MockTest"}</title>
     <meta name="robots" content="noindex" />
+
+    <!-- Google Analytics (gtag.js) -->
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+    <script is:inline set:html={`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', '${gaId}');
+    `} />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
@@ -2197,6 +2209,14 @@ const passageTestName = "Odisha RI Typing Test";
             setTimeout(() => (instrOverlay.style.display = "none"), 300);
 
             startStageTimer(totalSeconds);
+
+            if (typeof (window as any).gtag === 'function') {
+              (window as any).gtag('event', 'test_start', {
+                test_id: slug,
+                test_type: 'combo',
+                test_title: document.title
+              });
+            }
           } catch (err) {
             console.error("Error starting test:", err);
             alert("Unable to start test session: " + (err.message || "Network error. Please try again."));
@@ -2943,6 +2963,14 @@ const passageTestName = "Odisha RI Typing Test";
           finished = true;
           testActive = false;
           exitFullscreen();
+
+          if (typeof (window as any).gtag === 'function') {
+            (window as any).gtag('event', 'test_submit', {
+              test_id: slug,
+              test_type: 'combo',
+              test_title: document.title
+            });
+          }
 
           document.querySelectorAll(".test-panel").forEach(p => p.style.display = "none");
           // Keep the header: hide timer/submit and swap the stage progress for the result tabs.
