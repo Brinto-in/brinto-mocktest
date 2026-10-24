@@ -328,7 +328,8 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       {
         "unit": "Environment & Natural Resources",
         "unitOdia": "ଆମ ପରିବେଶ",
-        "topics": []
+        "topics": [],
+        "testId": 21
       },
       {
         "unit": "Environment & Natural Resources",
