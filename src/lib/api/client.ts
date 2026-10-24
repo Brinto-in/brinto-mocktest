@@ -29,18 +29,25 @@ export interface RequestOptions extends RequestInit {
  * and X-Guest-Id header automatically.
  */
 export async function apiClient<T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const token = getAuthToken();
-  const guestId = getGuestId();
+  const token = getAuthToken()?.trim();
+  const guestId = getGuestId()?.trim();
 
   const headers: Record<string, string> = {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    ...(guestId ? { "X-Guest-Id": guestId } : {}),
     ...(options.headers as Record<string, string> || {}),
   };
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete headers["Authorization"];
+  }
+
+  if (guestId) {
+    headers["X-Guest-Id"] = guestId;
+  } else {
+    delete headers["X-Guest-Id"];
   }
 
   const url = endpoint.startsWith("http") ? endpoint : `${API_BASE}${endpoint}`;
