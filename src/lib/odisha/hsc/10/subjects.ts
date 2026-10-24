@@ -315,12 +315,22 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       },
       {
         "unit": "Heredity & Evolution",
-        "unitOdia": "ବଂଶାନୁକ୍ରମ ଓ ଜୈବ ବିବର୍ତ୍ତନ",
+        "unitOdia": "ବଂଶାନୁକ୍ରମ ଓ ବିବର୍ତ୍ତନ",
         "topics": []
       },
       {
         "unit": "Environment & Natural Resources",
-        "unitOdia": "ଆମ ପରିବେଶ ଓ ପ୍ରାକୃତିକ ସମ୍ପଦ ପରିଚାଳନା",
+        "unitOdia": "ଶକ୍ତିର ଉତ୍ସ",
+        "topics": []
+      },
+      {
+        "unit": "Environment & Natural Resources",
+        "unitOdia": "ଆମ ପରିବେଶ",
+        "topics": []
+      },
+      {
+        "unit": "Environment & Natural Resources",
+        "unitOdia": "ପ୍ରାକୃତିକ ସମ୍ପଦର ସଂରକ୍ଷଣ",
         "topics": []
       }
     ]
