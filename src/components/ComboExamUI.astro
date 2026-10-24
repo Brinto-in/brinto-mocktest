@@ -2679,7 +2679,11 @@ const passageTestName = "Odisha RI Typing Test";
           async function fetchPassage(excludeId) {
             const passageRes = await fetchMockTestPassage(passageTestName, excludeId);
             if (!passageRes?.text) throw new Error("No passage returned by server");
-            return { text: passageRes.text, id: passageRes.id };
+            return {
+              text: passageRes.text,
+              id: passageRes.id,
+              timeSeconds: passageRes.timeSeconds
+            };
           }
 
           // Calls the passage API. Shows loader, and an error + Retry button on failure.
@@ -2690,6 +2694,11 @@ const passageTestName = "Odisha RI Typing Test";
               const p = await fetchPassage(excludeId);
               if (myToken !== loadToken) return;
               setPassage(p.text, p.id);
+              if (p.timeSeconds && p.timeSeconds > 0) {
+                startStageTimer(p.timeSeconds);
+              } else {
+                startStageTimer(15 * 60);
+              }
             } catch (err) {
               if (myToken !== loadToken) return;
               console.error(`Error fetching passage (${prefix}):`, err);

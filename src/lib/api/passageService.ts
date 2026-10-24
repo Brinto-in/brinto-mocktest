@@ -28,7 +28,10 @@ export async function fetchMockTestPassage(testName: string, excludeId?: number 
     if (d?.passage_text) {
       const rawId = d.id ?? d.passage_id;
       const id = rawId !== undefined && rawId !== null ? Number(rawId) : null;
-      return { text: d.passage_text, id, raw: d };
+      const timeSeconds = typeof d.typing_time_seconds === "number"
+        ? d.typing_time_seconds
+        : (d.typing_time_seconds ? parseInt(d.typing_time_seconds, 10) : null);
+      return { text: d.passage_text, id, timeSeconds, raw: d };
     }
     return null;
   } catch (err) {
