@@ -1882,9 +1882,15 @@ const { slug = "", test, questionsData = [] } = Astro.props;
           if (!b) return;
           if (state.marked.has(i)) {
             b.classList.add("marked");
-            b.querySelector ? null : null;
           } else b.classList.remove("marked");
         });
+
+        // Next/Submit button label
+        const isLast = i === questions.length - 1;
+        const btnNext = document.getElementById("btn-next");
+        const btnNextMob = document.getElementById("btn-next-mob");
+        if (btnNext) btnNext.textContent = isLast ? "Submit →" : "Save & Next →";
+        if (btnNextMob) btnNextMob.textContent = isLast ? "Submit →" : "Next →";
 
         renderPalette();
       }
@@ -1963,7 +1969,11 @@ const { slug = "", test, questionsData = [] } = Astro.props;
         if (state.current > 0) jumpTo(state.current - 1);
       }
       function nextQ() {
-        if (state.current < questions.length - 1) jumpTo(state.current + 1);
+        if (state.current < questions.length - 1) {
+          jumpTo(state.current + 1);
+        } else {
+          openSubmitModal();
+        }
       }
 
       // ─────────────────────────────────────────────
