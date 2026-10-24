@@ -2000,10 +2000,10 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             const guestId = localStorage.getItem("brinto_guest_id") || "";
             const headers = {
               "Accept": "application/json",
-              "Content-Type": "application/json",
-              "X-Guest-Id": guestId
+              "Content-Type": "application/json"
             };
-            if (token) headers["Authorization"] = `Bearer ${token}`;
+            if (token && token !== "null" && token !== "undefined") headers["Authorization"] = `Bearer ${token}`;
+            if (guestId && guestId !== "null" && guestId !== "undefined") headers["X-Guest-Id"] = guestId;
 
             const res = await fetch("https://brintoapi.brinto.in/api/mocktests/attempts", {
               method: "POST",
@@ -2408,14 +2408,16 @@ const { slug = "", test, questionsData = [] } = Astro.props;
             }
 
             // Step 1: Create session via POST /api/mocktests/sessions
+            const sessHeaders = {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+            };
+            if (token && token !== "null" && token !== "undefined") sessHeaders["Authorization"] = `Bearer ${token}`;
+            if (guestId && guestId !== "null" && guestId !== "undefined") sessHeaders["X-Guest-Id"] = guestId;
+
             const sessRes = await fetch("https://brintoapi.brinto.in/api/mocktests/sessions", {
               method: "POST",
-              headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "X-Guest-Id": guestId,
-                "Authorization": `Bearer ${token}`
-              },
+              headers: sessHeaders,
               body: JSON.stringify({ testId: parsedTestId })
             });
 

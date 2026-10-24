@@ -301,14 +301,16 @@ const {
         const token = localStorage.getItem("brinto_token") || "";
         const guestId = localStorage.getItem("brinto_guest_id") || "";
         const dbTestId = parseInt(root.dataset.dbTestId || "11", 10);
+        const headers = {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        };
+        if (token && token !== "null" && token !== "undefined") headers["Authorization"] = `Bearer ${token}`;
+        if (guestId && guestId !== "null" && guestId !== "undefined") headers["X-Guest-Id"] = guestId;
+
         const res = await fetch("https://brintoapi.brinto.in/api/mocktests/sessions", {
           method: "POST",
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "X-Guest-Id": guestId,
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-          },
+          headers: headers,
           body: JSON.stringify({ testId: dbTestId })
         });
 

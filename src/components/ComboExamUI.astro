@@ -1912,12 +1912,20 @@ const passageTestName = "Odisha RI Typing Test";
         let activeSection = "all";
 
         const parsedId = parseInt(testIdRaw, 10) || 11;
-        const getToken = () => localStorage.getItem("brinto_token") || "";
-        const getGuestId = () => localStorage.getItem("brinto_guest_id") || "";
-        const authHeaders = () => ({
-          ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-          ...(getGuestId() ? { "X-Guest-Id": getGuestId() } : {}),
-        });
+        const getToken = () => {
+          const t = localStorage.getItem("brinto_token");
+          return t && t !== "null" && t !== "undefined" ? t.trim() : "";
+        };
+        const getGuestId = () => {
+          const g = localStorage.getItem("brinto_guest_id");
+          return g && g !== "null" && g !== "undefined" ? g.trim() : "";
+        };
+        const authHeaders = () => {
+          const h = {};
+          if (getToken()) h["Authorization"] = `Bearer ${getToken()}`;
+          if (getGuestId()) h["X-Guest-Id"] = getGuestId();
+          return h;
+        };
 
         // ── ELEMENTS ──
         const step1 = document.getElementById("step-1");
