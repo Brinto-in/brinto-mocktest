@@ -8,6 +8,8 @@ interface Props {
 }
 
 const { cols = 6 } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const IMG_FALLBACK = "this.closest('.py-poster')?.classList.remove('has-img');this.remove()";
 ---
 
 <section class="py-section" aria-labelledby="py-title" style={`--py-cols:${cols};`}>
@@ -20,6 +22,9 @@ const { cols = 6 } = Astro.props;
     <div class="py-row">
       {ossscPrevPapers.map((p) => {
         const Tag = p.href ? "a" : "div";
+        const img = p.image || p.poster;
+        const imgSrc = img ? (img.startsWith("/") && base && !img.startsWith(base) ? `${base}${img}` : img) : null;
+
         return (
           <Tag
             href={p.href}
@@ -27,11 +32,22 @@ const { cols = 6 } = Astro.props;
             style={`--tone-a:${p.tone[0]};--tone-b:${p.tone[1]};`}
             aria-label={`${p.title} ${p.year} – ${p.href ? p.meta : "coming soon"}`}
           >
-            <div class="py-poster">
+            <div class:list={["py-poster", { "has-img": !!imgSrc }]}>
               <div class="py-art" aria-hidden="true">
                 <span class="py-pyq">PYQ</span>
                 <span class="py-year">{p.year}</span>
               </div>
+
+              {imgSrc && (
+                <img
+                  class="py-img"
+                  src={imgSrc}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  onerror={IMG_FALLBACK}
+                />
+              )}
 
               <span class="py-badge">{p.href ? p.year : "SOON"}</span>
 
@@ -110,6 +126,14 @@ const { cols = 6 } = Astro.props;
     background: linear-gradient(160deg, var(--tone-a), var(--tone-b));
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .py-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   a.py-card:hover .py-poster,
