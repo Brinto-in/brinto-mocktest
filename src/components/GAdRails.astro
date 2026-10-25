@@ -8,7 +8,9 @@
  *   <GAdRails sizes={["160x600"]} />               only the narrow skyscraper
  *
  * On load it measures the gap beside the content (.wrap max width) and picks the first size that
- * fits with breathing room. If none fits — laptops, tablets, phones — nothing is requested or shown.
+ * fits with breathing room. On laptops (~1280–1500px) where the gap is too small, it switches to
+ * compact mode: the page content is pushed in to make room (right rail only if two would squeeze
+ * the content below 1000px). If nothing fits — tablets, phones — nothing is requested or shown.
  * Rails stay in view while scrolling (below the header) and stop at the end of the page content,
  * so they never cover the footer. In `npm run dev` they show the same dashed placeholder as <GAd>.
  */
@@ -55,21 +57,44 @@ const isDev = import.meta.env.DEV;
   import { renderAd } from "../lib/adsClient";
 
   type Unit = { key: string; slot: string; width: number; height: number };
+  type Side = "left" | "right";
+  type Layout = { sides: Side[]; reserve: number }; // reserve: px of content pushed in on each rail side
   const GAP = 16; // space between the rail and the content, and the screen edge
+  const MIN_CONTENT = 1000; // compact mode never squeezes the content narrower than this
 
-  function contentWidth() {
-    const maxw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--maxw")) || 1180;
-    return Math.min(window.innerWidth, maxw);
+  // Viewport width without the scrollbar
+  const viewW = () => document.documentElement.clientWidth;
+
+  function maxContent() {
+    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--maxw")) || 1180;
+  }
+
+  // How the rails fit at the current width:
+  //  1. in the empty gutters beside the content (wide screens)
+  //  2. compact: push the content in to make room on the rail sides (laptops ~1280–1500px)
+  //  3. compact, right rail only, when two rails would squeeze the content too much
+  function fit(unit: Unit, sides: Side[]): Layout | null {
+    const w = viewW();
+    const need = unit.width + GAP * 2;
+    if ((w - Math.min(w, maxContent())) / 2 >= need) return { sides, reserve: 0 };
+
+    const options = sides.length > 1 ? [sides, ["right"] as Side[]] : [sides];
+    for (const s of options) {
+      if (w - need * s.length >= MIN_CONTENT) return { sides: s, reserve: need };
+    }
+    return null;
   }
 
   function setup(root: HTMLElement) {
     const units = JSON.parse(root.dataset.units || "[]") as Unit[];
     const top = parseFloat(getComputedStyle(root).getPropertyValue("--rail-top")) || 96;
-    const gutter = (window.innerWidth - contentWidth()) / 2;
+    const rails = [...root.querySelectorAll<HTMLElement>(".gad-rail")];
+    const sides = rails.map((r) => r.dataset.side as Side);
+    const tallEnough = (u: Unit) => u.height + top + 16 <= window.innerHeight;
 
-    // First size that fits beside the content and in the window height
-    const unit = units.find((u) => u.width + GAP * 2 <= gutter && u.height + top + 40 <= window.innerHeight);
-    if (!unit) return; // not enough room: request nothing, show nothing
+    // First size that fits (widest first); if none fits — tablets, phones — request nothing
+    const unit = units.find((u) => tallEnough(u) && fit(u, sides));
+    if (!unit) return;
 
     // Rails span the page content so sticky stops before the footer
     const host = root.parentElement;
@@ -77,19 +102,34 @@ const isDev = import.meta.env.DEV;
 
     root.style.setProperty("--rail-w", `${unit.width}px`);
     root.style.setProperty("--rail-h", `${unit.height}px`);
-    root.classList.add("is-on");
 
-    root.querySelectorAll<HTMLElement>(".gad-rail").forEach((rail) => {
-      const info = rail.querySelector<HTMLElement>(".gad-dev-info");
-      if (info) info.textContent = `${unit.width} × ${unit.height} · slot ${unit.slot}`;
-      renderAd(rail.querySelector<HTMLElement>(".gad-box")!, unit, root.dataset.client!, root.dataset.test);
-    });
+    const rendered = new Set<HTMLElement>();
 
-    // Centre each rail in its gutter (also on resize)
+    // Re-fit on resize: show/hide rails, reserve room for compact mode, centre each rail in its gutter
     const place = () => {
-      const g = (window.innerWidth - contentWidth()) / 2;
-      root.style.setProperty("--rail-x", `${Math.max(GAP, (g - unit.width) / 2)}px`);
+      const layout = tallEnough(unit) ? fit(unit, sides) : null;
+      root.classList.toggle("is-on", !!layout);
+
+      for (const rail of rails) {
+        const side = rail.dataset.side as Side;
+        const on = !!layout && layout.sides.includes(side);
+        rail.hidden = !on;
+        if (host) host.style.setProperty(`padding-${side}`, on && layout!.reserve ? `${layout!.reserve}px` : "");
+
+        // Request each rail's ad only once it is actually shown
+        if (on && !rendered.has(rail)) {
+          rendered.add(rail);
+          const info = rail.querySelector<HTMLElement>(".gad-dev-info");
+          if (info) info.textContent = `${unit.width} × ${unit.height} · slot ${unit.slot}`;
+          renderAd(rail.querySelector<HTMLElement>(".gad-box")!, unit, root.dataset.client!, root.dataset.test);
+        }
+      }
+
+      if (!layout) return;
+      const gutter = layout.reserve || (viewW() - Math.min(viewW(), maxContent())) / 2;
+      root.style.setProperty("--rail-x", `${Math.max(GAP, (gutter - unit.width) / 2)}px`);
     };
+
     place();
     window.addEventListener("resize", place, { passive: true });
   }

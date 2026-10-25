@@ -1,0 +1,55 @@
+---
+export const prerender = false;
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import GAdRails from "../../components/GAdRails.astro";
+import OssscTestList from "../../components/osssc/OssscTestList.astro";
+
+/**
+ * /mocktest/osssc/tests
+ * OSSSC test list — first 2 tests free, the rest unlock after login.
+ * `loggedIn` is hard-coded for now (UI only); wire it to the session later.
+ */
+const loggedIn = false;
+---
+
+<BaseLayout
+  title="OSSSC Test Series – Free Mock Tests | Brinto MockTest"
+  description="OSSSC test series for Revenue Inspector, ARI, Amin and other posts. Start the first tests free, log in to unlock the full series."
+>
+  <!-- Sticky side-rail ads (wide screens only) -->
+  <GAdRails />
+
+  <div class="page-header wrap">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/mocktest">Home</a>
+      <span aria-hidden="true">›</span>
+      <a href="/mocktest/osssc">OSSSC</a>
+      <span aria-hidden="true">›</span>
+      <span>Test Series</span>
+    </nav>
+  </div>
+
+  <OssscTestList loggedIn={loggedIn} />
+</BaseLayout>
+
+<style>
+  .page-header {
+    padding-top: 20px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+  }
+
+  .breadcrumb a {
+    color: var(--ink-soft);
+  }
+
+  .breadcrumb a:hover {
+    color: var(--brand);
+  }
+</style>

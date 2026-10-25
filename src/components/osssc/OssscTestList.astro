@@ -1,0 +1,247 @@
+---
+/**
+ * OssscTestList — list of OSSSC tests where only the first few are open to guests.
+ *
+ * Usage:
+ *   <OssscTestList />                         first 2 unlocked, rest locked
+ *   <OssscTestList loggedIn={true} />         everything unlocked
+ *   <OssscTestList tests={rows} freeCount={3} />
+ *
+ * UI only for now — `loggedIn` is passed in by the page; locked rows open the header's login modal.
+ */
+
+export interface OssscTest {
+  id: string;
+  title: string;
+  meta: string; // e.g. "50 Qs · 30 min"
+  href: string;
+}
+
+interface Props {
+  tests?: OssscTest[];
+  freeCount?: number; // tests open without login
+  loggedIn?: boolean;
+  title?: string;
+}
+
+// Placeholder rows until the list comes from the API
+const SAMPLE: OssscTest[] = [
+  { id: "t1", title: "OSSSC Computer Skill Test – Set 1", meta: "50 Qs · 30 min", href: "/mocktest/test/11" },
+  { id: "t2", title: "OSSSC Typing Test – English", meta: "10 min · Live WPM", href: "/mocktest/tests/osssc-typing" },
+  { id: "t3", title: "OSSSC Computer Skill Test – Set 2", meta: "50 Qs · 30 min", href: "#" },
+  { id: "t4", title: "OSSSC General Awareness – Set 1", meta: "100 Qs · 60 min", href: "#" },
+  { id: "t5", title: "OSSSC Odia Language – Set 1", meta: "50 Qs · 30 min", href: "#" },
+  { id: "t6", title: "OSSSC Full Mock – RI / ARI / Amin", meta: "150 Qs · 120 min", href: "#" },
+];
+
+const { tests = SAMPLE, freeCount = 2, loggedIn = false, title = "OSSSC test series" } = Astro.props;
+const lockedCount = loggedIn ? 0 : Math.max(0, tests.length - freeCount);
+---
+
+<section class="tl-section" aria-labelledby="tl-title">
+  <div class="wrap">
+    <div class="tl-head">
+      <h2 id="tl-title" class="tl-title">{title}</h2>
+      {lockedCount > 0 && <span class="tl-note">{freeCount} free · log in to unlock {lockedCount} more</span>}
+    </div>
+
+    <ol class="tl-list">
+      {tests.map((t, i) => {
+        const locked = !loggedIn && i >= freeCount;
+        const Tag = locked ? "button" : "a";
+        return (
+          <li>
+            <Tag
+              href={locked ? undefined : t.href}
+              type={locked ? "button" : undefined}
+              data-open-login={locked ? "" : undefined}
+              class:list={["tl-item", { "is-locked": locked }]}
+              aria-label={locked ? `${t.title} – locked, log in to unlock` : t.title}
+            >
+              <span class="tl-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+
+              <span class="tl-body">
+                <span class="tl-name">{t.title}</span>
+                <span class="tl-meta">{t.meta}</span>
+              </span>
+
+              {locked ? (
+                <span class="tl-action tl-lock">
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" />
+                  </svg>
+                  <span class="tl-action-text">Login to unlock</span>
+                </span>
+              ) : (
+                <span class="tl-action tl-start">
+                  {i < freeCount && !loggedIn && <span class="tl-free">FREE</span>}
+                  Start
+                </span>
+              )}
+            </Tag>
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .tl-section {
+    background: var(--surface);
+    padding: 16px 0 20px;
+  }
+
+  /* ── Header (matches OssscPrevYear) ── */
+  .tl-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .tl-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .tl-note {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* ── List ── */
+  .tl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .tl-item {
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg, #fff);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+
+  .tl-item:hover,
+  .tl-item:focus-visible {
+    border-color: var(--brand);
+    box-shadow: 0 6px 16px -10px rgba(15, 23, 42, 0.35);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .tl-num {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--brand);
+    background: var(--brand-light);
+  }
+
+  .tl-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tl-name {
+    font-weight: 700;
+    font-size: 0.98rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tl-meta {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+  }
+
+  .tl-action {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+  }
+
+  .tl-start {
+    color: #fff;
+    background: var(--brand);
+  }
+
+  .tl-free {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--brand);
+    background: #fff;
+  }
+
+  /* ── Locked ── */
+  .tl-lock {
+    color: var(--ink-soft);
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+  }
+
+  .is-locked .tl-num {
+    color: var(--ink-muted);
+    background: var(--surface-2);
+  }
+
+  .is-locked .tl-name,
+  .is-locked .tl-meta {
+    opacity: 0.6;
+  }
+
+  .is-locked:hover .tl-lock {
+    color: var(--brand);
+    border-color: var(--brand);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .tl-note { display: none; }
+    .tl-item { gap: 10px; padding: 12px; }
+    .tl-num { width: 32px; height: 32px; font-size: 0.78rem; }
+    .tl-name { font-size: 0.9rem; }
+    .tl-action { padding: 7px 12px; }
+    .tl-lock .tl-action-text { display: none; } /* icon only */
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tl-item { transition: none; }
+  }
+</style>
