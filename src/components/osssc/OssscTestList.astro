@@ -3,11 +3,12 @@
  * OssscTestList — list of OSSSC tests where only the first few are open to guests.
  *
  * Usage:
- *   <OssscTestList />                         first 2 unlocked, rest locked
- *   <OssscTestList loggedIn={true} />         everything unlocked
+ *   <OssscTestList />                         first 2 free, rest unlock after login
  *   <OssscTestList tests={rows} freeCount={3} />
  *
- * UI only for now — `loggedIn` is passed in by the page; locked rows open the header's login modal.
+ * Login lives in localStorage, so the server renders the guest (locked) state and the script
+ * below unlocks rows in the browser — on load and the moment the user logs in or out.
+ * Locked rows open the header's login modal instead of the test.
  */
 
 export interface OssscTest {
@@ -20,7 +21,6 @@ export interface OssscTest {
 interface Props {
   tests?: OssscTest[];
   freeCount?: number; // tests open without login
-  loggedIn?: boolean;
   title?: string;
 }
 
@@ -34,11 +34,11 @@ const SAMPLE: OssscTest[] = [
   { id: "t6", title: "OSSSC Full Mock – RI / ARI / Amin", meta: "150 Qs · 120 min", href: "#" },
 ];
 
-const { tests = SAMPLE, freeCount = 2, loggedIn = false, title = "OSSSC test series" } = Astro.props;
-const lockedCount = loggedIn ? 0 : Math.max(0, tests.length - freeCount);
+const { tests = SAMPLE, freeCount = 2, title = "OSSSC test series" } = Astro.props;
+const lockedCount = Math.max(0, tests.length - freeCount);
 ---
 
-<section class="tl-section" aria-labelledby="tl-title">
+<section class="tl-section is-guest" aria-labelledby="tl-title" data-test-list>
   <div class="wrap">
     <div class="tl-head">
       <h2 id="tl-title" class="tl-title">{title}</h2>
@@ -47,16 +47,15 @@ const lockedCount = loggedIn ? 0 : Math.max(0, tests.length - freeCount);
 
     <ol class="tl-list">
       {tests.map((t, i) => {
-        const locked = !loggedIn && i >= freeCount;
-        const Tag = locked ? "button" : "a";
+        const lockable = i >= freeCount;
         return (
           <li>
-            <Tag
-              href={locked ? undefined : t.href}
-              type={locked ? "button" : undefined}
-              data-open-login={locked ? "" : undefined}
-              class:list={["tl-item", { "is-locked": locked }]}
-              aria-label={locked ? `${t.title} – locked, log in to unlock` : t.title}
+            <a
+              href={t.href}
+              class:list={["tl-item", { "is-locked": lockable }]}
+              data-lockable={lockable ? "" : undefined}
+              data-title={t.title}
+              aria-label={lockable ? `${t.title} – locked, log in to unlock` : t.title}
             >
               <span class="tl-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
 
@@ -65,7 +64,7 @@ const lockedCount = loggedIn ? 0 : Math.max(0, tests.length - freeCount);
                 <span class="tl-meta">{t.meta}</span>
               </span>
 
-              {locked ? (
+              {lockable && (
                 <span class="tl-action tl-lock">
                   <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                     <rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
@@ -73,19 +72,46 @@ const lockedCount = loggedIn ? 0 : Math.max(0, tests.length - freeCount);
                   </svg>
                   <span class="tl-action-text">Login to unlock</span>
                 </span>
-              ) : (
-                <span class="tl-action tl-start">
-                  {i < freeCount && !loggedIn && <span class="tl-free">FREE</span>}
-                  Start
-                </span>
               )}
-            </Tag>
+              <span class="tl-action tl-start">
+                {!lockable && <span class="tl-free">FREE</span>}
+                Start
+              </span>
+            </a>
           </li>
         );
       })}
     </ol>
   </div>
 </section>
+
+<script>
+  import { isLoggedIn } from "../../lib/authService";
+
+  function render(section: HTMLElement) {
+    const loggedIn = isLoggedIn();
+    section.classList.toggle("is-guest", !loggedIn);
+    section.querySelectorAll<HTMLElement>("[data-lockable]").forEach((row) => {
+      row.classList.toggle("is-locked", !loggedIn);
+      row.setAttribute("aria-label", loggedIn ? row.dataset.title! : `${row.dataset.title} – locked, log in to unlock`);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-test-list]").forEach((section) => {
+    // Locked row → open the header's login modal instead of the test
+    section.addEventListener("click", (e) => {
+      const row = (e.target as Element).closest(".tl-item.is-locked");
+      if (!row) return;
+      e.preventDefault();
+      document.querySelector<HTMLElement>("[data-open-login]")?.click();
+    });
+
+    render(section);
+    // Fired by saveAuth/clearAuth (this tab) and by storage changes (other tabs)
+    window.addEventListener("brinto:auth-changed", () => render(section));
+    window.addEventListener("storage", () => render(section));
+  });
+</script>
 
 <style>
   .tl-section {
@@ -122,6 +148,7 @@ const lockedCount = loggedIn ? 0 : Math.max(0, tests.length - freeCount);
     margin: 0;
     padding: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* let rows shrink below the longest title */
     gap: 10px;
   }
 
@@ -209,7 +236,14 @@ const lockedCount = loggedIn ? 0 : Math.max(0, tests.length - freeCount);
     background: #fff;
   }
 
-  /* ── Locked ── */
+  /* ── Locked ── (row shows either the lock or Start; guest-only bits hide after login) */
+  .tl-item:not(.is-locked) .tl-lock,
+  .is-locked .tl-start,
+  .tl-section:not(.is-guest) .tl-free,
+  .tl-section:not(.is-guest) .tl-note {
+    display: none;
+  }
+
   .tl-lock {
     color: var(--ink-soft);
     background: var(--surface-2);
@@ -236,7 +270,17 @@ const lockedCount = loggedIn ? 0 : Math.max(0, tests.length - freeCount);
     .tl-note { display: none; }
     .tl-item { gap: 10px; padding: 12px; }
     .tl-num { width: 32px; height: 32px; font-size: 0.78rem; }
-    .tl-name { font-size: 0.9rem; }
+    .tl-name {
+      font-size: 0.9rem;
+      line-height: 1.3;
+      white-space: normal; /* wrap to 2 lines instead of cutting the title */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .tl-meta { font-size: 0.75rem; }
+    .tl-action { font-size: 0.8rem; }
+    .tl-free { display: none; } /* "Start" alone is enough on phones */
     .tl-action { padding: 7px 12px; }
     .tl-lock .tl-action-text { display: none; } /* icon only */
   }

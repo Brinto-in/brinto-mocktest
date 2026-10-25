@@ -1,16 +1,18 @@
 ---
 /**
- * GAdRails — sticky ad rails in the empty space beside the page content (wide screens only).
+ * GAdRails — sticky ad rails in the empty space beside the page content, with a banner fallback.
  *
  * Usage (anywhere inside the page, e.g. right after the opening <BaseLayout>):
  *   <GAdRails />                                   both sides, 300×600 if it fits, else 160×600
  *   <GAdRails side="right" />                      right rail only
  *   <GAdRails sizes={["160x600"]} />               only the narrow skyscraper
+ *   <GAdRails banner={[]} />                       no banner fallback on small screens
  *
  * On load it measures the gap beside the content (.wrap max width) and picks the first size that
- * fits with breathing room. On laptops (~1280–1500px) where the gap is too small, it switches to
+ * fits with breathing room. On laptops (~1200–1580px) where the gap is too small, it switches to
  * compact mode: the page content is pushed in to make room (right rail only if two would squeeze
- * the content below 1000px). If nothing fits — tablets, phones — nothing is requested or shown.
+ * the content below 1000px). Where no rail fits — tablets, phones — a banner (728×90, else
+ * 320×100) is shown in-flow where <GAdRails /> is placed instead.
  * Rails stay in view while scrolling (below the header) and stop at the end of the page content,
  * so they never cover the footer. In `npm run dev` they show the same dashed placeholder as <GAd>.
  */
@@ -19,24 +21,33 @@ import { AD_CLIENT, AD_UNITS, type AdSizeKey } from "../lib/ads";
 interface Props {
   side?: "both" | "left" | "right";
   sizes?: AdSizeKey[]; // tried in order, widest first
+  banner?: AdSizeKey[]; // fallback when no rail fits, tried in order, widest first
   top?: number; // distance from the top of the screen while scrolling (px)
   label?: boolean;
 }
 
-const { side = "both", sizes = ["300x600", "160x600"], top = 96, label = true } = Astro.props;
+const {
+  side = "both",
+  sizes = ["300x600", "160x600"],
+  banner = ["728x90", "320x100"],
+  top = 96,
+  label = true,
+} = Astro.props;
 
-const units = sizes
-  .map((key) => ({ key, ...AD_UNITS[key] }))
-  .filter((u) => u.slot);
+const toUnits = (keys: AdSizeKey[]) =>
+  keys.map((key) => ({ key, ...AD_UNITS[key] })).filter((u) => u.slot);
+const units = toUnits(sizes);
+const bannerUnits = toUnits(banner);
 const sides = side === "both" ? (["left", "right"] as const) : ([side] as const);
 const isDev = import.meta.env.DEV;
 ---
 
-{units.length > 0 && (
+{(units.length > 0 || bannerUnits.length > 0) && (
   <div
     class:list={["gad-rails", { "gad-dev": isDev }]}
     style={`--rail-top:${top}px;`}
     data-units={JSON.stringify(units)}
+    data-banner={JSON.stringify(bannerUnits)}
     data-client={AD_CLIENT}
     data-test={isDev ? "on" : undefined}
   >
@@ -50,6 +61,13 @@ const isDev = import.meta.env.DEV;
         </div>
       </aside>
     ))}
+  </div>
+  <!-- In-flow banner, shown only where no rail fits -->
+  <div class:list={["gad-rails-banner", { "gad-dev": isDev }]} aria-label="Advertisement" hidden>
+    {(label || isDev) && <span class="gad-label">Advertisement</span>}
+    <div class="gad-box">
+      {isDev && <span class="gad-dev-info"></span>}
+    </div>
   </div>
 )}
 
@@ -71,7 +89,7 @@ const isDev = import.meta.env.DEV;
 
   // How the rails fit at the current width:
   //  1. in the empty gutters beside the content (wide screens)
-  //  2. compact: push the content in to make room on the rail sides (laptops ~1280–1500px)
+  //  2. compact: push the content in to make room on the rail sides (laptops ~1200–1580px)
   //  3. compact, right rail only, when two rails would squeeze the content too much
   function fit(unit: Unit, sides: Side[]): Layout | null {
     const w = viewW();
@@ -85,49 +103,68 @@ const isDev = import.meta.env.DEV;
     return null;
   }
 
+  function show(box: HTMLElement, unit: Unit, root: HTMLElement) {
+    const info = box.querySelector<HTMLElement>(".gad-dev-info");
+    if (info) info.textContent = `${unit.width} × ${unit.height} · slot ${unit.slot}`;
+    box.style.setProperty("--box-w", `${unit.width}px`);
+    box.style.setProperty("--box-h", `${unit.height}px`);
+    renderAd(box, unit, root.dataset.client!, root.dataset.test);
+  }
+
   function setup(root: HTMLElement) {
     const units = JSON.parse(root.dataset.units || "[]") as Unit[];
+    const bannerUnits = JSON.parse(root.dataset.banner || "[]") as Unit[];
+    const banner = root.nextElementSibling as HTMLElement | null;
     const top = parseFloat(getComputedStyle(root).getPropertyValue("--rail-top")) || 96;
     const rails = [...root.querySelectorAll<HTMLElement>(".gad-rail")];
     const sides = rails.map((r) => r.dataset.side as Side);
     const tallEnough = (u: Unit) => u.height + top + 16 <= window.innerHeight;
 
-    // First size that fits (widest first); if none fits — tablets, phones — request nothing
+    // First rail size that fits (widest first); undefined → banner only
     const unit = units.find((u) => tallEnough(u) && fit(u, sides));
-    if (!unit) return;
 
     // Rails span the page content so sticky stops before the footer
     const host = root.parentElement;
-    if (host && getComputedStyle(host).position === "static") host.style.position = "relative";
+    if (unit && host && getComputedStyle(host).position === "static") host.style.position = "relative";
 
-    root.style.setProperty("--rail-w", `${unit.width}px`);
-    root.style.setProperty("--rail-h", `${unit.height}px`);
+    if (unit) {
+      root.style.setProperty("--rail-w", `${unit.width}px`);
+      root.style.setProperty("--rail-h", `${unit.height}px`);
+    }
 
     const rendered = new Set<HTMLElement>();
 
-    // Re-fit on resize: show/hide rails, reserve room for compact mode, centre each rail in its gutter
+    // Re-fit on resize: rails or banner, reserve room for compact mode, centre each rail in its gutter.
+    // Each ad is requested only once its slot is first shown.
     const place = () => {
-      const layout = tallEnough(unit) ? fit(unit, sides) : null;
+      const layout = unit && tallEnough(unit) ? fit(unit, sides) : null;
       root.classList.toggle("is-on", !!layout);
 
       for (const rail of rails) {
         const side = rail.dataset.side as Side;
         const on = !!layout && layout.sides.includes(side);
         rail.hidden = !on;
-        if (host) host.style.setProperty(`padding-${side}`, on && layout!.reserve ? `${layout!.reserve}px` : "");
+        if (host && unit) host.style.setProperty(`padding-${side}`, on && layout!.reserve ? `${layout!.reserve}px` : "");
 
-        // Request each rail's ad only once it is actually shown
         if (on && !rendered.has(rail)) {
           rendered.add(rail);
-          const info = rail.querySelector<HTMLElement>(".gad-dev-info");
-          if (info) info.textContent = `${unit.width} × ${unit.height} · slot ${unit.slot}`;
-          renderAd(rail.querySelector<HTMLElement>(".gad-box")!, unit, root.dataset.client!, root.dataset.test);
+          show(rail.querySelector<HTMLElement>(".gad-box")!, unit!, root);
+        }
+      }
+
+      if (banner?.classList.contains("gad-rails-banner")) {
+        // Widest banner that fits the screen (with the page's side padding)
+        const b = layout ? null : bannerUnits.find((u) => u.width + 32 <= viewW());
+        banner.hidden = !b;
+        if (b && !rendered.has(banner)) {
+          rendered.add(banner);
+          show(banner.querySelector<HTMLElement>(".gad-box")!, b, root);
         }
       }
 
       if (!layout) return;
       const gutter = layout.reserve || (viewW() - Math.min(viewW(), maxContent())) / 2;
-      root.style.setProperty("--rail-x", `${Math.max(GAP, (gutter - unit.width) / 2)}px`);
+      root.style.setProperty("--rail-x", `${Math.max(GAP, (gutter - unit!.width) / 2)}px`);
     };
 
     place();
@@ -177,6 +214,21 @@ const isDev = import.meta.env.DEV;
     pointer-events: auto;
   }
 
+  /* In-flow banner fallback (tablets, phones) */
+  .gad-rails-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 16px auto 0;
+    padding: 0 16px;
+    max-width: 100%;
+  }
+
+  .gad-rails-banner[hidden] {
+    display: none;
+  }
+
   .gad-label {
     font-size: 0.62rem;
     font-weight: 600;
@@ -186,8 +238,9 @@ const isDev = import.meta.env.DEV;
   }
 
   .gad-box {
-    width: var(--rail-w);
-    height: var(--rail-h);
+    width: var(--box-w);
+    height: var(--box-h);
+    max-width: 100%;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -195,15 +248,16 @@ const isDev = import.meta.env.DEV;
     border-radius: 4px;
   }
 
-  /* Production: hide a rail AdSense couldn't fill */
-  .gad-rails:not(.gad-dev) .gad-rail:has(ins[data-ad-status="unfilled"]) {
+  /* Production: hide an ad AdSense couldn't fill */
+  .gad-rails:not(.gad-dev) .gad-rail:has(ins[data-ad-status="unfilled"]),
+  .gad-rails-banner:not(.gad-dev):has(ins[data-ad-status="unfilled"]) {
     display: none;
   }
 
   /* Dev placeholder — same look as <GAd> */
   .gad-dev .gad-box {
     position: relative;
-    height: var(--rail-h) !important;
+    height: var(--box-h) !important;
     border: 1.5px dashed #f59e0b;
     background: repeating-linear-gradient(45deg, #fffbeb, #fffbeb 10px, #fef3c7 10px, #fef3c7 20px);
   }
