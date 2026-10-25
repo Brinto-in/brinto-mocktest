@@ -15,112 +15,202 @@ const EXAMS = [
     "General",
     "HSC",
 ];
-const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 ---
 
 <AdminLayout title="Create New Test" section="tests">
-    <a slot="topbar-actions" href="/mocktest/nexusctl" class="btn btn-secondary btn-sm">← Back</a>
+    <div slot="topbar-actions" style="display:flex;gap:8px;align-items:center;">
+        <a href="/mocktest/nexusctl/tests" class="btn btn-secondary btn-sm">← Back to Tests</a>
+    </div>
 
-    <div class="card form-card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">New Test</div>
-                <div class="card-sub">
-                    Fill in the test metadata matching the API schema.
-                </div>
+    <div class="full-form-container">
+        <!-- Page Header Card -->
+        <div class="page-header-card card">
+            <div class="header-main">
+                <div class="header-badge">📝 Test Management</div>
+                <h1 class="page-title">Create New Test</h1>
+                <p class="page-sub">
+                    Configure test metadata, question limits, timing, scoring rules, and visibility settings.
+                </p>
             </div>
         </div>
 
         <div id="alert-container"></div>
 
         <form id="create-test-form">
-            <div class="form-grid new-test-form">
-                <!-- Title -->
-                <div class="form-group">
-                    <label class="form-label" for="title">Test Title <span class="required">*</span></label>
-                    <input id="title" name="title" type="text" required placeholder="e.g. OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026" maxlength="255" />
-                </div>
+            <div class="form-sections-grid">
+                <!-- Section 1: Basic Information -->
+                <div class="card form-section-card">
+                    <div class="section-header">
+                        <div class="section-icon">📌</div>
+                        <div>
+                            <h2 class="section-title">General Information</h2>
+                            <p class="section-sub">Basic test title, target examination, and difficulty level.</p>
+                        </div>
+                    </div>
 
-                <!-- Exam + Difficulty row -->
-                <div class="form-grid form-grid-2 form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="exam">Exam <span class="required">*</span></label>
-                        <select id="exam" name="exam" required>
-                            <option value="">Select exam…</option>
-                            {EXAMS.map((e) => <option value={e}>{e}</option>)}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="difficulty">Difficulty</label>
-                        <select id="difficulty" name="difficulty">
-                            {DIFFICULTIES.map((d) => (
-                                <option value={d} selected={d === "Medium"}>{d}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
+                    <div class="form-body">
+                        <!-- Title -->
+                        <div class="form-group">
+                            <label class="form-label" for="title">Test Title <span class="required">*</span></label>
+                            <input
+                                id="title"
+                                name="title"
+                                type="text"
+                                required
+                                placeholder="e.g. OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026 Level - 1"
+                                maxlength="255"
+                            />
+                        </div>
 
-                <!-- Duration + Questions row -->
-                <div class="form-grid form-grid-2 form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="duration">Duration (minutes) <span class="required">*</span></label>
-                        <input id="duration" name="duration" type="number" required min="1" max="300" value="30" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="questions">Total Questions</label>
-                        <input id="questions" name="questions" type="number" required min="1" max="500" value="20" />
-                    </div>
-                </div>
+                        <!-- Exam + Difficulty row -->
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label" for="exam">Target Exam <span class="required">*</span></label>
+                                <select id="exam" name="exam" required>
+                                    <option value="">Select target exam…</option>
+                                    {EXAMS.map((e) => <option value={e}>{e}</option>)}
+                                </select>
+                            </div>
 
-                <hr class="form-divider" />
-
-                <!-- Marks & Penalties row -->
-                <div class="form-grid form-grid-3 form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="correct_marks">Correct Marks</label>
-                        <input id="correct_marks" name="correct_marks" type="number" step="0.5" value="1" required />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="wrong_penalty">Wrong Penalty</label>
-                        <input id="wrong_penalty" name="wrong_penalty" type="number" step="0.05" value="0.25" required />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="skipped_marks">Skipped Marks</label>
-                        <input id="skipped_marks" name="skipped_marks" type="number" step="0.5" value="0" required />
-                    </div>
-                </div>
-
-                <!-- Flags row -->
-                <div class="form-grid form-grid-3 form-row">
-                    <div class="form-group">
-                        <label class="form-label">Availability</label>
-                        <select name="is_free">
-                            <option value="1" selected>Free for all</option>
-                            <option value="0">Premium only</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Mark as New?</label>
-                        <select name="is_new">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Is Visible?</label>
-                        <select name="isVisible">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
+                            <div class="form-group">
+                                <label class="form-label">Difficulty Level</label>
+                                <div class="difficulty-radio-group">
+                                    <label class="diff-radio-item diff-easy">
+                                        <input type="radio" name="difficulty" value="Easy" />
+                                        <span class="diff-radio-card">
+                                            <span class="diff-dot"></span>
+                                            Easy
+                                        </span>
+                                    </label>
+                                    <label class="diff-radio-item diff-medium">
+                                        <input type="radio" name="difficulty" value="Medium" checked />
+                                        <span class="diff-radio-card">
+                                            <span class="diff-dot"></span>
+                                            Medium
+                                        </span>
+                                    </label>
+                                    <label class="diff-radio-item diff-hard">
+                                        <input type="radio" name="difficulty" value="Hard" />
+                                        <span class="diff-radio-card">
+                                            <span class="diff-dot"></span>
+                                            Hard
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Submit -->
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" id="submit-btn">
-                        Create Test → Add Questions
-                    </button>
-                    <a href="/mocktest/nexusctl" class="btn btn-ghost">Cancel</a>
+                <!-- Section 2: Timing & Scoring Rules -->
+                <div class="card form-section-card">
+                    <div class="section-header">
+                        <div class="section-icon">⏱️</div>
+                        <div>
+                            <h2 class="section-title">Timing & Scoring Rules</h2>
+                            <p class="section-sub">Define test duration, total questions, correct marks, and wrong penalties.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-body">
+                        <!-- Duration + Questions row -->
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label" for="duration">Duration (minutes) <span class="required">*</span></label>
+                                <input id="duration" name="duration" type="number" required min="1" max="300" value="30" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="questions">Total Questions <span class="required">*</span></label>
+                                <input id="questions" name="questions" type="number" required min="1" max="500" value="20" />
+                            </div>
+                        </div>
+
+                        <!-- Marks & Penalties row -->
+                        <div class="form-grid form-grid-3">
+                            <div class="form-group">
+                                <label class="form-label" for="correct_marks">Correct Marks (+)</label>
+                                <input id="correct_marks" name="correct_marks" type="number" step="0.5" value="1" required />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="wrong_penalty">Wrong Penalty (-)</label>
+                                <input id="wrong_penalty" name="wrong_penalty" type="number" step="0.05" value="0.25" required />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="skipped_marks">Skipped Marks</label>
+                                <input id="skipped_marks" name="skipped_marks" type="number" step="0.5" value="0" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Availability & Visibility -->
+                <div class="card form-section-card">
+                    <div class="section-header">
+                        <div class="section-icon">⚙️</div>
+                        <div>
+                            <h2 class="section-title">Access & Visibility Settings</h2>
+                            <p class="section-sub">Control user access tiers, new tags, and test visibility.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-body">
+                        <div class="form-grid form-grid-3">
+                            <div class="form-group">
+                                <label class="form-label">Availability</label>
+                                <div class="toggle-radio-group">
+                                    <label class="toggle-radio-item">
+                                        <input type="radio" name="is_free" value="1" checked />
+                                        <span class="toggle-radio-card">Free</span>
+                                    </label>
+                                    <label class="toggle-radio-item">
+                                        <input type="radio" name="is_free" value="0" />
+                                        <span class="toggle-radio-card">Premium</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Mark as New?</label>
+                                <div class="toggle-radio-group">
+                                    <label class="toggle-radio-item">
+                                        <input type="radio" name="is_new" value="1" checked />
+                                        <span class="toggle-radio-card">Yes</span>
+                                    </label>
+                                    <label class="toggle-radio-item">
+                                        <input type="radio" name="is_new" value="0" />
+                                        <span class="toggle-radio-card">No</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Is Visible?</label>
+                                <div class="toggle-radio-group">
+                                    <label class="toggle-radio-item">
+                                        <input type="radio" name="isVisible" value="1" checked />
+                                        <span class="toggle-radio-card">Yes</span>
+                                    </label>
+                                    <label class="toggle-radio-item">
+                                        <input type="radio" name="isVisible" value="0" />
+                                        <span class="toggle-radio-card">No</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Bar -->
+                <div class="form-actions-bar card">
+                    <div class="submit-note">
+                        💡 Test metadata will be saved and you will be redirected to add questions.
+                    </div>
+                    <div class="submit-btns">
+                        <a href="/mocktest/nexusctl/tests" class="btn btn-ghost">Cancel</a>
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            Create Test → Add Questions
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -188,27 +278,278 @@ const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 </script>
 
 <style>
-    .form-card {
-        max-width: 720px;
+    /* Full Body Container */
+    .full-form-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding-bottom: 32px;
     }
-    .new-test-form {
+
+    /* Page Header Card */
+    .page-header-card {
+        padding: 24px;
+        background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+        border: 1px solid var(--rule);
+    }
+    .header-badge {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--brand);
+        background: var(--brand-light);
+        padding: 3px 10px;
+        border-radius: var(--r-pill, 999px);
+        margin-bottom: 8px;
+    }
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--ink);
+        margin: 0 0 4px 0;
+        letter-spacing: -0.01em;
+    }
+    .page-sub {
+        font-size: 0.88rem;
+        color: var(--ink-soft);
+        margin: 0;
+    }
+
+    /* Form Sections Grid */
+    .form-sections-grid {
+        display: flex;
+        flex-direction: column;
         gap: 20px;
     }
-    .form-row {
-        gap: 14px;
+
+    .form-section-card {
+        padding: 24px;
     }
+
+    .section-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .section-icon {
+        font-size: 1.3rem;
+        width: 40px;
+        height: 40px;
+        border-radius: var(--r-sm, 8px);
+        background: var(--surface-2);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+    }
+
+    .section-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0 0 2px 0;
+    }
+
+    .section-sub {
+        font-size: 0.82rem;
+        color: var(--ink-muted);
+        margin: 0;
+    }
+
+    .form-body {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
     .form-grid-3 {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
     }
-    .form-actions {
+
+    /* Modern Difficulty Radio Group */
+    .difficulty-radio-group {
         display: flex;
-        gap: 10px;
-        padding-top: 4px;
+        gap: 8px;
     }
+
+    .diff-radio-item {
+        flex: 1;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .diff-radio-item input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .diff-radio-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 10px;
+        background: var(--surface-2, #f1f5f9);
+        border: 1.5px solid var(--rule, #e2e8f0);
+        border-radius: var(--radius-sm, 8px);
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--ink-soft, #475569);
+        transition: all 0.15s ease;
+        user-select: none;
+    }
+
+    .diff-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.5;
+        transition: opacity 0.15s, transform 0.15s;
+    }
+
+    /* Easy State */
+    .diff-easy input[type="radio"]:checked + .diff-radio-card {
+        background: #f0fdf4;
+        border-color: #22c55e;
+        color: #15803d;
+        box-shadow: 0 0 0 1px #22c55e;
+    }
+    .diff-easy input[type="radio"]:checked + .diff-radio-card .diff-dot {
+        background: #22c55e;
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    /* Medium State */
+    .diff-medium input[type="radio"]:checked + .diff-radio-card {
+        background: #fffbeb;
+        border-color: #f59e0b;
+        color: #b45309;
+        box-shadow: 0 0 0 1px #f59e0b;
+    }
+    .diff-medium input[type="radio"]:checked + .diff-radio-card .diff-dot {
+        background: #f59e0b;
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    /* Hard State */
+    .diff-hard input[type="radio"]:checked + .diff-radio-card {
+        background: #fef2f2;
+        border-color: #ef4444;
+        color: #b91c1c;
+        box-shadow: 0 0 0 1px #ef4444;
+    }
+    .diff-hard input[type="radio"]:checked + .diff-radio-card .diff-dot {
+        background: #ef4444;
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    .diff-radio-card:hover {
+        border-color: var(--ink-muted, #94a3b8);
+    }
+
+    /* Modern Toggle Radio Group (Yes/No, Free/Premium) */
+    .toggle-radio-group {
+        display: flex;
+        gap: 4px;
+        background: var(--surface-2, #f1f5f9);
+        padding: 3px;
+        border: 1px solid var(--rule, #e2e8f0);
+        border-radius: var(--radius-sm, 8px);
+    }
+
+    .toggle-radio-item {
+        flex: 1;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .toggle-radio-item input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-radio-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 8px;
+        border-radius: 6px;
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--ink-soft, #475569);
+        transition: all 0.15s ease;
+        user-select: none;
+    }
+
+    .toggle-radio-item input[type="radio"]:checked + .toggle-radio-card {
+        background: var(--surface, #ffffff);
+        color: var(--brand, #b00020);
+        font-weight: 700;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+    }
+
+    .toggle-radio-card:hover {
+        color: var(--ink, #0f172a);
+    }
+
+    /* Form Actions Bar */
+    .form-actions-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .submit-note {
+        font-size: 0.85rem;
+        color: var(--ink-soft);
+    }
+
+    .submit-btns {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
     @media (max-width: 768px) {
+        .form-grid-2,
         .form-grid-3 {
             grid-template-columns: 1fr;
+        }
+        .form-actions-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+        .submit-btns {
+            width: 100%;
+            justify-content: flex-end;
         }
     }
 </style>
