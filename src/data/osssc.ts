@@ -34,7 +34,7 @@ export const ossscItems: PosterItem[] = [
     sub: "OSSSC",
     meta: "30 Qs + Typing · 30 min",
     tone: ["#7C3AED", "#4C1D95"],
-    href: "/mocktest/osssc/test/11",
+    href: "/mocktest/osssc/tests",
     image: "/images/osssc-combo.png",
     isNew: true,
   },
@@ -84,7 +84,7 @@ export interface OssscPrevPaper {
 }
 
 export const ossscPrevPapers: OssscPrevPaper[] = [
-  { id: "pyq-cre-2025", year: "2025", title: "OSSC CGL 2025 Computer Skill Test", posts: "RI · ARI · Amin · ICDS Supervisor · VAW", meta: "50 Qs · 60 min", tone: ["#B00020", "#6D0014"], image: "/images/osssc/ossc_cglre_2023.jpeg", href: "/mocktest/test/23" },
+  { id: "pyq-cre-2025", year: "2025", title: "OSSC CGL 2025 Computer Skill Test", posts: "RI · ARI · Amin · ICDS Supervisor · VAW", meta: "50 Qs · 50 min", tone: ["#B00020", "#6D0014"], image: "/images/osssc/ossc_cglre_2023.png", href: "/mocktest/test/23" },
 ];
 
 export const ossscSteps: Step[] = [
