@@ -29,7 +29,7 @@ const SAMPLE: OssscTest[] = Array.from({ length: 20 }, (_, i) => ({
   id: `t${i + 1}`,
   title: `OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026 Level - ${i + 1}`,
   meta: "30 Qs · 30 min",
-  href: `/mocktest/test/${25 + i}`,
+  href: `/mocktest/osssc/test/${25 + i}`,
 }));
 
 const { tests = SAMPLE, freeCount = 2, title = "OSSSC test series" } = Astro.props;
