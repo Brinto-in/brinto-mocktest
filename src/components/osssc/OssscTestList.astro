@@ -25,14 +25,12 @@ interface Props {
 }
 
 // Placeholder rows until the list comes from the API
-const SAMPLE: OssscTest[] = [
-  { id: "t1", title: "OSSSC Computer Skill Test – Set 1", meta: "50 Qs · 30 min", href: "/mocktest/test/11" },
-  { id: "t2", title: "OSSSC Typing Test – English", meta: "10 min · Live WPM", href: "/mocktest/tests/osssc-typing" },
-  { id: "t3", title: "OSSSC Computer Skill Test – Set 2", meta: "50 Qs · 30 min", href: "#" },
-  { id: "t4", title: "OSSSC General Awareness – Set 1", meta: "100 Qs · 60 min", href: "#" },
-  { id: "t5", title: "OSSSC Odia Language – Set 1", meta: "50 Qs · 30 min", href: "#" },
-  { id: "t6", title: "OSSSC Full Mock – RI / ARI / Amin", meta: "150 Qs · 120 min", href: "#" },
-];
+const SAMPLE: OssscTest[] = Array.from({ length: 20 }, (_, i) => ({
+  id: `t${i + 1}`,
+  title: `OSSSC RI/ICDS/VAW/JA/ARI/Amin/SFS Mock Test 2026 Level - ${i + 1}`,
+  meta: "30 Qs · 30 min",
+  href: `/mocktest/test/${25 + i}`,
+}));
 
 const { tests = SAMPLE, freeCount = 2, title = "OSSSC test series" } = Astro.props;
 const lockedCount = Math.max(0, tests.length - freeCount);
@@ -48,10 +46,12 @@ const lockedCount = Math.max(0, tests.length - freeCount);
     <ol class="tl-list">
       {tests.map((t, i) => {
         const lockable = i >= freeCount;
+        const testId = t.href ? t.href.split('/').pop() : t.id;
         return (
           <li>
             <a
               href={t.href}
+              data-test-id={testId}
               class:list={["tl-item", { "is-locked": lockable }]}
               data-lockable={lockable ? "" : undefined}
               data-title={t.title}
@@ -83,10 +83,35 @@ const lockedCount = Math.max(0, tests.length - freeCount);
       })}
     </ol>
   </div>
+
+  <!-- ── ERROR MODAL ── -->
+  <div
+    class="tl-modal-overlay"
+    id="tl-error-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tl-error-title"
+  >
+    <div class="tl-modal-card">
+      <div class="tl-modal-icon">
+        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h3 id="tl-error-title" class="tl-modal-title">Unable to Load Test</h3>
+      <p id="tl-error-msg" class="tl-modal-msg">Network error. Please check your connection and try again.</p>
+      <div class="tl-modal-actions">
+        <button type="button" id="tl-error-close-btn" class="tl-modal-btn">OK</button>
+      </div>
+    </div>
+  </div>
 </section>
 
 <script>
   import { isLoggedIn } from "../../lib/authService";
+  import { fetchTestDetails } from "../../lib/api/mockTestService";
 
   function render(section: HTMLElement) {
     const loggedIn = isLoggedIn();
@@ -97,13 +122,105 @@ const lockedCount = Math.max(0, tests.length - freeCount);
     });
   }
 
+  function showErrorModal(message: string) {
+    const modal = document.getElementById("tl-error-modal");
+    const msgEl = document.getElementById("tl-error-msg");
+    if (msgEl) msgEl.textContent = message;
+    if (modal) {
+      document.body.style.overflow = "hidden";
+      modal.classList.add("is-open");
+    }
+  }
+
+  function hideErrorModal() {
+    const modal = document.getElementById("tl-error-modal");
+    if (modal) {
+      document.body.style.overflow = "";
+      modal.classList.remove("is-open");
+    }
+  }
+
+  document.getElementById("tl-error-close-btn")?.addEventListener("click", hideErrorModal);
+  document.getElementById("tl-error-modal")?.addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) hideErrorModal();
+  });
+
+  function resetLoadingStates() {
+    document.querySelectorAll<HTMLElement>("[data-loading='true']").forEach((row) => {
+      delete row.dataset.loading;
+      const startBtn = row.querySelector(".tl-start") as HTMLElement | null;
+      if (startBtn) {
+        startBtn.style.pointerEvents = "";
+        if (startBtn.dataset.originalHtml) {
+          startBtn.innerHTML = startBtn.dataset.originalHtml;
+        }
+      }
+    });
+  }
+
+  // Reset loading state when page is restored from bfcache or back button navigation
+  window.addEventListener("pageshow", resetLoadingStates);
+  window.addEventListener("popstate", resetLoadingStates);
+
   document.querySelectorAll<HTMLElement>("[data-test-list]").forEach((section) => {
-    // Locked row → open the header's login modal instead of the test
-    section.addEventListener("click", (e) => {
-      const row = (e.target as Element).closest(".tl-item.is-locked");
+    section.addEventListener("click", async (e) => {
+      const row = (e.target as Element).closest(".tl-item") as HTMLAnchorElement | null;
       if (!row) return;
+
+      const isLocked = row.classList.contains("is-locked");
+
+      // Locked row → open the header's login modal
+      if (isLocked) {
+        e.preventDefault();
+        document.querySelector<HTMLElement>("[data-open-login]")?.click();
+        return;
+      }
+
+      // Unlocked row → call details API before proceeding
       e.preventDefault();
-      document.querySelector<HTMLElement>("[data-open-login]")?.click();
+
+      if (row.dataset.loading === "true") return;
+
+      const href = row.getAttribute("href");
+      if (!href || href === "#") return;
+
+      const testId = row.dataset.testId || href.split("/").pop();
+      if (!testId) {
+        window.location.href = href;
+        return;
+      }
+
+      const startBtn = row.querySelector(".tl-start") as HTMLElement | null;
+      if (startBtn && !startBtn.dataset.originalHtml) {
+        startBtn.dataset.originalHtml = startBtn.innerHTML;
+      }
+      const originalHtml = startBtn ? startBtn.dataset.originalHtml || startBtn.innerHTML : "";
+
+      row.dataset.loading = "true";
+      if (startBtn) {
+        startBtn.style.pointerEvents = "none";
+        startBtn.innerHTML = `<span class="tl-spinner" aria-hidden="true"></span> Loading...`;
+      }
+
+      // Yield frame to force browser to paint spinner before starting fetch
+      await new Promise((resolve) => setTimeout(resolve, 40));
+
+      try {
+        const details = await fetchTestDetails(testId);
+        if (details) {
+          window.location.href = href;
+        } else {
+          throw new Error("Unable to load test details from API.");
+        }
+      } catch (err: any) {
+        console.error("API error fetching test details:", err);
+        showErrorModal(err?.message || "Unable to fetch test details from the server. Please check your connection and try again.");
+        if (startBtn) {
+          startBtn.style.pointerEvents = "";
+          startBtn.innerHTML = originalHtml;
+        }
+        delete row.dataset.loading;
+      }
     });
 
     render(section);
@@ -221,6 +338,27 @@ const lockedCount = Math.max(0, tests.length - freeCount);
     border-radius: var(--radius-pill);
   }
 
+  .tl-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #ffffff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: tl-spin 0.6s linear infinite;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  @keyframes tl-spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
   .tl-start {
     color: #fff;
     background: var(--brand);
@@ -287,5 +425,92 @@ const lockedCount = Math.max(0, tests.length - freeCount);
 
   @media (prefers-reduced-motion: reduce) {
     .tl-item { transition: none; }
+  }
+
+  /* ── Error Modal ── */
+  .tl-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .tl-modal-overlay.is-open {
+    display: flex;
+  }
+
+  .tl-modal-card {
+    background: var(--surface, #fff);
+    border-radius: var(--radius-md, 14px);
+    padding: 28px 24px 22px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    animation: tl-modal-pop 0.2s ease-out;
+  }
+
+  @keyframes tl-modal-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .tl-modal-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--brand-light, #fff0f2);
+    color: var(--brand, #b00020);
+    display: grid;
+    place-items: center;
+    margin: 0 auto 14px;
+  }
+
+  .tl-modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink, #0f172a);
+    margin-bottom: 8px;
+    font-family: var(--font-body);
+  }
+
+  .tl-modal-msg {
+    font-size: 0.9rem;
+    color: var(--ink-soft, #475569);
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  .tl-modal-actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  .tl-modal-btn {
+    background: var(--brand, #b00020);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 10px 28px;
+    border-radius: var(--radius-pill, 999px);
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .tl-modal-btn:hover {
+    background: var(--brand-dark, #7b0015);
   }
 </style>
