@@ -7,9 +7,8 @@ import OssscTestList from "../../components/osssc/OssscTestList.astro";
 /**
  * /mocktest/osssc/tests
  * OSSSC test list — first 2 tests free, the rest unlock after login.
- * `loggedIn` is hard-coded for now (UI only); wire it to the session later.
+ * Locked tests unlock in the browser once the user logs in (see OssscTestList).
  */
-const loggedIn = false;
 ---
 
 <BaseLayout
@@ -29,7 +28,7 @@ const loggedIn = false;
     </nav>
   </div>
 
-  <OssscTestList loggedIn={loggedIn} />
+  <OssscTestList />
 </BaseLayout>
 
 <style>
