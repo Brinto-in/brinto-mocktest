@@ -1,805 +1,640 @@
 ---
 /**
- * BeginnerTypingTest — word-by-word typing practice for absolute beginners.
- *
- * Differences from TypingTest:
- *  - Word-by-word mode: type one word then Space/Enter to advance
- *  - Visible, large input box (not hidden)
- *  - "Type this word" spotlight panel
- *  - Encouraging messages after each word
- *  - Rotating typing tips
- *  - No hard time pressure (generous 15 min)
- *  - Lower WPM target (20 WPM)
+ * BeginnerTypingTest — keybr-style adaptive typing practice.
+ * Words are generated in the browser from the letters you've unlocked,
+ * weighted toward your weakest key. Progress is saved in localStorage.
  */
-
-export interface Props {
-  testId?: string;
+interface Props {
   title?: string;
-  words?: string[];      // pass custom word list, or leave empty for built-in set
-  duration?: number;     // seconds (default 900 = 15 min)
   wpmGoal?: number;
+  lessonLength?: number;
 }
-
 const {
-  testId = "btt",
   title = "Beginner Typing Practice",
-  words,
-  duration = 900,
   wpmGoal = 20,
+  lessonLength = 25,
 } = Astro.props;
-
-const defaultWords = [
-  // Level 1 — home row
-  "fall","ask","has","flag","glad","flask","half","last","hall","slag",
-  // Level 2 — common short words
-  "the","and","for","are","but","not","you","all","can","her",
-  "was","one","our","out","day","get","has","him","his","how",
-  // Level 3 — slightly longer
-  "time","year","good","just","know","take","than","them","then","this",
-  "from","have","into","life","look","make","most","over","said","some",
-  // Level 4 — real sentences
-  "practice","keyboard","typing","speed","accuracy","finger","improve",
-  "regular","effort","focus","skills","achieve","target","success",
-];
-
-const wordList = words ?? defaultWords;
-const tips = [
-  "🖐️ Keep all 10 fingers on the keyboard.",
-  "👀 Look at the screen, not your hands.",
-  "🪑 Sit up straight — good posture reduces fatigue.",
-  "🏠 Home row: left hand on A S D F, right on J K L ;",
-  "⏱️ Accuracy first, speed will follow naturally.",
-  "🤏 Curl your fingers gently over the keys.",
-  "↩️ Use your right pinky finger for the Enter key.",
-  "🚫 Don't look at the keyboard while typing.",
-  "🔁 Short daily sessions beat long occasional ones.",
-  "💪 Even 15 minutes a day builds real speed fast.",
-];
 ---
 
-<div
-  id={testId}
-  class="btt-root"
-  data-words={JSON.stringify(wordList)}
-  data-duration={duration}
-  data-wpm-goal={wpmGoal}
->
-  <!-- ── Header ── -->
-  <div class="btt-header">
-    <div class="btt-header-left">
-      <span class="btt-badge">🌱 Beginner</span>
-      <h1 class="btt-title">{title}</h1>
+<div class="btt" data-goal={wpmGoal} data-len={lessonLength}>
+  <header class="btt-hd">
+    <div class="btt-hd-l">
+      <span class="btt-badge">🌱 Adaptive</span>
+      <h1>{title}</h1>
     </div>
-    <div class="btt-header-right">
-      <div class="btt-stat-chip">
-        <span class="btt-chip-val" id={`${testId}-wpm`}>0</span>
-        <span class="btt-chip-lbl">WPM</span>
-      </div>
-      <div class="btt-timer-wrap" id={`${testId}-timer`}>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span id={`${testId}-timer-val`}>--:--</span>
-      </div>
-    </div>
+    <div class="btt-chip"><b data-r="wpm">0</b><small>WPM</small></div>
+  </header>
+
+  <div class="btt-prog">
+    <div class="btt-bar"><i data-r="bar"></i></div>
+    <span data-r="count">0 / {lessonLength}</span>
   </div>
 
-  <!-- ── Progress bar ── -->
-  <div class="btt-prog-track">
-    <div class="btt-prog-fill" id={`${testId}-bar`}></div>
-    <span class="btt-prog-label" id={`${testId}-prog-label`}>0 / {wordList.length} words</span>
-  </div>
+  <section class="btt-keys-wrap" aria-label="Your keys">
+    <div class="btt-keys" data-r="keys"></div>
+    <p class="btt-keys-note">
+      Colour = your speed per key. The outlined key is your weakest — practised
+      most.
+      <button type="button" data-r="forget">Reset progress</button>
+    </p>
+  </section>
 
-  <!-- ── Main area ── -->
   <div class="btt-body">
+    <p class="btt-hint">Type this word ↓</p>
+    <div class="btt-word" data-r="word">–</div>
+    <input
+      class="btt-input"
+      data-r="input"
+      type="text"
+      placeholder="Start typing…"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      aria-label="Type the word shown above"
+      disabled
+    />
 
-    <!-- Word spotlight -->
-    <div class="btt-spotlight-wrap">
-      <p class="btt-spotlight-hint">Type this word ↓</p>
-      <div class="btt-spotlight" id={`${testId}-spotlight`}>
-        <span class="btt-spot-word" id={`${testId}-spot-word`}>–</span>
-      </div>
-    </div>
-
-    <!-- Context passage strip -->
-    <div class="btt-context" id={`${testId}-context`} aria-label="Word list preview"></div>
-
-    <!-- Input area -->
-    <div class="btt-input-wrap">
-      <input
-        type="text"
-        class="btt-input"
-        id={`${testId}-input`}
-        placeholder="Start typing the word above…"
-        autocomplete="off"
-        autocorrect="off"
-        autocapitalize="off"
-        spellcheck="false"
-        disabled
-        aria-label="Type the word shown above"
-      />
-      <span class="btt-input-icon" id={`${testId}-input-icon`}>→</span>
-    </div>
-
-    <!-- Encouraging toast -->
-    <div class="btt-toast" id={`${testId}-toast`} aria-live="polite"></div>
-
-    <!-- Idle / start state -->
-    <div class="btt-idle" id={`${testId}-idle`}>
-      <div class="btt-idle-inner">
-        <div class="btt-idle-emoji">⌨️</div>
+    <div class="btt-overlay" data-r="idle">
+      <div class="btt-card">
+        <div class="btt-emoji">⌨️</div>
         <h2>Ready to practise?</h2>
-        <p>Type the highlighted word, then press <kbd>Space</kbd> or <kbd>Enter</kbd> to move on.</p>
-        <button class="btt-start-btn" id={`${testId}-start`}>Start Practice</button>
-        <p class="btt-idle-sub">No pressure — take your time</p>
+        <p>
+          Type each word. It advances automatically when it's correct — fix
+          mistakes with Backspace.
+        </p>
+        <button type="button" class="btt-btn" data-r="start"
+          >Start Lesson</button
+        >
       </div>
     </div>
   </div>
 
-  <!-- ── Bottom strip: stats + tip ── -->
-  <div class="btt-footer">
-    <div class="btt-foostats">
-      <div class="btt-fstat">
-        <span class="btt-fstat-val btt-correct-val" id={`${testId}-correct`}>0</span>
-        <span class="btt-fstat-lbl">Correct</span>
-      </div>
-      <div class="btt-fstat-sep"></div>
-      <div class="btt-fstat">
-        <span class="btt-fstat-val btt-err-val" id={`${testId}-errors`}>0</span>
-        <span class="btt-fstat-lbl">Errors</span>
-      </div>
-      <div class="btt-fstat-sep"></div>
-      <div class="btt-fstat">
-        <span class="btt-fstat-val" id={`${testId}-acc`}>100%</span>
-        <span class="btt-fstat-lbl">Accuracy</span>
-      </div>
+  <footer class="btt-ft">
+    <div class="btt-stats">
+      <span><b class="btt-err" data-r="errors">0</b> Errors</span>
+      <span><b data-r="acc">100%</b> Accuracy</span>
     </div>
-    <div class="btt-tip-strip" id={`${testId}-tip`}>
-      <span class="btt-tip-icon">💡</span>
-      <span class="btt-tip-text" id={`${testId}-tip-text`}>{tips[0]}</span>
-    </div>
-  </div>
+    <p class="btt-tip">💡 <span data-r="tip"></span></p>
+  </footer>
 
-  <!-- ── Result overlay ── -->
-  <div class="btt-result" id={`${testId}-result`} style="display:none" role="dialog">
-    <div class="btt-result-card">
-      <div class="btt-res-emoji" id={`${testId}-res-emoji`}>🎉</div>
-      <h2 class="btt-res-title" id={`${testId}-res-title`}>Session Complete!</h2>
-      <p  class="btt-res-sub"   id={`${testId}-res-sub`}></p>
-      <div class="btt-res-grid">
-        <div class="btt-rstat btt-rstat-wpm">
-          <span class="btt-rstat-val" id={`${testId}-res-wpm`}>0</span>
-          <span class="btt-rstat-lbl">WPM</span>
+  <div class="btt-overlay btt-result" data-r="result" hidden role="dialog">
+    <div class="btt-card">
+      <div class="btt-emoji" data-r="emoji">🎉</div>
+      <h2 data-r="title">Lesson complete!</h2>
+      <p data-r="sub"></p>
+      <div class="btt-res">
+        <div class="btt-res-main">
+          <b data-r="r-wpm">0</b><small>WPM</small>
         </div>
-        <div class="btt-rstat">
-          <span class="btt-rstat-val" id={`${testId}-res-acc`}>100%</span>
-          <span class="btt-rstat-lbl">Accuracy</span>
-        </div>
-        <div class="btt-rstat">
-          <span class="btt-rstat-val btt-correct-val" id={`${testId}-res-correct`}>0</span>
-          <span class="btt-rstat-lbl">Correct</span>
-        </div>
-        <div class="btt-rstat">
-          <span class="btt-rstat-val btt-err-val" id={`${testId}-res-errors`}>0</span>
-          <span class="btt-rstat-lbl">Errors</span>
-        </div>
+        <div><b data-r="r-acc">100%</b><small>Accuracy</small></div>
+        <div><b data-r="r-err">0</b><small>Errors</small></div>
       </div>
-      <!-- Stars -->
-      <div class="btt-stars" id={`${testId}-stars`}></div>
-      <div class="btt-res-actions">
-        <button class="btt-res-btn btt-res-primary" id={`${testId}-retry`}>↺ Try Again</button>
-        <a href="/mocktest/tests/osssc-typing" class="btt-res-btn btt-res-ghost">Try Full Test →</a>
+      <div class="btt-actions">
+        <button type="button" class="btt-btn" data-r="next"
+          >Next Lesson →</button
+        >
+        <a href="/mocktest/tests/osssc-typing" class="btt-btn btt-ghost"
+          >Full Test</a
+        >
       </div>
     </div>
   </div>
 </div>
 
 <script>
-(() => {
-  document.querySelectorAll<HTMLElement>('.btt-root').forEach(init);
+  import {
+    ORDER,
+    fresh,
+    load,
+    save,
+    record,
+    makeWords,
+    maybeUnlock,
+    confidence,
+    focusLetter,
+  } from "../lib/adaptive";
+  import dict from "../data/words.json";
 
-  const praises = [
-    '✅ Nice!','🎯 Spot on!','⚡ Fast!','🔥 Great!','💪 Nailed it!',
-    '✨ Perfect!','🚀 Go!','👏 Yes!','💫 Super!','🌟 Wow!',
+  const TIPS = [
+    "Keep all 10 fingers on the keyboard.",
+    "Look at the screen, not your hands.",
+    "Home row: A S D F — J K L ;",
+    "Accuracy first, speed follows.",
+    "Sit straight; relax your shoulders.",
+    "Short daily sessions beat long ones.",
   ];
-  const tips = [
-    '🖐️ Keep all 10 fingers on the keyboard.',
-    '👀 Look at the screen, not your hands.',
-    '🪑 Sit straight — good posture reduces fatigue.',
-    '🏠 Home row: A S D F | J K L ;',
-    '⏱️ Accuracy first, speed will follow.',
-    '🤏 Curl fingers gently over the keys.',
-    '↩️ Right pinky for Enter/Shift keys.',
-    '🚫 Never look at the keyboard while typing.',
-    '🔁 Short daily sessions build real speed.',
-    '💪 15 minutes a day is all it takes.',
-  ];
 
-  function init(root: HTMLElement) {
-    const id       = root.id;
-    const words    = JSON.parse(root.dataset.words ?? '[]') as string[];
-    const dur      = parseInt(root.dataset.duration  ?? '900', 10);
-    const goal     = parseInt(root.dataset.wpmGoal   ?? '20',  10);
+  const root = document.querySelector<HTMLElement>(".btt")!;
+  const goal = +root.dataset.goal!;
+  const len = +root.dataset.len!;
+  const $ = <T extends HTMLElement = HTMLElement>(n: string) =>
+    root.querySelector<T>(`[data-r="${n}"]`)!;
 
-    // refs
-    const $ = (s: string) => root.querySelector<HTMLElement>(s)!;
-    const spotWord   = $(`#${id}-spot-word`);
-    const contextEl  = $(`#${id}-context`);
-    const inputEl    = root.querySelector<HTMLInputElement>(`#${id}-input`)!;
-    const inputIcon  = $(`#${id}-input-icon`);
-    const idleEl     = $(`#${id}-idle`);
-    const timerVal   = $(`#${id}-timer-val`);
-    const timerWrap  = $(`#${id}-timer`);
-    const wpmEl      = $(`#${id}-wpm`);
-    const barEl      = $(`#${id}-bar`);
-    const progLabel  = $(`#${id}-prog-label`);
-    const correctEl  = $(`#${id}-correct`);
-    const errorsEl   = $(`#${id}-errors`);
-    const accEl      = $(`#${id}-acc`);
-    const toastEl    = $(`#${id}-toast`);
-    const resultEl   = $(`#${id}-result`);
-    const startBtn   = root.querySelector<HTMLButtonElement>(`#${id}-start`)!;
-    const retryBtn   = root.querySelector<HTMLButtonElement>(`#${id}-retry`)!;
-    const tipText    = $(`#${id}-tip-text`);
-    const resEmoji   = $(`#${id}-res-emoji`);
-    const resTitle   = $(`#${id}-res-title`);
-    const resSub     = $(`#${id}-res-sub`);
-    const resWpm     = $(`#${id}-res-wpm`);
-    const resAcc     = $(`#${id}-res-acc`);
-    const resCorrect = $(`#${id}-res-correct`);
-    const resErrors  = $(`#${id}-res-errors`);
-    const starsEl    = $(`#${id}-stars`);
+  const input = $<HTMLInputElement>("input");
+  const wordEl = $("word");
+  const keysEl = $("keys");
+  const idleEl = $("idle");
+  const resultEl = $("result");
 
-    // state
-    let state: 'idle'|'running'|'finished' = 'idle';
-    let wordIdx = 0, correct = 0, errors = 0;
-    let startTime = 0, remaining = dur, raf = 0;
-    let toastTimer = 0, tipTimer = 0, tipIdx = 0;
-    let wordErrors: Record<number, boolean> = {};
+  let store = load();
+  let words: string[] = [];
+  let idx = 0,
+    typed = 0,
+    errors = 0,
+    t0 = 0,
+    last = 0,
+    prevLen = 0,
+    tip = 0,
+    running = false;
 
-    // ── helpers ──
-    function fmt(s: number) {
-      return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-    }
-    function wpm() {
-      if (!startTime) return 0;
-      const m = (Date.now() - startTime) / 60000;
-      return m > 0 ? Math.round((correct / 5) / m) : 0;
-    }
-    function accuracy() {
-      const t = correct + errors;
-      return t === 0 ? 100 : Math.round((correct / t) * 100);
-    }
+  const wpm = () =>
+    t0
+      ? Math.round(
+          (typed - errors) /
+            5 /
+            (Math.max(performance.now() - t0, 2000) / 60000),
+        )
+      : 0;
+  const acc = () =>
+    typed ? Math.round(((typed - errors) / typed) * 100) : 100;
 
-    // ── Build context ──
-    function buildContext() {
-      contextEl.innerHTML = '';
-      const start = Math.max(0, wordIdx - 4);
-      const end   = Math.min(words.length, wordIdx + 8);
-      words.slice(start, end).forEach((w, i) => {
-        const abs = start + i;
-        const sp = document.createElement('span');
-        sp.textContent = w;
-        sp.className = 'btt-ctx-word';
-        if (abs < wordIdx)  sp.classList.add('btt-ctx-done');
-        if (abs === wordIdx) sp.classList.add('btt-ctx-cur');
-        if (abs > wordIdx)  sp.classList.add('btt-ctx-next');
-        contextEl.appendChild(sp);
-        if (abs < end - 1) {
-          const sep = document.createElement('span');
-          sep.textContent = ' '; sep.className = 'btt-ctx-sep';
-          contextEl.appendChild(sep);
-        }
-      });
-    }
-
-    // ── Draw stats ──
-    function draw() {
-      const w = wpm(), a = accuracy();
-      const pct = Math.round((wordIdx / words.length) * 100);
-      if (state === 'running') remaining = Math.max(0, dur - (Date.now() - startTime) / 1000);
-
-      wpmEl.textContent     = String(w);
-      correctEl.textContent = String(correct);
-      errorsEl.textContent  = String(errors);
-      accEl.textContent     = `${a}%`;
-      barEl.style.width     = `${pct}%`;
-      progLabel.textContent = `${wordIdx} / ${words.length} words`;
-      timerVal.textContent  = fmt(remaining);
-      timerWrap.classList.toggle('btt-warn',   remaining < 120 && remaining >= 60);
-      timerWrap.classList.toggle('btt-danger', remaining < 60);
-    }
-
-    function tick() {
-      if (state !== 'running') return;
-      draw();
-      if (remaining <= 0) finish();
-      else raf = requestAnimationFrame(tick);
-    }
-
-    // ── Set current word ──
-    function setCurrent() {
-      if (wordIdx >= words.length) { finish(); return; }
-      const w = words[wordIdx];
-      spotWord.textContent = w;
-      spotWord.className = 'btt-spot-word';
-      inputEl.value = '';
-      inputEl.placeholder = `type "${w}" here…`;
-      inputIcon.textContent = '→';
-      inputEl.className = 'btt-input';
-      buildContext();
-    }
-
-    // ── Toast ──
-    function toast(msg: string) {
-      clearTimeout(toastTimer);
-      toastEl.textContent = msg;
-      toastEl.classList.add('btt-toast-show');
-      toastTimer = window.setTimeout(() => toastEl.classList.remove('btt-toast-show'), 1400);
-    }
-
-    // ── Rotate tips ──
-    function rotateTip() {
-      tipIdx = (tipIdx + 1) % tips.length;
-      tipText.style.opacity = '0';
-      setTimeout(() => { tipText.textContent = tips[tipIdx]; tipText.style.opacity = '1'; }, 300);
-    }
-
-    let isChecking = false;
-    // ── Check input ──
-    function check() {
-      if (isChecking) return;
-      const typed = inputEl.value.trim();
-      const target = words[wordIdx];
-
-      if (typed === target) {
-        isChecking = true;
-        inputEl.value = '';
-        // Correct!
-        spotWord.classList.add('btt-spot-correct');
-        inputEl.classList.add('btt-input-ok');
-        inputIcon.textContent = '✓';
-        if (!wordErrors[wordIdx]) correct += target.length;
-        toast(praises[Math.floor(Math.random() * praises.length)]);
-        setTimeout(() => {
-          wordIdx++;
-          isChecking = false;
-          if (wordIdx < words.length) setCurrent();
-          else finish();
-        }, 300);
-      } else {
-        isChecking = true;
-        // Wrong
-        errors++;
-        wordErrors[wordIdx] = true;
-        spotWord.classList.add('btt-spot-shake');
-        inputEl.classList.add('btt-input-err');
-        inputIcon.textContent = '✗';
-        setTimeout(() => {
-          spotWord.classList.remove('btt-spot-shake');
-          inputEl.classList.remove('btt-input-err');
-          inputIcon.textContent = '→';
-          inputEl.value = '';
-          isChecking = false;
-        }, 500);
-      }
-      draw();
-    }
-
-    // ── Start ──
-    function start() {
-      state = 'running'; startTime = Date.now();
-      idleEl.classList.add('btt-idle-gone');
-      inputEl.disabled = false;
-      inputEl.focus();
-      setCurrent();
-      draw();
-      raf = requestAnimationFrame(tick);
-      tipTimer = window.setInterval(rotateTip, 6000);
-    }
-
-    // ── Finish ──
-    function finish() {
-      cancelAnimationFrame(raf); clearInterval(tipTimer);
-      state = 'finished'; remaining = 0; draw();
-      inputEl.disabled = true;
-
-      const w = wpm(), a = accuracy();
-      const passed = w >= goal;
-      const stars = passed && a >= 95 ? 3 : passed && a >= 80 ? 2 : 1;
-
-      resEmoji.textContent   = stars === 3 ? '🏆' : stars === 2 ? '🎉' : '💪';
-      resTitle.textContent   = stars === 3 ? 'Excellent!' : stars === 2 ? 'Well Done!' : 'Keep Practising!';
-      resSub.textContent     = passed
-        ? `You typed ${w} WPM with ${a}% accuracy. You're ready for the full test!`
-        : `You typed ${w} WPM. Target is ${goal} WPM. A little more practice and you'll get there!`;
-      resWpm.textContent     = String(w);
-      resAcc.textContent     = `${a}%`;
-      resCorrect.textContent = String(correct);
-      resErrors.textContent  = String(errors);
-      starsEl.innerHTML      = Array.from({length: 3}, (_, i) =>
-        `<span class="btt-star ${i < stars ? 'btt-star-lit' : ''}">${i < stars ? '★' : '☆'}</span>`
-      ).join('');
-
-      resultEl.style.display = '';
-    }
-
-    // ── Reset ──
-    function reset() {
-      cancelAnimationFrame(raf); clearInterval(tipTimer);
-      state = 'idle'; wordIdx = 0; correct = 0; errors = 0;
-      startTime = 0; remaining = dur; wordErrors = {};
-      inputEl.disabled = true; inputEl.value = ''; inputEl.placeholder = 'Start typing the word above…';
-      idleEl.classList.remove('btt-idle-gone');
-      resultEl.style.display = 'none';
-      spotWord.textContent = '–'; spotWord.className = 'btt-spot-word';
-      contextEl.innerHTML = '';
-      draw(); timerVal.textContent = fmt(dur); wpmEl.textContent = '0';
-    }
-
-    // ── Events ──
-    inputEl.addEventListener('keydown', e => {
-      if ((e.key === ' ' || e.key === 'Enter') && state === 'running') {
-        e.preventDefault();
-        const typed = inputEl.value.trim();
-        const target = words[wordIdx];
-        if (typed === target) {
-          check();
-        }
-      }
-    });
-    // Automatically advance as soon as the typed word matches the target word
-    inputEl.addEventListener('input', () => {
-      if (state !== 'running' || isChecking) return;
-      const typed = inputEl.value.trim();
-      const target = words[wordIdx];
-      if (typed === target) {
-        check();
-      } else if (inputEl.value.endsWith(' ')) {
-        inputEl.value = inputEl.value.trimEnd();
-        if (inputEl.value.trim() === target) {
-          check();
-        }
-      }
-    });
-
-    startBtn.addEventListener('click', start);
-    retryBtn.addEventListener('click', reset);
-
-    // Init
-    draw(); timerVal.textContent = fmt(dur);
+  function paintWord(v: string) {
+    wordEl.innerHTML = [...words[idx]]
+      .map(
+        (c, i) =>
+          `<span${i < v.length ? ` class="${v[i] === c ? "ok" : "bad"}"` : ""}>${c}</span>`,
+      )
+      .join("");
   }
-})();
+
+  function paintKeys() {
+    const focus = focusLetter(store, goal);
+    keysEl.innerHTML = ORDER.map((c, i) => {
+      const q = confidence(store, c, goal);
+      const open = i < store.unlocked;
+      const cls = !open ? "off" : q === null ? "new" : "";
+      const hue = q === null ? 0 : Math.round(Math.min(q, 1) * 120);
+      return `<span class="k ${cls}${open && c === focus ? " focus" : ""}" style="--c:${hue}">${c}</span>`;
+    }).join("");
+  }
+
+  function draw() {
+    $("wpm").textContent = String(wpm());
+    $("errors").textContent = String(errors);
+    $("acc").textContent = `${acc()}%`;
+    $("count").textContent = `${idx} / ${len}`;
+    $("bar").style.width = `${(idx / len) * 100}%`;
+  }
+
+  function begin() {
+    words = makeWords(store, dict, goal, len);
+    idx = typed = errors = t0 = last = prevLen = 0;
+    input.value = "";
+    input.disabled = false;
+    idleEl.hidden = resultEl.hidden = true;
+    $("tip").textContent = TIPS[tip++ % TIPS.length];
+    running = true;
+    paintWord("");
+    paintKeys();
+    draw();
+    input.focus();
+  }
+
+  function finish() {
+    running = false;
+    input.disabled = true;
+    draw();
+    const w = wpm(),
+      a = acc();
+    const unlocked = maybeUnlock(store, goal);
+    save(store);
+    paintKeys();
+    const pass = w >= goal && a >= 90;
+    $("emoji").textContent = unlocked ? "🔓" : pass ? "🏆" : "💪";
+    $("title").textContent = unlocked
+      ? `Letter "${unlocked.toUpperCase()}" unlocked!`
+      : pass
+        ? "On target!"
+        : "Keep going!";
+    $("sub").textContent = unlocked
+      ? "Every key reached your goal speed. A new letter joins the next lesson."
+      : `Next lesson focuses on "${focusLetter(store, goal).toUpperCase()}". Reach ${goal} WPM on every key to unlock more letters.`;
+    $("r-wpm").textContent = String(w);
+    $("r-acc").textContent = `${a}%`;
+    $("r-err").textContent = String(errors);
+    resultEl.hidden = false;
+    $("next").focus();
+  }
+
+  input.addEventListener("input", () => {
+    if (!running) return;
+    const v = (input.value = input.value.replace(/\s/g, ""));
+    const target = words[idx];
+
+    if (v.length > prevLen) {
+      const i = v.length - 1;
+      const now = performance.now();
+      const ok = v[i] === target[i];
+      t0 ||= now;
+      if (target[i]) record(store, target[i], last ? now - last : null, ok);
+      typed++;
+      if (!ok) errors++;
+      last = now;
+    }
+    prevLen = v.length;
+
+    if (v === target) {
+      input.value = "";
+      prevLen = 0;
+      if (++idx === words.length) return finish();
+    }
+    paintWord(input.value);
+    draw();
+  });
+
+  input.addEventListener("paste", (e) => e.preventDefault());
+  $("start").addEventListener("click", begin);
+  $("next").addEventListener("click", begin);
+  $("forget").addEventListener("click", () => {
+    store = fresh();
+    save(store);
+    paintKeys();
+  });
+
+  $("tip").textContent = TIPS[0];
+  paintKeys();
+  draw();
 </script>
 
 <style>
-/* ════════════════════════════════════
-   Root
-════════════════════════════════════ */
-.btt-root {
-  --btt-brand:  var(--brand, #B00020);
-  --btt-green:  #16a34a;
-  --btt-red:    #dc2626;
-  --btt-ink:    var(--ink, #1a1410);
-  --btt-sub:    var(--ink-soft, #4b5563);
-  --btt-muted:  #9ca3af;
-  --btt-surf:   var(--surface, #fff);
-  --btt-surf2:  var(--surface-2, #f8fafc);
-  --btt-border: var(--rule, #e5e7eb);
-  --btt-radius: 14px;
+  .btt {
+    --g: #16a34a;
+    --r: #dc2626;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 520px;
+    overflow: hidden;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md, 14px);
+    font-family: var(--font-body, sans-serif);
+  }
+  .btt [hidden] {
+    display: none !important;
+  }
 
-  background: var(--btt-surf);
-  border: 1px solid var(--btt-border);
-  border-radius: var(--btt-radius);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  min-height: 520px;
-}
+  /* Header */
+  .btt-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .btt-hd-l {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .btt-hd h1 {
+    margin: 0;
+    font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .btt-badge {
+    flex-shrink: 0;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .btt-chip {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    flex-shrink: 0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+  }
+  .btt-chip b {
+    font-size: 0.95rem;
+  }
+  .btt small {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
 
-/* ── Header ── */
-.btt-header {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; padding: 14px 20px;
-  border-bottom: 1px solid var(--btt-border);
-  background: var(--btt-surf);
-  flex-shrink: 0;
-}
-.btt-header-left  { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.btt-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  /* Progress */
+  .btt-prog {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .btt-bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--rule);
+  }
+  .btt-bar i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--g);
+    transition: width 0.25s ease;
+  }
 
-.btt-badge {
-  font-size: .65rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
-  background: #f0fdf4; color: #15803d;
-  border: 1px solid #bbf7d0; padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
-}
-.btt-title {
-  font-family: var(--font-body, sans-serif);
-  font-size: clamp(.9rem, 1.8vw, 1.1rem); font-weight: 700;
-  color: var(--btt-ink); margin: 0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+  /* Key grid */
+  .btt-keys-wrap {
+    padding: 14px 16px 4px;
+    text-align: center;
+  }
+  .btt-keys {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+  .btt-keys :global(.k) {
+    width: 30px;
+    line-height: 30px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: hsl(var(--c) 70% 88%);
+    color: hsl(var(--c) 60% 25%);
+  }
+  .btt-keys :global(.new) {
+    background: var(--surface-2);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+  .btt-keys :global(.off) {
+    background: var(--surface-2);
+    color: var(--ink-soft);
+    opacity: 0.35;
+  }
+  .btt-keys :global(.focus) {
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+  }
+  .btt-keys-note {
+    margin: 8px 0 0;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+  .btt-keys-note button {
+    margin-left: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    color: var(--brand);
+    text-decoration: underline;
+  }
 
-.btt-stat-chip {
-  display: flex; align-items: baseline; gap: 4px;
-  background: var(--btt-surf2); border: 1px solid var(--btt-border);
-  border-radius: 20px; padding: 4px 12px;
-}
-.btt-chip-val { font-size: .9rem; font-weight: 700; color: var(--btt-ink); }
-.btt-chip-lbl { font-size: .62rem; font-weight: 600; color: var(--btt-muted); letter-spacing: .04em; text-transform: uppercase; }
+  /* Body */
+  .btt-body {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px 24px;
+  }
+  .btt-hint {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .btt-word {
+    min-width: 160px;
+    padding: 14px 34px;
+    text-align: center;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    background: var(--surface-2);
+    border: 2px solid var(--rule);
+    border-radius: 12px;
+    color: var(--ink);
+  }
+  .btt-word :global(.ok) {
+    color: var(--g);
+  }
+  .btt-word :global(.bad) {
+    color: var(--r);
+    background: rgba(220, 38, 38, 0.12);
+    border-radius: 4px;
+  }
+  .btt-input {
+    width: 100%;
+    max-width: 380px;
+    padding: 13px 16px;
+    box-sizing: border-box;
+    font: 500 1.05rem var(--font-body, sans-serif);
+    color: var(--ink);
+    background: var(--surface);
+    border: 2px solid var(--rule);
+    border-radius: 10px;
+    outline: none;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  .btt-input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent);
+  }
+  .btt-input:disabled {
+    background: var(--surface-2);
+  }
 
-.btt-timer-wrap {
-  display: flex; align-items: center; gap: 5px;
-  font-size: .85rem; font-weight: 700; color: var(--btt-sub);
-  font-family: 'Courier New', monospace;
-}
-.btt-warn   { color: #d97706; }
-.btt-danger { color: var(--btt-red); animation: btt-pulse 1s infinite; }
-@keyframes btt-pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  /* Overlays (start + result) */
+  .btt-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    backdrop-filter: blur(4px);
+  }
+  .btt-card {
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+  }
+  .btt-card h2 {
+    margin: 0 0 8px;
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+  .btt-card p {
+    margin: 0 0 18px;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .btt-emoji {
+    margin-bottom: 8px;
+    font-size: 3rem;
+  }
+  .btt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 12px 24px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    font: 700 0.95rem var(--font-body, sans-serif);
+    text-decoration: none;
+    background: var(--g);
+    color: #fff;
+    transition:
+      transform 0.1s,
+      opacity 0.15s;
+  }
+  .btt-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+  }
+  .btt-ghost {
+    background: var(--surface-2);
+    color: var(--ink-soft);
+    border-color: var(--rule);
+  }
+  .btt-actions {
+    display: flex;
+    gap: 10px;
+  }
 
-/* ── Progress track ── */
-.btt-prog-track {
-  position: relative; height: 28px;
-  background: var(--btt-surf2); border-bottom: 1px solid var(--btt-border);
-  flex-shrink: 0;
-}
-.btt-prog-fill {
-  position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
-  background: linear-gradient(90deg, #16a34a, #4ade80);
-  transition: width .4s cubic-bezier(.4,0,.2,1);
-  border-radius: 0;
-}
-.btt-prog-label {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: .72rem; font-weight: 600; color: var(--btt-sub);
-  mix-blend-mode: multiply; /* stays readable over green */
-}
+  .btt-res {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .btt-res div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 12px 6px;
+    border-radius: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+  }
+  .btt-res b {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+  .btt-res-main {
+    background: #f0fdf4 !important;
+    border-color: #86efac !important;
+  }
+  .btt-res-main b {
+    color: var(--g);
+  }
 
-/* ── Body ── */
-.btt-body {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 20px;
-  padding: 28px 24px 16px; position: relative;
-  overflow: hidden;
-}
+  /* Footer */
+  .btt-ft {
+    border-top: 1px solid var(--rule);
+    background: var(--surface-2);
+  }
+  .btt-stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    padding: 8px 20px;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+  }
+  .btt-stats b {
+    margin-right: 3px;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .btt-stats .btt-err {
+    color: var(--r);
+  }
+  .btt-tip {
+    margin: 0;
+    padding: 8px 20px;
+    font-size: 0.78rem;
+    background: #fffbeb;
+    border-top: 1px solid #fde68a;
+    color: #92400e;
+  }
 
-/* Spotlight */
-.btt-spotlight-wrap { text-align: center; width: 100%; }
-.btt-spotlight-hint {
-  font-size: .72rem; font-weight: 600; color: var(--btt-muted);
-  text-transform: uppercase; letter-spacing: .07em; margin: 0 0 8px;
-}
-.btt-spotlight {
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--btt-surf2); border: 2px solid var(--btt-border);
-  border-radius: 12px; padding: 16px 36px;
-  min-width: 160px; min-height: 64px;
-  box-shadow: 0 2px 12px rgba(0,0,0,.05);
-  transition: border-color .2s, box-shadow .2s;
-}
-.btt-spot-word {
-  font-family: var(--font-body, sans-serif);
-  font-size: clamp(1.5rem, 4vw, 2.2rem);
-  font-weight: 800; color: var(--btt-ink);
-  letter-spacing: .02em;
-  transition: color .15s, transform .15s;
-}
-.btt-spot-correct { color: var(--btt-green) !important; transform: scale(1.06); }
-@keyframes btt-shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
-.btt-spot-shake { animation: btt-shake .4s ease; }
-.btt-root:has(.btt-spot-correct) .btt-spotlight { border-color: #86efac; box-shadow: 0 0 0 4px rgba(22,163,74,.08); }
-
-/* Context words */
-.btt-context {
-  font-family: var(--font-body, sans-serif);
-  font-size: clamp(.88rem, 1.6vw, 1rem);
-  line-height: 1.8; text-align: center; color: var(--btt-muted);
-  max-width: 540px; width: 100%;
-  min-height: 1.8em; /* prevent layout shift */
-}
-:global(.btt-ctx-word)      { border-radius: 3px; padding: 0 2px; transition: all .15s; }
-:global(.btt-ctx-done)      { color: var(--btt-green); }
-:global(.btt-ctx-cur)       { color: var(--btt-ink); font-weight: 700; background: rgba(22,163,74,.1); padding: 1px 5px; }
-:global(.btt-ctx-next)      { color: var(--btt-muted); }
-
-/* Input */
-.btt-input-wrap {
-  position: relative; width: 100%; max-width: 380px;
-}
-.btt-input {
-  width: 100%; padding: 13px 44px 13px 16px;
-  font-family: var(--font-body, sans-serif);
-  font-size: 1.05rem; font-weight: 500;
-  background: var(--btt-surf); color: var(--btt-ink);
-  border: 2px solid var(--btt-border); border-radius: 10px;
-  outline: none; transition: border-color .2s, box-shadow .2s;
-  box-sizing: border-box;
-  -webkit-appearance: none;
-}
-.btt-input::placeholder { color: var(--btt-muted); font-weight: 400; }
-.btt-input:focus          { border-color: var(--btt-brand); box-shadow: 0 0 0 3px rgba(176,0,32,.1); }
-.btt-input.btt-input-ok  { border-color: var(--btt-green); box-shadow: 0 0 0 3px rgba(22,163,74,.12); background: #f0fdf4; }
-.btt-input.btt-input-err { border-color: var(--btt-red);   box-shadow: 0 0 0 3px rgba(220,38,38,.12); background: #fef2f2; }
-.btt-input:disabled       { cursor: default; background: var(--btt-surf2); }
-
-.btt-input-icon {
-  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-  font-size: 1.1rem; font-weight: 700; color: var(--btt-muted);
-  pointer-events: none; transition: color .15s;
-}
-
-/* Toast */
-.btt-toast {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%) translateY(-8px);
-  background: var(--btt-ink); color: #fff;
-  font-size: .82rem; font-weight: 700;
-  padding: 6px 16px; border-radius: 20px;
-  opacity: 0; transition: opacity .2s, transform .2s;
-  pointer-events: none; white-space: nowrap; z-index: 10;
-}
-.btt-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Idle overlay */
-.btt-idle {
-  position: absolute; inset: 0; z-index: 10;
-  background: rgba(255,255,255,.96); backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  transition: opacity .3s, visibility .3s;
-}
-.btt-idle.btt-idle-gone { opacity: 0; visibility: hidden; pointer-events: none; }
-.btt-idle-inner { text-align: center; max-width: 340px; padding: 20px; }
-.btt-idle-emoji { font-size: 3rem; margin-bottom: 12px; }
-.btt-idle-inner h2 {
-  font-family: var(--font-body, sans-serif);
-  font-size: 1.3rem; font-weight: 800; color: var(--btt-ink); margin: 0 0 10px;
-}
-.btt-idle-inner p { font-size: .88rem; color: var(--btt-sub); margin: 0 0 20px; line-height: 1.6; }
-.btt-idle-inner kbd {
-  background: var(--btt-surf2); border: 1px solid var(--btt-border);
-  border-radius: 5px; padding: 2px 7px; font-size: .78rem;
-  font-family: 'Courier New', monospace; color: var(--btt-ink);
-}
-.btt-start-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--btt-green); color: #fff;
-  font-family: var(--font-body, sans-serif); font-size: 1rem; font-weight: 700;
-  padding: 13px 32px; border-radius: 10px; border: none; cursor: pointer;
-  transition: transform .1s, opacity .15s; margin-bottom: 12px;
-}
-.btt-start-btn:hover { transform: translateY(-1px); opacity: .9; }
-.btt-idle-sub { font-size: .75rem; color: var(--btt-muted); margin: 0 !important; }
-
-/* ── Footer ── */
-.btt-footer {
-  border-top: 1px solid var(--btt-border); background: var(--btt-surf2);
-  flex-shrink: 0;
-}
-.btt-foostats {
-  display: flex; align-items: center; justify-content: center;
-  padding: 8px 20px; gap: 0;
-}
-.btt-fstat { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0 16px; }
-.btt-fstat-val { font-size: .95rem; font-weight: 700; color: var(--btt-ink); line-height: 1; }
-.btt-fstat-lbl { font-size: .58rem; color: var(--btt-muted); letter-spacing: .05em; text-transform: uppercase; }
-.btt-fstat-sep { width: 1px; height: 22px; background: var(--btt-border); }
-.btt-correct-val { color: var(--btt-green); }
-.btt-err-val     { color: var(--btt-red); }
-
-.btt-tip-strip {
-  display: flex; align-items: center; gap: 8px;
-  background: #fffbeb; border-top: 1px solid #fde68a;
-  padding: 8px 20px;
-}
-.btt-tip-icon { font-size: .85rem; flex-shrink: 0; }
-.btt-tip-text { font-size: .78rem; color: #92400e; flex: 1; transition: opacity .3s; }
-
-/* ── Result ── */
-.btt-result {
-  position: absolute; inset: 0; z-index: 20;
-  background: rgba(255,255,255,.97); backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px; overflow-y: auto;
-  animation: btt-in .4s ease;
-}
-@keyframes btt-in { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:none} }
-
-.btt-result-card {
-  background: var(--btt-surf); border: 1px solid var(--btt-border);
-  border-radius: 16px; padding: 28px 24px;
-  max-width: 400px; width: 100%; text-align: center;
-  box-shadow: 0 8px 32px rgba(0,0,0,.08);
-}
-.btt-res-emoji { font-size: 3rem; display: block; margin-bottom: 10px; }
-.btt-res-title {
-  font-family: var(--font-body, sans-serif);
-  font-size: 1.4rem; font-weight: 800; color: var(--btt-ink); margin: 0 0 6px;
-}
-.btt-res-sub { font-size: .84rem; color: var(--btt-sub); margin: 0 0 20px; line-height: 1.6; }
-
-.btt-res-grid {
-  display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 18px;
-}
-.btt-rstat {
-  background: var(--btt-surf2); border: 1px solid var(--btt-border);
-  border-radius: 10px; padding: 12px 6px;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-}
-.btt-rstat-wpm { background: #f0fdf4; border-color: #86efac; }
-.btt-rstat-val { font-size: 1.3rem; font-weight: 700; color: var(--btt-ink); line-height: 1; }
-.btt-rstat-wpm .btt-rstat-val { color: var(--btt-green); }
-.btt-rstat-lbl { font-size: .58rem; color: var(--btt-muted); letter-spacing: .05em; text-transform: uppercase; }
-
-/* Stars */
-.btt-stars { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
-.btt-star  { font-size: 2rem; transition: transform .2s; }
-.btt-star-lit { color: #f59e0b; }
-:not(.btt-star-lit).btt-star { color: #e5e7eb; }
-
-.btt-res-actions { display: flex; gap: 10px; }
-.btt-res-btn {
-  flex: 1; text-align: center; font-family: var(--font-body, sans-serif);
-  font-size: .88rem; font-weight: 700; padding: 11px 16px;
-  border-radius: 8px; border: none; cursor: pointer;
-  transition: transform .1s, opacity .15s; text-decoration: none;
-  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-}
-.btt-res-btn:hover { transform: translateY(-1px); opacity: .9; }
-.btt-res-primary { background: var(--btt-green); color: #fff; }
-.btt-res-ghost   { background: var(--btt-surf2); color: var(--btt-sub); border: 1px solid var(--btt-border); }
-
-/* ════════════════════════════════════
-   RESPONSIVE
-════════════════════════════════════ */
-@media (max-width: 768px) {
-  .btt-body { padding: 20px 16px 12px; gap: 14px; }
-  .btt-spotlight { padding: 12px 24px; }
-  .btt-spot-word { font-size: 1.6rem; }
-  .btt-input { font-size: .95rem; padding: 12px 40px 12px 14px; }
-  .btt-header { padding: 11px 14px; }
-  .btt-foostats { padding: 7px 14px; }
-  .btt-fstat { padding: 0 10px; }
-}
-
-@media (max-width: 480px) {
-  .btt-root { border-radius: 8px; min-height: 480px; }
-  .btt-title { font-size: .82rem; }
-  .btt-body { gap: 10px; padding: 14px 12px 10px; }
-  .btt-spotlight { padding: 10px 20px; min-width: 120px; min-height: 52px; }
-  .btt-spot-word { font-size: 1.4rem; }
-  .btt-context { font-size: .82rem; }
-  .btt-input { font-size: .9rem; }
-  .btt-res-grid { grid-template-columns: repeat(2,1fr); }
-  .btt-res-actions { flex-direction: column; }
-  .btt-idle-inner h2 { font-size: 1.1rem; }
-  .btt-tip-strip { padding: 7px 12px; }
-}
-
-/* Landscape mobile */
-@media (max-height: 500px) and (orientation: landscape) {
-  .btt-root { border-radius: 0; min-height: 100dvh; }
-  .btt-header { padding: 7px 14px; }
-  .btt-title  { font-size: .78rem; }
-  .btt-body   { padding: 10px 16px 8px; gap: 8px; flex-direction: row; flex-wrap: wrap; justify-content: center; }
-  .btt-spotlight-wrap { flex: 0 0 auto; }
-  .btt-spotlight { padding: 8px 18px; min-height: 44px; }
-  .btt-spot-word { font-size: 1.2rem; }
-  .btt-context { display: none; }
-  .btt-input-wrap { flex: 1 1 220px; }
-  .btt-idle-inner { padding: 10px; }
-  .btt-idle-emoji { font-size: 2rem; margin-bottom: 6px; }
-  .btt-idle-inner h2 { font-size: 1rem; margin-bottom: 6px; }
-  .btt-idle-inner p  { font-size: .78rem; margin-bottom: 12px; }
-  .btt-result { padding: 10px; }
-  .btt-result-card { padding: 14px; }
-  .btt-res-grid { grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 10px; }
-  .btt-res-actions { flex-direction: row; }
-  .btt-stars { margin-bottom: 10px; }
-  .btt-star  { font-size: 1.5rem; }
-  .btt-tip-strip { display: none; } /* save space */
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .btt-spot-shake, .btt-result, .btt-idle { animation: none; transition: none; }
-}
+  @media (max-width: 480px) {
+    .btt {
+      min-height: 480px;
+      border-radius: 8px;
+    }
+    .btt-hd {
+      padding: 11px 14px;
+    }
+    .btt-prog {
+      padding: 8px 14px;
+    }
+    .btt-body {
+      padding: 14px 12px;
+    }
+    .btt-keys :global(.k) {
+      width: 26px;
+      line-height: 26px;
+      font-size: 0.78rem;
+    }
+    .btt-actions {
+      flex-direction: column;
+    }
+  }
+  @media (max-height: 500px) and (orientation: landscape) {
+    .btt {
+      min-height: 100dvh;
+      border-radius: 0;
+    }
+    .btt-keys-wrap,
+    .btt-tip,
+    .btt-hint {
+      display: none;
+    }
+  }
 </style>
-
