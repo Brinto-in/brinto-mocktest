@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import GAdRails from "../../components/GAdRails.astro";
+import GAd from "../../components/GAd.astro";
 import OssscTestList from "../../components/osssc/OssscTestList.astro";
 
 /**
@@ -15,9 +15,6 @@ import OssscTestList from "../../components/osssc/OssscTestList.astro";
   title="OSSSC Test Series – Free Mock Tests | Brinto MockTest"
   description="OSSSC test series for Revenue Inspector, ARI, Amin and other posts. Start the first tests free, log in to unlock the full series."
 >
-  <!-- Sticky side-rail ads (wide screens only) -->
-  <GAdRails />
-
   <div class="page-header wrap">
     <nav class="breadcrumb" aria-label="Breadcrumb">
       <a href="/mocktest">Home</a>
@@ -28,12 +25,37 @@ import OssscTestList from "../../components/osssc/OssscTestList.astro";
     </nav>
   </div>
 
-  <OssscTestList />
+  <div class="page-body wrap">
+    <main class="main-column">
+      <!-- Top ad slot for mobile & tablet (hidden on desktop) -->
+      <div class="ad-slot ad-slot-top">
+        <GAd sizes={{ mobile: "320x100", tablet: "728x90", desktop: null }} />
+      </div>
+
+      <OssscTestList />
+
+      <!-- In-flow ad: below test list on mobile / tablet -->
+      <div class="ad-slot ad-slot-mid">
+        <GAd sizes={{ mobile: "320x100", tablet: "728x90", desktop: null }} />
+      </div>
+    </main>
+
+    <!-- Sidebar with sticky 2nd ad on desktop (right side) -->
+    <aside class="sidebar-column" aria-label="Sidebar Advertisements">
+      <div class="sidebar-ad">
+        <GAd size="300x250" />
+      </div>
+      <div class="sidebar-ad sidebar-ad-sticky">
+        <GAd size="300x600" />
+      </div>
+    </aside>
+  </div>
 </BaseLayout>
 
 <style>
   .page-header {
     padding-top: 20px;
+    padding-bottom: 12px;
   }
 
   .breadcrumb {
@@ -50,5 +72,67 @@ import OssscTestList from "../../components/osssc/OssscTestList.astro";
 
   .breadcrumb a:hover {
     color: var(--brand);
+  }
+
+  /* Responsive body grid: test list + right sidebar */
+  .page-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding-bottom: 40px;
+  }
+
+  .main-column {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Sidebar: hidden on mobile/tablet, block on desktop (right side) */
+  .sidebar-column {
+    display: none;
+    width: 300px;
+    position: relative;
+  }
+
+  .sidebar-ad {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  /* 2nd ad stays sticky on scroll */
+  .sidebar-ad-sticky {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 80px;
+    z-index: 10;
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .page-body {
+      grid-template-columns: 1fr 300px;
+      gap: 28px;
+    }
+    .sidebar-column {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+  }
+
+  /* Top and bottom mobile/tablet ad slots (hidden on desktop) */
+  .ad-slot-top,
+  .ad-slot-mid {
+    display: block;
+  }
+
+  @media (min-width: 1024px) {
+    .ad-slot-top,
+    .ad-slot-mid {
+      display: none;
+    }
   }
 </style>
