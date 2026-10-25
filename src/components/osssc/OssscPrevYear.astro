@@ -4,15 +4,16 @@
 import { ossscPrevPapers } from "../../data/osssc";
 
 interface Props {
+  id?: string;
   cols?: number;
 }
 
-const { cols = 6 } = Astro.props;
+const { id = "pyq", cols = 6 } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const IMG_FALLBACK = "this.closest('.py-poster')?.classList.remove('has-img');this.remove()";
 ---
 
-<section class="py-section" aria-labelledby="py-title" style={`--py-cols:${cols};`}>
+<section id={id} class="py-section" aria-labelledby="py-title" style={`--py-cols:${cols};`}>
   <div class="wrap">
     <div class="py-head">
       <h2 id="py-title" class="py-title">Previous year papers</h2>
@@ -68,6 +69,7 @@ const IMG_FALLBACK = "this.closest('.py-poster')?.classList.remove('has-img');th
   .py-section {
     background: var(--surface);
     padding: 16px 0 20px;
+    scroll-margin-top: 80px;
   }
 
   /* ── Header (matches PosterRow) ── */
