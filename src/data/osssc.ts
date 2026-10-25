@@ -14,7 +14,7 @@ export const ossscItems: PosterItem[] = [
         image: "/images/typing-beginner.png",
         tone: ["#15803D", "#14532D"],
         href: "/mocktest/tests/typing-beginner",
-        isNew: true,
+        isNew: false,
       },
     {
       id: "osssc-typing",
