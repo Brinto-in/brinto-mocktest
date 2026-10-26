@@ -12,7 +12,13 @@ interface Props {
 const { title, description, image = '/logo.png', type = 'website' } = Astro.props;
 const fullTitle = `${title} | Brinto MockTest`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const fullImageUrl = new URL(image, Astro.site);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const imagePath = image.startsWith('http')
+  ? image
+  : (image.startsWith(base) ? image : `${base}${image.startsWith('/') ? '' : '/'}${image}`);
+const fullImageUrl = new URL(imagePath, Astro.site).href;
+const isJpeg = fullImageUrl.endsWith('.jpeg') || fullImageUrl.endsWith('.jpg');
+const imageMimeType = isJpeg ? 'image/jpeg' : 'image/png';
 const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
 ---
 <!doctype html>
@@ -27,12 +33,16 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
   <meta name="keywords" content="free mock tests, online test series, government job exams, SSC mock test, banking exams, railway exams, UPSC mock test, competitive exam preparation, Brinto MockTest" />
   <meta name="theme-color" content="#B00020" />
 
-  <!-- Open Graph / Facebook -->
+  <!-- Open Graph / Facebook / Telegram / WhatsApp -->
   <meta property="og:title" content={fullTitle} />
   <meta property="og:description" content={description} />
   <meta property="og:type" content={type} />
-  <meta property="og:url" content={canonical} />
+  <meta property="og:url" content={canonical.href} />
   <meta property="og:image" content={fullImageUrl} />
+  <meta property="og:image:secure_url" content={fullImageUrl} />
+  <meta property="og:image:type" content={imageMimeType} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:site_name" content="Brinto MockTest" />
 
   <!-- Twitter -->
