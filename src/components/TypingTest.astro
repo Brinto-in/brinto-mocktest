@@ -2,7 +2,12 @@
 /**
  * TypingTest — reusable, fully self-contained typing test component.
  * Light theme, mobile-first, proper landscape support.
+ *
+ * fullscreenAds: side-rail ads shown only in fullscreen on wide screens. In fullscreen the browser
+ * draws only this element, so page-level ads (sidebar, <GAdRails>) can't be seen there.
  */
+import GAd from "./GAd.astro";
+
 export interface Props {
   testId?: string;
   dbTestId?: number;
@@ -14,6 +19,7 @@ export interface Props {
   showTips?: boolean;
   apiUrl?: string;
   trackBackspaces?: boolean;
+  fullscreenAds?: boolean;
 }
 
 const {
@@ -27,6 +33,7 @@ const {
   showTips = true,
   apiUrl = "",
   trackBackspaces = false,
+  fullscreenAds = false,
 } = Astro.props;
 ---
 
@@ -41,6 +48,14 @@ const {
   data-db-test-id={dbTestId}
   data-track-backspaces={trackBackspaces ? "true" : "false"}
 >
+  <!-- ── Fullscreen side-rail ads (hidden outside fullscreen; GAd loads them once shown) ── -->
+  {fullscreenAds && (["left", "right"] as const).map((side) => (
+    <aside class={`tt-fs-rail tt-fs-rail-${side}`} aria-label="Advertisement">
+      <div class="tt-fs-rail-wide"><GAd size="300x600" /></div>
+      <div class="tt-fs-rail-narrow"><GAd size="160x600" /></div>
+    </aside>
+  ))}
+
   <!-- ── Mobile tip banner ── -->
   {showTips && (
     <div class="tt-tip" id={`${testId}-tip`}>
@@ -731,6 +746,53 @@ import { fetchMockTestPassage, submitTypingResult } from "../lib/api/passageServ
   border: none !important;
   margin: 0 !important;
   background: var(--tt-surface) !important;
+}
+
+/* ── Fullscreen side-rail ads ──
+   Shown only when the screen leaves enough room for the typing area:
+   160×600 from 1280px wide, 300×600 from 1640px; both need 700px of height. */
+.tt-fs-rail,
+.tt-fs-rail-wide,
+.tt-fs-rail-narrow {
+  display: none;
+}
+.tt-fs-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--tt-rail-w);
+  align-items: center;
+  justify-content: center;
+}
+.tt-fs-rail-left { left: 16px; }
+.tt-fs-rail-right { right: 16px; }
+
+@media (min-width: 1280px) and (min-height: 700px) {
+  .tt-root:fullscreen:has(.tt-fs-rail),
+  .tt-root.tt-fullscreen:has(.tt-fs-rail) {
+    --tt-rail-w: 160px;
+    padding-inline: calc(var(--tt-rail-w) + 32px) !important;
+  }
+  .tt-root:fullscreen .tt-fs-rail,
+  .tt-root.tt-fullscreen .tt-fs-rail,
+  .tt-root:fullscreen .tt-fs-rail-narrow,
+  .tt-root.tt-fullscreen .tt-fs-rail-narrow {
+    display: flex;
+  }
+}
+@media (min-width: 1640px) and (min-height: 700px) {
+  .tt-root:fullscreen:has(.tt-fs-rail),
+  .tt-root.tt-fullscreen:has(.tt-fs-rail) {
+    --tt-rail-w: 300px;
+  }
+  .tt-root:fullscreen .tt-fs-rail-narrow,
+  .tt-root.tt-fullscreen .tt-fs-rail-narrow {
+    display: none;
+  }
+  .tt-root:fullscreen .tt-fs-rail-wide,
+  .tt-root.tt-fullscreen .tt-fs-rail-wide {
+    display: flex;
+  }
 }
 
 /* In fullscreen, hide non-essential promotional/guide elements to minimize distraction */
