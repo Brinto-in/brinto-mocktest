@@ -1,4 +1,5 @@
 ---
+import GAd from "../../GAd.astro";
 ---
 
 <main id="mcq-panel" class="test-panel active">
@@ -17,6 +18,11 @@
     </div>
 
     <div class="options-container" id="options-container"></div>
+
+    <!-- Responsive Ad below options container -->
+    <div class="q-ad-slot">
+      <GAd sizes={{ mobile: "320x100", tablet: "600x90", desktop: "600x90" }} />
+    </div>
 
     <div class="action-row">
       <button type="button" class="btn-mark" id="btn-mark">
@@ -45,6 +51,10 @@
     </div>
     <div class="palette-scroll">
       <div class="palette-grid" id="palette-grid"></div>
+      <!-- Compact Square Ad in Question Palette below question grid -->
+      <div class="palette-ad-slot">
+        <GAd size="250x200" />
+      </div>
     </div>
     <div class="legend">
       <strong>Legend</strong>
@@ -67,3 +77,19 @@
     <button class="btn-next" id="btn-next-mob" style="flex:1">Save & Next →</button>
   </div>
 </main>
+
+<style>
+  .q-ad-slot {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .palette-ad-slot {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+</style>
