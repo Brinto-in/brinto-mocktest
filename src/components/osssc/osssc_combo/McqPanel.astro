@@ -1,0 +1,69 @@
+---
+---
+
+<main id="mcq-panel" class="test-panel active">
+  <div class="question-panel">
+    <div class="q-header">
+      <span class="q-section-tag" id="q-section-tag">Section</span>
+      <span class="q-progress-text" id="q-progress-text">Question 1 of 100</span>
+    </div>
+    <div class="q-progress-bar">
+      <div class="q-progress-fill" id="q-progress-fill" style="width: 1%;"></div>
+    </div>
+
+    <div>
+      <div class="q-num" id="q-num">Question 1</div>
+      <div class="q-text" id="q-text">Click "Start Test" above to begin...</div>
+    </div>
+
+    <div class="options-container" id="options-container"></div>
+
+    <div class="action-row">
+      <button type="button" class="btn-mark" id="btn-mark">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        Mark for Review
+      </button>
+      <button type="button" class="btn-clear" id="btn-clear">Clear Response</button>
+      <div class="nav-row">
+        <button type="button" class="btn-prev" id="btn-prev">← Prev</button>
+        <button type="button" class="btn-next" id="btn-next">Save & Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-header-top">
+        <h3>Question Palette</h3>
+        <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close palette">&times;</button>
+      </div>
+      <div class="section-tabs" id="palette-sections">
+        <button class="sec-tab active" data-sec="all">All</button>
+      </div>
+    </div>
+    <div class="palette-scroll">
+      <div class="palette-grid" id="palette-grid"></div>
+    </div>
+    <div class="legend">
+      <strong>Legend</strong>
+      <div class="legend-grid">
+        <div class="leg-item"><div class="leg-dot ld-nv"></div>Not Visited</div>
+        <div class="leg-item"><div class="leg-dot ld-na"></div>Not Answered</div>
+        <div class="leg-item"><div class="leg-dot ld-an"></div>Answered</div>
+        <div class="leg-item"><div class="leg-dot ld-mr"></div>Marked</div>
+      </div>
+    </div>
+  </aside>
+
+  <button class="palette-toggle" id="palette-toggle" aria-label="Toggle question palette">
+    📋 Palette
+  </button>
+
+  <div class="mobile-nav-bar" id="mobile-nav-bar">
+    <button class="btn-prev" id="btn-prev-mob" style="flex:1">← Prev</button>
+    <button class="btn-mark" id="btn-mark-mob" style="flex:1;justify-content:center">★ Review</button>
+    <button class="btn-next" id="btn-next-mob" style="flex:1">Save & Next →</button>
+  </div>
+</main>

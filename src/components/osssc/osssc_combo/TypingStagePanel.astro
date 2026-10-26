@@ -1,0 +1,106 @@
+---
+interface Props {
+  panelId: string;
+  prefix: string;
+  startOverlayId: string;
+  startOverlayTitle: string;
+  startOverlayMetaHtml: string;
+  startOverlaySubText?: string;
+  startBtnId: string;
+  startBtnText: string;
+  placeholderText: string;
+  instructionsText?: string;
+  submitBtnFullText: string;
+  submitBtnShortText: string;
+}
+
+const {
+  panelId,
+  prefix,
+  startOverlayId,
+  startOverlayTitle,
+  startOverlayMetaHtml,
+  startOverlaySubText,
+  startBtnId,
+  startBtnText,
+  placeholderText,
+  instructionsText = "Type each word carefully.",
+  submitBtnFullText,
+  submitBtnShortText,
+} = Astro.props;
+---
+
+<section id={panelId} class="test-panel">
+  <div class="typing-panel-content">
+    <div class="tt-header">
+      <div class="tt-stats">
+        <div class="stat-pill">
+          <span class="stat-val wpm" id={`${prefix}-wpm`}>0</span>
+          <span class="stat-lbl">WPM</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-val acc" id={`${prefix}-acc`}>100%</span>
+          <span class="stat-lbl">Accuracy</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-val err" id={`${prefix}-errors`}>0</span>
+          <span class="stat-lbl">Errors</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-val ok" id={`${prefix}-correct`}>0</span>
+          <span class="stat-lbl">Correct</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-val bs" id={`${prefix}-backspaces`}>0</span>
+          <span class="stat-lbl">Backspaces</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-val prg" id={`${prefix}-progress`}>0%</span>
+          <span class="stat-lbl">Progress</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="typing-card">
+      <!-- Start Overlay -->
+      <div class="stage-start-overlay" id={startOverlayId} style="display:none">
+        <div class="sso-card">
+          <h3>{startOverlayTitle}</h3>
+          <p Fragment set:html={startOverlayMetaHtml} />
+          <p class="sso-sub">{startOverlaySubText || `Click the button below when you are ready to begin. The 15-minute timer will start automatically.`}</p>
+          <button type="button" class="sso-btn" id={startBtnId}>{startBtnText}</button>
+        </div>
+      </div>
+
+      <div class="passage-wrap">
+        <div class="passage-box" id={`${prefix}-passage`}>
+          <div class="tt-status">Passage will load after you click {startBtnText.replace(" →", "")}…</div>
+        </div>
+        <div class="passage-scrollbar hidden" id={`${prefix}-scrollbar`} aria-hidden="true">
+          <div class="passage-thumb" id={`${prefix}-thumb`}></div>
+        </div>
+      </div>
+      <div class="input-area-wrap">
+        <textarea
+          class="typing-input"
+          id={`${prefix}-input`}
+          placeholder={placeholderText}
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          disabled
+        ></textarea>
+        <div class="typing-footer">
+          <div class="typing-footer-left">
+            <span class="typing-instructions">{instructionsText}</span>
+            <button type="button" class="btn-restart" id={`${prefix}-reset`}>Reset Passage</button>
+          </div>
+          <button type="button" class="btn-step-submit" id={`${prefix}-submit-step`}>
+            <span class="lbl-full">{submitBtnFullText}</span><span class="lbl-short">{submitBtnShortText}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
