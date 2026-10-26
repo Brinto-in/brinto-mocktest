@@ -6,11 +6,13 @@
  *   <GAdRails />                                   both sides, 300×600 if it fits, else 160×600
  *   <GAdRails side="right" />                      right rail only
  *   <GAdRails sizes={["160x600"]} />               only the narrow skyscraper
+ *   <GAdRails maxw={980} />                        content narrower than the page's --maxw
  *
  * On load it measures the gap beside the content (.wrap max width) and picks the first size that
  * fits with breathing room. If none fits — laptops, tablets, phones — nothing is requested or shown.
  * Rails stay in view while scrolling (below the header) and stop at the end of the page content,
- * so they never cover the footer. In `npm run dev` they show the same dashed placeholder as <GAd>.
+ * so they never cover the footer. Rails inside a hidden container (e.g. an exam stage that isn't
+ * active yet) are set up once it becomes visible. In `npm run dev` they show the same dashed placeholder as <GAd>.
  */
 import { AD_CLIENT, AD_UNITS, type AdSizeKey } from "../lib/ads";
 
@@ -19,9 +21,10 @@ interface Props {
   sizes?: AdSizeKey[]; // tried in order, widest first
   top?: number; // distance from the top of the screen while scrolling (px)
   label?: boolean;
+  maxw?: number; // width of the content the rails sit beside (default: the page's --maxw)
 }
 
-const { side = "both", sizes = ["300x600", "160x600"], top = 96, label = true } = Astro.props;
+const { side = "both", sizes = ["300x600", "160x600"], top = 96, label = true, maxw } = Astro.props;
 
 const units = sizes
   .map((key) => ({ key, ...AD_UNITS[key] }))
@@ -36,6 +39,7 @@ const isDev = import.meta.env.DEV;
     style={`--rail-top:${top}px;`}
     data-units={JSON.stringify(units)}
     data-client={AD_CLIENT}
+    data-maxw={maxw}
     data-test={isDev ? "on" : undefined}
   >
     {sides.map((s) => (
@@ -57,15 +61,18 @@ const isDev = import.meta.env.DEV;
   type Unit = { key: string; slot: string; width: number; height: number };
   const GAP = 16; // space between the rail and the content, and the screen edge
 
-  function contentWidth() {
-    const maxw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--maxw")) || 1180;
+  function contentWidth(root: HTMLElement) {
+    const maxw =
+      parseFloat(root.dataset.maxw || "") ||
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--maxw")) ||
+      1180;
     return Math.min(window.innerWidth, maxw);
   }
 
   function setup(root: HTMLElement) {
     const units = JSON.parse(root.dataset.units || "[]") as Unit[];
     const top = parseFloat(getComputedStyle(root).getPropertyValue("--rail-top")) || 96;
-    const gutter = (window.innerWidth - contentWidth()) / 2;
+    const gutter = (window.innerWidth - contentWidth(root)) / 2;
 
     // First size that fits beside the content and in the window height
     const unit = units.find((u) => u.width + GAP * 2 <= gutter && u.height + top + 40 <= window.innerHeight);
@@ -87,14 +94,28 @@ const isDev = import.meta.env.DEV;
 
     // Centre each rail in its gutter (also on resize)
     const place = () => {
-      const g = (window.innerWidth - contentWidth()) / 2;
+      const g = (window.innerWidth - contentWidth(root)) / 2;
       root.style.setProperty("--rail-x", `${Math.max(GAP, (g - unit.width) / 2)}px`);
     };
     place();
     window.addEventListener("resize", place, { passive: true });
   }
 
-  document.querySelectorAll<HTMLElement>(".gad-rails").forEach(setup);
+  // AdSense rejects ads with no width, so wait until a hidden host is shown.
+  const whenVisible = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting && e.boundingClientRect.width === 0) return;
+      whenVisible.unobserve(e.target);
+      const root = (e.target as HTMLElement).querySelector<HTMLElement>(":scope > .gad-rails");
+      if (root) setup(root);
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>(".gad-rails").forEach((root) => {
+    const host = root.parentElement;
+    if (!host || host.getClientRects().length) setup(root);
+    else whenVisible.observe(host);
+  });
 </script>
 
 <style>
