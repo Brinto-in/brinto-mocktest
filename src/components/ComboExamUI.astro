@@ -1055,6 +1055,9 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
       .stat-val.wpm { color: var(--combo-purple); }
       .stat-val.acc { color: var(--green); }
       .stat-val.err { color: var(--brand); }
+      .stat-val.ok { color: var(--green); }
+      .stat-val.bs { color: var(--ink-soft); }
+      .stat-val.prg { color: var(--combo-purple-dark); }
 
       .typing-card {
         position: relative;
@@ -1204,12 +1207,9 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
         border-radius: var(--radius-pill);
       }
       .tt-ch { position: relative; }
-      .tt-ch.correct { color: var(--green); font-weight: 600; }
-      .tt-ch.wrong { color: #fff; background: var(--brand); border-radius: 2px; }
-      .tt-ch.current {
-        background: rgba(124, 58, 237, 0.18);
-        border-bottom: 2px solid var(--combo-purple);
-      }
+      .tt-ch.correct { }
+      .tt-ch.wrong { }
+      .tt-ch.current { }
       .tt-word { display: inline-block; white-space: nowrap; }
 
       .input-area-wrap {
@@ -1755,7 +1755,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
               <span class="instr-rule-icon">⌨️</span>
               <div class="instr-rule-text">
                 <strong>Computer Typing Skill Test (40 WPM Benchmark)</strong>
-                Type the given passage accurately. Words turn green when typed correctly and red if incorrect. Copy / paste is disabled.
+                Type the given passage accurately. Copy / paste is disabled.
               </div>
             </li>
           </ul>
@@ -1933,10 +1933,6 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
     <section id="typing-panel-1" class="test-panel">
       <div class="typing-panel-content">
         <div class="tt-header">
-          <div class="tt-header-left">
-            <h2>Stage 2 · Passage 1 (General & Office Norms)</h2>
-            <p>OSSSC Standard English Typing · 15 Minutes · 40 WPM Benchmark</p>
-          </div>
           <div class="tt-stats">
             <div class="stat-pill">
               <span class="stat-val wpm" id="tt1-wpm">0</span>
@@ -1949,6 +1945,18 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             <div class="stat-pill">
               <span class="stat-val err" id="tt1-errors">0</span>
               <span class="stat-lbl">Errors</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val ok" id="tt1-correct">0</span>
+              <span class="stat-lbl">Correct</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val bs" id="tt1-backspaces">0</span>
+              <span class="stat-lbl">Backspaces</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val prg" id="tt1-progress">0%</span>
+              <span class="stat-lbl">Progress</span>
             </div>
           </div>
         </div>
@@ -1985,7 +1993,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             ></textarea>
             <div class="typing-footer">
               <div class="typing-footer-left">
-                <span class="typing-instructions">Type each word carefully. Words turn green when typed correctly.</span>
+                <span class="typing-instructions">Type each word carefully.</span>
                 <button type="button" class="btn-restart" id="tt1-reset">Reset Passage</button>
               </div>
               <button type="button" class="btn-step-submit" id="tt1-submit-step">
@@ -2001,10 +2009,6 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
     <section id="typing-panel-2" class="test-panel">
       <div class="typing-panel-content">
         <div class="tt-header">
-          <div class="tt-header-left">
-            <h2>Stage 3 · Passage 2 (Administrative Drafting)</h2>
-            <p>OSSSC Official Communication & Accuracy Test · 15 Minutes</p>
-          </div>
           <div class="tt-stats">
             <div class="stat-pill">
               <span class="stat-val wpm" id="tt2-wpm">0</span>
@@ -2017,6 +2021,18 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             <div class="stat-pill">
               <span class="stat-val err" id="tt2-errors">0</span>
               <span class="stat-lbl">Errors</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val ok" id="tt2-correct">0</span>
+              <span class="stat-lbl">Correct</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val bs" id="tt2-backspaces">0</span>
+              <span class="stat-lbl">Backspaces</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-val prg" id="tt2-progress">0%</span>
+              <span class="stat-lbl">Progress</span>
             </div>
           </div>
         </div>
@@ -2731,6 +2747,9 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
           const wpmEl = document.getElementById(`${prefix}-wpm`);
           const accEl = document.getElementById(`${prefix}-acc`);
           const errEl = document.getElementById(`${prefix}-errors`);
+          const correctEl = document.getElementById(`${prefix}-correct`);
+          const bsEl = document.getElementById(`${prefix}-backspaces`);
+          const prgEl = document.getElementById(`${prefix}-progress`);
           const resetBtn = document.getElementById(`${prefix}-reset`);
 
           let passage = "";
@@ -2811,9 +2830,12 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             startedAt = 0;
             keystrokes = 0;
             backspaces = 0;
-            wpmEl.textContent = "0";
-            accEl.textContent = "100%";
-            errEl.textContent = "0";
+            if (wpmEl) wpmEl.textContent = "0";
+            if (accEl) accEl.textContent = "100%";
+            if (errEl) errEl.textContent = "0";
+            if (correctEl) correctEl.textContent = "0";
+            if (bsEl) bsEl.textContent = "0";
+            if (prgEl) prgEl.textContent = "0%";
           }
 
           function reset() {
@@ -3005,9 +3027,13 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
             }
 
             const s = compute();
-            wpmEl.textContent = String(Math.round(s.wpm));
-            accEl.textContent = `${s.accuracy}%`;
-            errEl.textContent = String(s.errors);
+            const progress = expected.length > 0 ? Math.min(100, Math.round((val.length / expected.length) * 100)) : 0;
+            if (wpmEl) wpmEl.textContent = String(Math.round(s.wpm));
+            if (accEl) accEl.textContent = `${s.accuracy}%`;
+            if (errEl) errEl.textContent = String(s.errors);
+            if (correctEl) correctEl.textContent = String(s.correct);
+            if (bsEl) bsEl.textContent = String(backspaces);
+            if (prgEl) prgEl.textContent = `${progress}%`;
           });
 
           resetBtn.addEventListener("click", reset);
