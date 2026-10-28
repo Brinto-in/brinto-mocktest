@@ -654,7 +654,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
       }
       .question-panel {
         padding: 28px 32px 96px;
-        overflow-y: auto;
+        overflow-y: visible;
         display: flex;
         flex-direction: column;
         gap: 22px;
@@ -878,6 +878,10 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-KLNSK7T02S';
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        position: sticky;
+        top: 88px;
+        height: calc(100vh - 88px);
+        align-self: flex-start;
       }
       .sidebar-header {
         padding: 16px 18px 12px;
