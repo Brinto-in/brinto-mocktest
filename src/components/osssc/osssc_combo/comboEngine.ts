@@ -66,12 +66,28 @@ export function initComboEngine() {
   const instrCb = document.getElementById("instr-agree-cb") as HTMLInputElement | null;
   const btnStart = document.getElementById("btn-start-test") as HTMLButtonElement | null;
 
-  function showToast(msg: string, ms = 3500) {
-    if (!toastEl) return;
-    toastEl.textContent = msg;
-    toastEl.style.display = "block";
+  function showToast(msg: string, ms = 3500, title = "Tab switch detected!", badgeText?: string) {
+    const tabToast = document.getElementById("tab-toast");
+    const toastTitle = document.getElementById("toast-title");
+    const toastSub = document.getElementById("toast-sub");
+    const toastBadge = document.getElementById("toast-badge");
+
+    if (toastTitle) toastTitle.textContent = title;
+    if (toastSub) toastSub.textContent = msg;
+    if (toastBadge) {
+      if (badgeText) {
+        toastBadge.textContent = badgeText;
+        toastBadge.style.display = "inline-block";
+      } else {
+        toastBadge.style.display = "none";
+      }
+    }
+
+    tabToast?.classList.add("show");
     clearTimeout((showToast as any)._t);
-    (showToast as any)._t = setTimeout(() => (toastEl.style.display = "none"), ms);
+    (showToast as any)._t = setTimeout(() => {
+      tabToast?.classList.remove("show");
+    }, ms);
   }
 
   // ── LOAD TEST DETAILS FOR START MODAL ──
@@ -209,18 +225,18 @@ export function initComboEngine() {
         clearInterval(timerInterval);
         if (comboModal) comboModal.style.display = "none";
         if (currentStage === 1) {
-          showToast("MCQ section time up! Advancing to Passage 1…");
+          showToast("Advancing to Passage 1…", 3500, "MCQ section time up!");
           await submitMCQAttempt();
           goToStage(2);
           tt1.load(null);
         } else if (currentStage === 2) {
-          showToast("Passage 1 time up! Advancing to Passage 2…");
+          showToast("Advancing to Passage 2…", 3500, "Passage 1 time up!");
           await postTypingResult(1);
           const p1Id = tt1.getPassageId();
           goToStage(3);
           tt2.load(p1Id);
         } else {
-          showToast("Passage 2 time up! Submitting final test…");
+          showToast("Submitting final test…", 3500, "Passage 2 time up!");
           await postTypingResult(2);
           await finalSubmit(true);
         }
@@ -234,7 +250,12 @@ export function initComboEngine() {
     if (document.hidden && testActive && !finished) {
       tabSwitches++;
     } else if (!document.hidden && testActive && !finished && tabSwitches > 0) {
-      showToast(`Warning: tab switch detected (${tabSwitches}). Stay on this tab.`);
+      showToast(
+        "Please stay on this tab during the test.",
+        4000,
+        "Tab switch detected!",
+        `${tabSwitches} warning${tabSwitches > 1 ? "s" : ""}`
+      );
     }
   });
   window.addEventListener("beforeunload", (e) => {
