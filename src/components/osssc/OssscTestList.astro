@@ -37,7 +37,8 @@ const lockedCount = Math.max(0, tests.length - freeCount);
 ---
 
 <section class="tl-section is-guest" aria-labelledby="tl-title" data-test-list>
-  <div class="wrap">
+  <!-- No .wrap here: the page column already provides the width and padding -->
+  <div class="tl-inner">
     <div class="tl-head">
       <h2 id="tl-title" class="tl-title">{title}</h2>
       {lockedCount > 0 && <span class="tl-note">{freeCount} free · log in to unlock {lockedCount} more</span>}
@@ -269,6 +270,23 @@ const lockedCount = Math.max(0, tests.length - freeCount);
     gap: 10px;
   }
 
+  /* Tablet: no sidebar yet, so use the width for two columns */
+  @media (min-width: 720px) and (max-width: 1023px) {
+    .tl-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tl-item {
+      height: 100%;
+    }
+    .tl-name {
+      white-space: normal;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+  }
+
   .tl-item {
     width: 100%;
     font: inherit;
@@ -405,8 +423,32 @@ const lockedCount = Math.max(0, tests.length - freeCount);
 
   /* ── Responsive ── */
   @media (max-width: 600px) {
+    .tl-section { padding: 8px 0 12px; }
     .tl-note { display: none; }
-    .tl-item { gap: 10px; padding: 12px; }
+    .tl-head { padding: 0 16px; margin-bottom: 10px; }
+
+    /* Full-width list: flush rows separated by dividers */
+    .tl-list {
+      gap: 0;
+      border-top: 1px solid var(--rule);
+    }
+    .tl-item {
+      gap: 12px;
+      padding: 14px 16px;
+      border: 0;
+      border-bottom: 1px solid var(--rule);
+      border-radius: 0;
+    }
+    .tl-item:hover,
+    .tl-item:focus-visible {
+      transform: none;
+      box-shadow: none;
+      background: var(--brand-light);
+    }
+    .tl-item:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: -2px;
+    }
     .tl-num { width: 32px; height: 32px; font-size: 0.78rem; }
     .tl-name {
       font-size: 0.9rem;

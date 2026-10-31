@@ -64,6 +64,13 @@ import OssscTestList from "../../components/osssc/OssscTestList.astro";
     gap: 8px;
     font-size: 0.85rem;
     color: var(--ink-muted);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .breadcrumb::-webkit-scrollbar {
+    display: none;
   }
 
   .breadcrumb a {
@@ -133,6 +140,24 @@ import OssscTestList from "../../components/osssc/OssscTestList.astro";
     .ad-slot-top,
     .ad-slot-mid {
       display: none;
+    }
+  }
+
+  /* Phones: list runs edge to edge (OssscTestList pads its own header) */
+  @media (max-width: 600px) {
+    .page-header {
+      padding: 12px 16px 4px;
+    }
+    .page-body {
+      padding-inline: 0;
+      gap: 0;
+      padding-bottom: 24px;
+    }
+    .main-column {
+      gap: 0;
+    }
+    .ad-slot {
+      padding: 0 16px;
     }
   }
 </style>
