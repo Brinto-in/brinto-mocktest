@@ -1,0 +1,370 @@
+---
+// "Daily live test" banner on the OSSSC page.
+// Every day at 8:00 PM IST: counts down before the start, shows "Live now" while
+// the test window is open, then rolls over to tomorrow's slot.
+// Times are always computed in IST, whatever the visitor's own timezone is.
+
+interface Props {
+  id?: string;
+  href?: string;
+  /** Start time in IST, 24h. */
+  hour?: number;
+  minute?: number;
+  /** How long the live window stays open, in minutes. */
+  duration?: number;
+  questions?: number;
+}
+
+const {
+  id = "live-test",
+  href = "/mocktest/osssc/live",
+  hour = 20,
+  minute = 0,
+  duration = 30,
+  questions = 50,
+} = Astro.props;
+
+const IST_OFFSET = 330 * 60 * 1000;
+
+// Same maths as the client script, so the first paint already shows the right state.
+function slot(now: number) {
+  const ist = new Date(now + IST_OFFSET);
+  let start =
+    Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate(), hour, minute) - IST_OFFSET;
+  if (now >= start + duration * 60_000) start += 86_400_000;
+  return { start, end: start + duration * 60_000, live: now >= start };
+}
+
+const initial = slot(Date.now());
+const timeLabel = new Date(Date.UTC(2000, 0, 1, hour, minute)).toLocaleTimeString("en-IN", {
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "UTC",
+});
+---
+
+<section id={id} class="lt-section" aria-labelledby="lt-title">
+  <div class="wrap">
+    <div
+      class:list={["lt-card", { "is-live": initial.live }]}
+      data-live-test
+      data-hour={hour}
+      data-minute={minute}
+      data-duration={duration}
+    >
+      <div class="lt-info">
+        <span class="lt-pill">
+          <span class="lt-dot" aria-hidden="true"></span>
+          <span data-lt-status>{initial.live ? "Live now" : "Daily live test"}</span>
+        </span>
+
+        <h2 id="lt-title" class="lt-title">OSSSC Live Test · Every day at {timeLabel}</h2>
+        <p class="lt-sub">
+          Attempt the same paper with aspirants across Odisha at the same time and see where you rank.
+        </p>
+
+        <ul class="lt-facts">
+          <li><strong>{questions}</strong> Questions</li>
+          <li><strong>{duration}</strong> Minutes</li>
+          <li><strong>Free</strong> All-Odisha rank</li>
+        </ul>
+      </div>
+
+      <div class="lt-side">
+        <p class="lt-label" data-lt-label>{initial.live ? "Ends in" : "Starts in"}</p>
+
+        <div class="lt-clock" role="timer" aria-live="off">
+          <div class="lt-unit"><span data-lt-h>--</span><small>Hrs</small></div>
+          <span class="lt-colon" aria-hidden="true">:</span>
+          <div class="lt-unit"><span data-lt-m>--</span><small>Min</small></div>
+          <span class="lt-colon" aria-hidden="true">:</span>
+          <div class="lt-unit"><span data-lt-s>--</span><small>Sec</small></div>
+        </div>
+
+        <a
+          href={href}
+          class="lt-btn"
+          data-lt-btn
+          aria-disabled={initial.live ? undefined : "true"}
+          tabindex={initial.live ? undefined : -1}
+        >
+          {initial.live ? "Join live test" : `Starts at ${timeLabel}`}
+        </a>
+        <p class="lt-hint">Login 5 minutes early. Late entry allowed until the test ends.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const IST_OFFSET = 330 * 60 * 1000;
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  document.querySelectorAll<HTMLElement>("[data-live-test]").forEach((card) => {
+    const hour = Number(card.dataset.hour);
+    const minute = Number(card.dataset.minute);
+    const durMs = Number(card.dataset.duration) * 60_000;
+
+    const $ = (sel: string) => card.querySelector<HTMLElement>(sel)!;
+    const h = $("[data-lt-h]");
+    const m = $("[data-lt-m]");
+    const s = $("[data-lt-s]");
+    const label = $("[data-lt-label]");
+    const status = $("[data-lt-status]");
+    const btn = $("[data-lt-btn]");
+    const idleText = btn.textContent?.trim() || "";
+    const startsText = idleText.startsWith("Starts") ? idleText : "Starts soon";
+
+    function tick() {
+      const now = Date.now();
+      const ist = new Date(now + IST_OFFSET);
+      let start =
+        Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate(), hour, minute) - IST_OFFSET;
+      if (now >= start + durMs) start += 86_400_000;
+
+      const live = now >= start;
+      const left = Math.max(0, Math.floor(((live ? start + durMs : start) - now) / 1000));
+
+      h.textContent = pad(Math.floor(left / 3600));
+      m.textContent = pad(Math.floor((left % 3600) / 60));
+      s.textContent = pad(left % 60);
+
+      card.classList.toggle("is-live", live);
+      label.textContent = live ? "Ends in" : "Starts in";
+      status.textContent = live ? "Live now" : "Daily live test";
+      btn.textContent = live ? "Join live test" : startsText;
+      if (live) {
+        btn.removeAttribute("aria-disabled");
+        btn.removeAttribute("tabindex");
+      } else {
+        btn.setAttribute("aria-disabled", "true");
+        btn.setAttribute("tabindex", "-1");
+      }
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  });
+</script>
+
+<style>
+  .lt-section {
+    padding: 20px 0 8px;
+    scroll-margin-top: 80px;
+  }
+
+  .lt-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 32px;
+    padding: 28px 32px;
+    border-radius: var(--radius-md);
+    color: #ffffff;
+    background:
+      radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.16), transparent 40%),
+      linear-gradient(135deg, var(--brand-dark), var(--brand));
+    box-shadow: 0 14px 30px -14px rgba(123, 0, 21, 0.55);
+    overflow: hidden;
+  }
+
+  /* ── Left: info ── */
+  .lt-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .lt-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+
+  .is-live .lt-pill {
+    background: #ffffff;
+    color: var(--brand);
+  }
+
+  .is-live .lt-dot {
+    background: var(--brand);
+    animation: lt-pulse 1.2s ease-out infinite;
+  }
+
+  @keyframes lt-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(176, 0, 32, 0.6); }
+    100% { box-shadow: 0 0 0 8px rgba(176, 0, 32, 0); }
+  }
+
+  .lt-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.25rem, 2.6vw, 1.8rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+    margin: 14px 0 8px;
+  }
+
+  .lt-sub {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.95rem;
+    max-width: 52ch;
+    margin: 0 0 16px;
+  }
+
+  .lt-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .lt-facts li {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.18);
+  }
+
+  .lt-facts strong {
+    color: #ffffff;
+    margin-right: 2px;
+  }
+
+  /* ── Right: countdown + CTA ── */
+  .lt-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 280px;
+    padding: 20px 22px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .lt-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0 0 8px;
+  }
+
+  .lt-clock {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .lt-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 64px;
+    padding: 8px 6px 6px;
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+    color: var(--ink);
+  }
+
+  .lt-unit span {
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lt-unit small {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+
+  .lt-colon {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.6;
+    opacity: 0.7;
+  }
+
+  .lt-btn {
+    width: 100%;
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--brand);
+    background: #ffffff;
+    padding: 13px 24px;
+    border-radius: var(--radius-pill);
+    transition: transform 0.1s;
+  }
+
+  .lt-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .lt-btn[aria-disabled="true"] {
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.22);
+  }
+
+  .is-live .lt-btn {
+    background: var(--gold);
+    color: #ffffff;
+  }
+
+  .lt-hint {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 10px 0 0;
+  }
+
+  /* ── 4K ── */
+  @media (min-width: 2560px) {
+    .lt-section { padding: 32px 0 12px; }
+    .lt-card { padding: 40px 48px; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .lt-card {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 22px 18px;
+    }
+    .lt-side { min-width: 0; }
+  }
+
+  @media (max-width: 480px) {
+    .lt-section { padding: 14px 0 4px; }
+    .lt-unit { min-width: 56px; }
+    .lt-unit span { font-size: 1.6rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .is-live .lt-dot { animation: none; }
+    .lt-btn { transition: none; }
+  }
+</style>

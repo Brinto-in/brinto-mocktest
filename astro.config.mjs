@@ -9,6 +9,9 @@ export default defineConfig({
   security: {
     checkOrigin: false,
   },
+  // Astro sessions aren't used (login lives in localStorage). Without this the Cloudflare adapter
+  // adds a SESSION KV binding with no namespace id, which `wrangler preview` rejects.
+  session: false,
   adapter: cloudflare({
     imageService: 'compile',
   }),

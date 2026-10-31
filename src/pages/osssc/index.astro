@@ -13,6 +13,7 @@ import SectionHeader from "../../components/SectionHeader.astro";
 import OssscHero from "../../components/osssc/OssscHero.astro";
 import OssscPosts from "../../components/osssc/OssscPosts.astro";
 import OssscPrevYear from "../../components/osssc/OssscPrevYear.astro";
+import OssscLiveTest from "../../components/osssc/OssscLiveTest.astro";
 
 import { ossscItems, ossscSteps } from "../../data/osssc";
 import { fetchMockTests } from "../../lib/api";
@@ -53,6 +54,9 @@ const allTests = [...ossscItems, ...apiItems];
   image="/images/osssc.png"
 >
   <OssscHero />
+
+  <!-- ── DAILY LIVE TEST (8 PM IST) ─────────────── -->
+  <OssscLiveTest />
 
   <!-- ── TESTS ─────────────────────────────────── -->
   <PosterRow sectionId="osssc-tests" title="OSSSC computer skill test & typing practice" items={allTests} cols={6} />
