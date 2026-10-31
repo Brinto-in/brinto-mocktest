@@ -1,0 +1,151 @@
+---
+/**
+ * Topic-wise practice: one card per subject. Untimed practice pages don't exist yet,
+ * so cards show "Coming soon" until a subject gets an `href` in PRACTICE_LINKS.
+ */
+import Bi from "./Bi.astro";
+import V2Head from "./V2Head.astro";
+import { v2Subjects } from "../../../data/osssc-v2";
+
+interface Props {
+  id?: string;
+}
+
+const { id = "practice" } = Astro.props;
+
+const ORDER = ["odisha", "gk", "arithmetic", "reasoning", "computer", "odia", "english", "survey"];
+
+// Fill these in as practice pages go live, e.g. computer: "/mocktest/osssc/practice/computer"
+const PRACTICE_LINKS: Record<string, string | undefined> = {};
+
+const subjects = ORDER.map((k) => v2Subjects[k]);
+---
+
+<section id={id} class="pt-section" aria-labelledby="pt-title" data-v2-section>
+  <div class="wrap">
+    <V2Head
+      id="pt-title"
+      title={{ en: "Topic-wise MCQ practice", or: "ଅଧ୍ୟାୟ ଅନୁଯାୟୀ MCQ ଅଭ୍ୟାସ" }}
+      sub={{
+        en: "No timer. See the right answer and explanation after every question.",
+        or: "ସମୟ ସୀମା ନାହିଁ। ପ୍ରତି ପ୍ରଶ୍ନ ପରେ ସଠିକ ଉତ୍ତର ଓ ବ୍ୟାଖ୍ୟା ଦେଖନ୍ତୁ।",
+      }}
+    />
+
+    <div class="pt-grid">
+      {subjects.map((s) => {
+        const href = PRACTICE_LINKS[s.id];
+        const Tag = href ? "a" : "div";
+        return (
+          <Tag href={href} class:list={["pt-card", { "is-soon": !href }]} style={`--sub-color:${s.color}`}>
+            <span class="pt-icon" aria-hidden="true">{s.icon}</span>
+            <span class="pt-name"><Bi t={s.name} /></span>
+            <span class="pt-meta">
+              {s.topics.length} <Bi t={{ en: "topics", or: "ଅଧ୍ୟାୟ" }} />
+            </span>
+            <span class="pt-cta">
+              {href ? (
+                <Bi t={{ en: "Practice →", or: "ଅଭ୍ୟାସ →" }} />
+              ) : (
+                <Bi t={{ en: "Coming soon", or: "ଶୀଘ୍ର ଆସୁଛି" }} />
+              )}
+            </span>
+          </Tag>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<style>
+  .pt-section {
+    padding: 28px 0 12px;
+  }
+
+  .pt-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .pt-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+
+  /* Subject-coloured strip on top */
+  .pt-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--sub-color);
+  }
+
+  a.pt-card:hover,
+  a.pt-card:focus-visible {
+    border-color: var(--sub-color);
+    box-shadow: 0 10px 20px -14px rgba(15, 23, 42, 0.4);
+    transform: translateY(-2px);
+    outline: none;
+  }
+
+  .pt-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--sub-color);
+    background: color-mix(in srgb, var(--sub-color) 10%, #fff);
+    margin-bottom: 6px;
+  }
+
+  .pt-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  .pt-meta {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+  }
+
+  .pt-cta {
+    margin-top: auto;
+    padding-top: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--sub-color);
+  }
+
+  .is-soon .pt-cta {
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 1023px) {
+    .pt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 680px) {
+    .pt-section { padding: 20px 0 8px; }
+    .pt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .pt-card { padding: 14px 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pt-card { transition: none; }
+  }
+</style>

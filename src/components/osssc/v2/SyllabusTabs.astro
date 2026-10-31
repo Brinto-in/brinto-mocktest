@@ -1,0 +1,375 @@
+---
+/**
+ * Syllabus: post tabs (only RI · ARI · Amin is ready) → stage tabs → subject accordions with topics.
+ * Tabs work without JS for the first stage; the script only switches panels.
+ */
+import Bi from "./Bi.astro";
+import V2Head from "./V2Head.astro";
+import { v2Posts, v2Stages, v2Subjects } from "../../../data/osssc-v2";
+
+interface Props {
+  id?: string;
+}
+
+const { id = "syllabus" } = Astro.props;
+const activePost = v2Posts.find((p) => p.ready)!;
+---
+
+<section id={id} class="sy-section" aria-labelledby="sy-title" data-v2-section>
+  <div class="wrap">
+    <V2Head
+      id="sy-title"
+      title={{ en: "OSSSC syllabus", or: "OSSSC ପାଠ୍ୟକ୍ରମ" }}
+      sub={{ en: "Subjects and topics for each stage of the exam.", or: "ପରୀକ୍ଷାର ପ୍ରତ୍ୟେକ ପର୍ଯ୍ୟାୟ ପାଇଁ ବିଷୟ ଓ ଅଧ୍ୟାୟ।" }}
+    />
+
+    <!-- Posts -->
+    <div class="sy-posts" aria-label="Post">
+      {v2Posts.map((p) => (
+        <span class:list={["sy-post", { "is-active": p.id === activePost.id, "is-soon": !p.ready }]}>
+          {p.short}
+          {!p.ready && <small><Bi t={{ en: "Soon", or: "ଶୀଘ୍ର" }} /></small>}
+        </span>
+      ))}
+    </div>
+
+    <div class="sy-box" data-tabs>
+      <!-- Stages -->
+      <div class="sy-stages" role="tablist" aria-label={activePost.short}>
+        {v2Stages.map((s, i) => (
+          <button
+            type="button"
+            role="tab"
+            class="sy-stage"
+            id={`sy-tab-${s.id}`}
+            aria-controls={`sy-panel-${s.id}`}
+            aria-selected={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? 0 : -1}
+          >
+            <Bi t={s.name} />
+          </button>
+        ))}
+      </div>
+
+      {v2Stages.map((s, i) => (
+        <div
+          role="tabpanel"
+          class="sy-panel"
+          id={`sy-panel-${s.id}`}
+          aria-labelledby={`sy-tab-${s.id}`}
+          hidden={i !== 0}
+        >
+          <ul class="sy-facts">
+            <li><span><Bi t={{ en: "Questions", or: "ପ୍ରଶ୍ନ" }} /></span><strong>{s.questions}</strong></li>
+            <li><span><Bi t={{ en: "Marks", or: "ମାର୍କ" }} /></span><strong>{s.marks}</strong></li>
+            <li><span><Bi t={{ en: "Time", or: "ସମୟ" }} /></span><strong><Bi t={s.duration} /></strong></li>
+          </ul>
+
+          <div class="sy-subjects">
+            {s.subjects.map((key, j) => {
+              const sub = v2Subjects[key];
+              return (
+                <details class="sy-subject" style={`--sub-color:${sub.color}`} open={j === 0}>
+                  <summary>
+                    <span class="sy-icon" aria-hidden="true">{sub.icon}</span>
+                    <span class="sy-name"><Bi t={sub.name} /></span>
+                    <span class="sy-count">
+                      {sub.topics.length} <Bi t={{ en: "topics", or: "ଅଧ୍ୟାୟ" }} />
+                    </span>
+                    <span class="sy-chev" aria-hidden="true"></span>
+                  </summary>
+                  <div class="sy-body">
+                    <ul class="sy-topics">
+                      {sub.topics.map((t) => (
+                        <li><Bi t={t} /></li>
+                      ))}
+                    </ul>
+                    <a href="#practice" class="sy-practice">
+                      <Bi t={{ en: "Practice this subject →", or: "ଏହି ବିଷୟ ଅଭ୍ୟାସ କରନ୍ତୁ →" }} />
+                    </a>
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-tabs]").forEach((box) => {
+    const tabs = [...box.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+
+    function select(tab: HTMLButtonElement) {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute("aria-controls")!)!.hidden = !on;
+      });
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => select(tab));
+      // Arrow keys move between tabs (WAI-ARIA tabs pattern)
+      tab.addEventListener("keydown", (e) => {
+        const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        const next = tabs[(i + step + tabs.length) % tabs.length];
+        next.focus();
+        select(next);
+      });
+    });
+  });
+</script>
+
+<style>
+  .sy-section {
+    padding: 28px 0 12px;
+  }
+
+  /* ── Post chips ── */
+  .sy-posts {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 14px;
+  }
+  .sy-posts::-webkit-scrollbar { display: none; }
+
+  .sy-post {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    background: var(--bg);
+  }
+
+  .sy-post.is-active {
+    color: #fff;
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+
+  .sy-post.is-soon {
+    color: var(--ink-muted);
+  }
+
+  .sy-post small {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: var(--gold-light);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* ── Box with stage tabs ── */
+  .sy-box {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .sy-stages {
+    display: flex;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface-2, #f9fafb);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sy-stages::-webkit-scrollbar { display: none; }
+
+  .sy-stage {
+    flex: 1 0 auto;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    padding: 14px 18px 11px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .sy-stage:hover {
+    color: var(--ink);
+  }
+
+  .sy-stage[aria-selected="true"] {
+    color: var(--brand);
+    border-bottom-color: var(--brand);
+    background: var(--surface);
+  }
+
+  .sy-stage:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+  }
+
+  .sy-panel {
+    padding: 18px;
+  }
+
+  .sy-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px;
+  }
+
+  .sy-facts li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 96px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--brand-light);
+  }
+
+  .sy-facts span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+
+  .sy-facts strong {
+    font-size: 1rem;
+    color: var(--brand-dark);
+  }
+
+  /* ── Subject accordions ── */
+  .sy-subjects {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: start;
+  }
+
+  .sy-subject {
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--sub-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+  }
+
+  .sy-subject summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .sy-subject summary::-webkit-details-marker { display: none; }
+
+  .sy-subject summary:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+  }
+
+  .sy-icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    font-weight: 800;
+    color: var(--sub-color);
+    background: color-mix(in srgb, var(--sub-color) 10%, #fff);
+  }
+
+  .sy-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  .sy-count {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+
+  .sy-chev {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--ink-muted);
+    border-bottom: 2px solid var(--ink-muted);
+    transform: rotate(45deg);
+    margin: 0 4px 4px;
+    transition: transform 0.2s;
+  }
+
+  .sy-subject[open] .sy-chev {
+    transform: rotate(-135deg);
+    margin-bottom: -2px;
+  }
+
+  .sy-body {
+    padding: 0 14px 14px 56px;
+  }
+
+  .sy-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px;
+  }
+
+  .sy-topics li {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-2, #f3f4f6);
+  }
+
+  .sy-practice {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--brand);
+  }
+
+  @media (max-width: 768px) {
+    .sy-subjects { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .sy-section { padding: 20px 0 8px; }
+    .sy-panel { padding: 14px; }
+    .sy-stage { padding: 12px 14px 9px; font-size: 0.85rem; }
+    .sy-facts li { flex: 1; min-width: 0; padding: 8px 10px; }
+    .sy-body { padding-left: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sy-chev { transition: none; }
+  }
+</style>

@@ -1,0 +1,207 @@
+---
+/**
+ * Yesterday's live test top 10 (sample data until the API exists).
+ * The footer row sends visitors to today's live test so they can get ranked.
+ */
+import Bi from "./Bi.astro";
+import V2Head from "./V2Head.astro";
+import { v2Leaderboard } from "../../../data/osssc-v2";
+
+interface Props {
+  id?: string;
+}
+
+const { id = "leaderboard" } = Astro.props;
+const MEDALS = ["🥇", "🥈", "🥉"];
+---
+
+<section id={id} class="lbd-section" aria-labelledby="lbd-title" data-v2-section>
+  <div class="wrap">
+    <V2Head
+      id="lbd-title"
+      title={{ en: "Live test leaderboard", or: "ଲାଇଭ ଟେଷ୍ଟ ମେଧା ତାଲିକା" }}
+      sub={{ en: "Yesterday's 8 PM live test – top 10 in Odisha.", or: "ଗତକାଲିର ରାତି 8 ଟା ଲାଇଭ ଟେଷ୍ଟ – ଓଡ଼ିଶାର ଶ୍ରେଷ୍ଠ 10।" }}
+    />
+
+    <div class="lbd-card">
+      <ol class="lbd-list">
+        {v2Leaderboard.map((r, i) => (
+          <li class:list={["lbd-row", { "is-top": i < 3 }]}>
+            <span class="lbd-rank">{MEDALS[i] ?? i + 1}</span>
+            <span class="lbd-avatar" aria-hidden="true">{r.name.charAt(0)}</span>
+            <span class="lbd-who">
+              <span class="lbd-name">{r.name}</span>
+              <span class="lbd-district"><Bi t={r.district} /></span>
+            </span>
+            <span class="lbd-score">
+              <strong>{r.score}</strong>/{r.total}
+            </span>
+            <span class="lbd-time" title="Time taken">{r.time}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div class="lbd-you" data-lbd-you>
+        <p>
+          <Bi t={{ en: "Want to see your rank here?", or: "ଏଠାରେ ନିଜ ର‍୍ୟାଙ୍କ ଦେଖିବାକୁ ଚାହାଁନ୍ତି?" }} />
+        </p>
+        <a href="#live-test" class="lbd-btn">
+          <Bi t={{ en: "Join today's live test", or: "ଆଜିର ଲାଇଭ ଟେଷ୍ଟ ଦିଅନ୍ତୁ" }} />
+        </a>
+      </div>
+    </div>
+
+    <p class="lbd-foot">
+      <Bi
+        t={{
+          en: "Ranked by score, then by time taken.",
+          or: "ପ୍ରଥମେ ମାର୍କ, ତାପରେ ନିଆଯାଇଥିବା ସମୟ ଅନୁସାରେ ର‍୍ୟାଙ୍କ।",
+        }}
+      />
+    </p>
+  </div>
+</section>
+
+<style>
+  .lbd-section {
+    padding: 28px 0 12px;
+  }
+
+  .lbd-card {
+    max-width: 760px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .lbd-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .lbd-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .lbd-row.is-top {
+    background: linear-gradient(90deg, var(--gold-light), transparent 70%);
+  }
+
+  .lbd-rank {
+    flex-shrink: 0;
+    width: 28px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .is-top .lbd-rank {
+    font-size: 1.2rem;
+  }
+
+  .lbd-avatar {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--brand);
+    background: var(--brand-light);
+  }
+
+  .lbd-who {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lbd-name {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lbd-district {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+
+  .lbd-score {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lbd-score strong {
+    font-size: 1rem;
+    color: var(--ink);
+  }
+
+  .lbd-time {
+    flex-shrink: 0;
+    width: 52px;
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lbd-you {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--brand-light);
+  }
+
+  .lbd-you p {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--brand-dark);
+  }
+
+  .lbd-btn {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--brand);
+    padding: 9px 18px;
+    border-radius: var(--radius-pill);
+  }
+
+  .lbd-btn:hover {
+    background: var(--brand-dark);
+  }
+
+  .lbd-foot {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    margin: 10px 0 0;
+  }
+
+  @media (max-width: 600px) {
+    .lbd-section { padding: 20px 0 8px; }
+    .lbd-row { gap: 10px; padding: 10px 12px; }
+    .lbd-avatar { display: none; }
+    .lbd-you { flex-direction: column; align-items: stretch; text-align: center; }
+  }
+</style>

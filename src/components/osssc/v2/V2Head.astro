@@ -1,0 +1,70 @@
+---
+// Section heading used by every block on the new OSSSC hub page.
+import Bi from "./Bi.astro";
+import type { L } from "../../../data/osssc-v2";
+
+interface Props {
+  id: string; // heading id, for aria-labelledby
+  title: L;
+  sub?: L;
+  pill?: L;
+}
+
+const { id, title, sub, pill } = Astro.props;
+---
+
+<div class="vh">
+  {pill && (
+    <span class="vh-pill">
+      <span class="vh-dot" aria-hidden="true"></span>
+      <Bi t={pill} />
+    </span>
+  )}
+  <h2 id={id} class="vh-title"><Bi t={title} /></h2>
+  {sub && <p class="vh-sub"><Bi t={sub} /></p>}
+  <slot />
+</div>
+
+<style>
+  .vh {
+    margin-bottom: 18px;
+  }
+
+  .vh-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--brand);
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    margin-bottom: 8px;
+  }
+
+  .vh-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+
+  .vh-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 4px;
+  }
+
+  .vh-sub {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+    margin: 0;
+  }
+</style>
