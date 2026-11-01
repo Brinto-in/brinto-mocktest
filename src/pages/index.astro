@@ -14,6 +14,7 @@ import PosterRow from "../components/PosterRow.astro";
 
 import { steps } from "../data/steps";
 import { ossscItems, OSSSC_PAGE } from "../data/osssc";
+import { ssbOdishaItems, SSB_ODISHA_PAGE } from "../data/exams/odisha/ssb-junior-assistant-2026";
 ---
 
 <BaseLayout
@@ -22,6 +23,15 @@ import { ossscItems, OSSSC_PAGE } from "../data/osssc";
 >
   <Hero />
 <!--  <StatsStrip />-->
+
+  <!-- ── SSB ODISHA SECTION ──────────────────────── -->
+  <PosterRow
+    sectionId="ssb-odisha-row"
+    title="State Selection Board, Odisha"
+    seeAllHref={SSB_ODISHA_PAGE}
+    items={ssbOdishaItems}
+    cols={6}
+  />
 
   <!-- ── OSSSC SECTION ───────────────────────────── -->
   <PosterRow

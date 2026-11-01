@@ -6,7 +6,10 @@
  * Vacancy figures are "total (women)". Totals cross-checked against the notice:
  * 883 (281) = 534 Junior Assistant + 349 Junior Clerk.
  */
+import type { PosterItem } from "../../../components/PosterRow.astro";
 import type { Exam, TableColumn } from "../types";
+
+export const SSB_ODISHA_PAGE = "/mocktest/ssb-odisha";
 
 // ── Vacancy table columns (shared by every view) ──────
 
@@ -615,3 +618,18 @@ export const ssbJuniorAssistant2026: Exam = {
     },
   ],
 };
+
+// Home page row: one card per subject, live tests first. Subjects without a test open their row on the SSB page.
+export const ssbOdishaItems: PosterItem[] = [...ssbJuniorAssistant2026.tests!.subjects]
+  .sort((a, b) => Number(!!b.testId) - Number(!!a.testId))
+  .map((s) => ({
+    id: `ssb-${s.id}`,
+    icon: s.icon,
+    title: s.name.en,
+    sub: "SSB Odisha",
+    meta: s.testId ? "Subject test · Free" : "Coming soon",
+    image: s.poster,
+    tone: [s.accent, `color-mix(in srgb, ${s.accent} 45%, #000)`],
+    href: s.testId ? `/mocktest/test/${s.testId}` : `${SSB_ODISHA_PAGE}#tests-${s.id}`,
+    badge: s.testId ? undefined : "SOON",
+  }));
