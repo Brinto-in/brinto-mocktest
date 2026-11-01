@@ -1,0 +1,185 @@
+---
+/**
+ * ExamPage — full recruitment exam page built from one Exam data object.
+ * Order follows the OSSSC hub: mock tests first (the main thing we offer), then what to
+ * study (syllabus, pattern), then the recruitment details. Sections only render when the
+ * exam has data for them, and the sticky jump links follow automatically.
+ * A new exam page is just:
+ *
+ *   ---
+ *   import ExamPage from "../../components/odisha/ssb-odisha/ExamPage.astro";
+ *   import { someExam } from "../../data/exams/odisha/some-exam";
+ *   ---
+ *   <ExamPage exam={someExam} />
+ *
+ * Shared building blocks (Bi, Section, DataTable, Tabs …) live in components/exam/ui.
+ */
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Bi from "../../exam/ui/Bi.astro";
+import LangBar from "./LangBar.astro";
+import ExamHero from "./ExamHero.astro";
+import KeyDates from "./KeyDates.astro";
+import Vacancies from "./Vacancies.astro";
+import PostsPay from "./PostsPay.astro";
+import Eligibility from "./Eligibility.astro";
+import ExamPattern from "./ExamPattern.astro";
+import SelectionProcess from "./SelectionProcess.astro";
+import Syllabus from "./Syllabus.astro";
+import FeeAndApply from "./FeeAndApply.astro";
+import Documents from "./Documents.astro";
+import SubjectTests from "./SubjectTests.astro";
+import ExamFaq from "./ExamFaq.astro";
+import { formatDate } from "../../../lib/examDates";
+import type { Exam, L } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+}
+
+const { exam } = Astro.props;
+
+// Sections in page order: [id, jump-link label, has data]
+const sections: { id: string; label: L; show: boolean }[] = [
+  { id: "tests", label: { en: "Mock tests", or: "ମକ୍ ଟେଷ୍ଟ" }, show: !!exam.tests?.subjects.length },
+  { id: "syllabus", label: { en: "Syllabus", or: "ପାଠ୍ୟକ୍ରମ" }, show: !!exam.syllabus?.length },
+  { id: "pattern", label: { en: "Exam pattern", or: "ପରୀକ୍ଷା ଢାଞ୍ଚା" }, show: !!exam.pattern },
+  { id: "dates", label: { en: "Dates", or: "ତାରିଖ" }, show: exam.dates.length > 0 },
+  { id: "vacancy", label: { en: "Vacancy", or: "ପଦବୀ" }, show: !!exam.vacancy },
+  { id: "eligibility", label: { en: "Eligibility", or: "ଯୋଗ୍ୟତା" }, show: !!exam.eligibility?.length },
+  { id: "selection", label: { en: "Selection", or: "ଚୟନ" }, show: !!exam.selection },
+  { id: "posts", label: { en: "Posts & pay", or: "ପଦ ଓ ଦରମା" }, show: !!exam.postsTable },
+  { id: "apply", label: { en: "Fee & apply", or: "ଫି ଓ ଆବେଦନ" }, show: !!(exam.fee || exam.howToApply) },
+  { id: "documents", label: { en: "Documents", or: "ପ୍ରମାଣପତ୍ର" }, show: !!exam.documents?.length },
+  { id: "faq", label: { en: "FAQ", or: "ପ୍ରଶ୍ନୋତ୍ତର" }, show: !!exam.faq?.length },
+];
+const has = (id: string) => sections.some((s) => s.id === id && s.show);
+const links = sections.filter((s) => s.show).map(({ id, label }) => ({ id, label }));
+---
+
+<BaseLayout title={exam.seo.title} description={exam.seo.description} image={exam.seo.image}>
+  <Fragment slot="head">
+    <!-- Apply the saved language before first paint (no flash of English) -->
+    <script is:inline>
+      try {
+        if (localStorage.getItem("brinto:lang") === "or") document.documentElement.dataset.lang = "or";
+      } catch (e) {}
+    </script>
+  </Fragment>
+
+  <ExamHero exam={exam} />
+  <LangBar links={links} />
+
+  <!-- 1. Practice -->
+  {has("tests") && <SubjectTests exam={exam} />}
+
+  <!-- 2. What to study -->
+  {has("syllabus") && <Syllabus exam={exam} />}
+  {has("pattern") && <ExamPattern exam={exam} />}
+
+  <!-- 3. Recruitment details -->
+  {has("dates") && <KeyDates exam={exam} />}
+  {has("vacancy") && <Vacancies exam={exam} />}
+  {has("eligibility") && <Eligibility exam={exam} />}
+  {has("selection") && <SelectionProcess exam={exam} />}
+  {has("posts") && <PostsPay exam={exam} />}
+  {has("apply") && <FeeAndApply exam={exam} />}
+  {has("documents") && <Documents exam={exam} />}
+  {has("faq") && <ExamFaq exam={exam} />}
+
+  {has("tests") && (
+    <section class="xp-cta">
+      <div class="wrap xp-cta-inner">
+        <div>
+          <h2><Bi t={{ en: "Practise today. Free, always.", or: "ଆଜି ଅଭ୍ୟାସ କରନ୍ତୁ। ସର୍ବଦା ମାଗଣା।" }} /></h2>
+          <p><Bi t={{ en: "Timed mock tests in the real exam pattern, with instant results.", or: "ପ୍ରକୃତ ପରୀକ୍ଷା ଢାଞ୍ଚାରେ ସମୟବଦ୍ଧ ମକ୍ ଟେଷ୍ଟ, ତୁରନ୍ତ ଫଳାଫଳ ସହ।" }} /></p>
+        </div>
+        <a href="#tests" class="xp-cta-btn"><Bi t={{ en: "Start a mock test", or: "ମକ୍ ଟେଷ୍ଟ ଆରମ୍ଭ" }} /></a>
+      </div>
+    </section>
+  )}
+
+  <!-- Source + disclaimer -->
+  <aside class="xp-source">
+    <div class="wrap">
+      <p>
+        <strong><Bi t={{ en: "Source:", or: "ଉତ୍ସ:" }} /></strong>
+        {" "}<Bi t={exam.board.name} />,{" "}
+        <Bi t={{ en: "Advertisement No.", or: "ବିଜ୍ଞପ୍ତି ନଂ" }} /> {exam.notice.number} ({formatDate(exam.notice.date)}).{" "}
+        <a href={exam.board.website} target="_blank" rel="noopener">{exam.board.website.replace(/^https?:\/\//, "")}</a>
+      </p>
+      <p>
+        <Bi
+          t={{
+            en: "Brinto MockTest is not affiliated with the recruiting board. Always confirm details in the official notification before applying.",
+            or: "Brinto MockTest ନିଯୁକ୍ତି ବୋର୍ଡ ସହ ସମ୍ପର୍କିତ ନୁହେଁ। ଆବେଦନ ପୂର୍ବରୁ ସର୍ବଦା ସରକାରୀ ବିଜ୍ଞପ୍ତିରେ ତଥ୍ୟ ଯାଞ୍ଚ କରନ୍ତୁ।",
+          }}
+        />
+      </p>
+    </div>
+  </aside>
+</BaseLayout>
+
+<style>
+  /* Same red CTA band as the OSSSC pages */
+  .xp-cta {
+    background: var(--brand);
+    padding: 44px 0;
+  }
+
+  .xp-cta-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .xp-cta h2 {
+    font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .xp-cta p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+  }
+
+  .xp-cta-btn {
+    flex-shrink: 0;
+    font-weight: 700;
+    color: var(--brand);
+    background: #fff;
+    padding: 14px 28px;
+    border-radius: var(--radius-pill);
+    transition: transform 0.1s;
+  }
+
+  .xp-cta-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px) {
+    .xp-cta-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  .xp-source {
+    padding: 24px 0 8px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .xp-source p {
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--ink-muted);
+    margin: 0 0 6px;
+    max-width: 820px;
+  }
+
+  .xp-source a {
+    color: var(--brand);
+    font-weight: 600;
+  }
+</style>

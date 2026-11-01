@@ -1,0 +1,85 @@
+---
+/**
+ * CheckList — list of short points with a tick (or numbers with `ordered`).
+ *   <CheckList items={exam.documents} columns={2} />
+ */
+import Bi from "./Bi.astro";
+import type { T } from "../../../data/exams/types";
+
+interface Props {
+  items: T[];
+  ordered?: boolean;
+  columns?: 1 | 2;
+}
+
+const { items, ordered = false, columns = 1 } = Astro.props;
+const Tag = ordered ? "ol" : "ul";
+---
+
+<Tag class:list={["cl", { "cl-ordered": ordered, "cl-2": columns === 2 }]}>
+  {items.map((t, i) => (
+    <li class="cl-item">
+      <span class="cl-mark" aria-hidden="true">{ordered ? i + 1 : ""}</span>
+      <span class="cl-text"><Bi t={t} /></span>
+    </li>
+  ))}
+</Tag>
+
+<style>
+  .cl {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .cl-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 24px;
+  }
+
+  .cl-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  .cl-mark {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    border-radius: 50%;
+    background: var(--green-light);
+  }
+
+  /* Tick drawn with borders */
+  .cl:not(.cl-ordered) .cl-mark::after {
+    content: "";
+    width: 5px;
+    height: 9px;
+    border: solid var(--green);
+    border-width: 0 2px 2px 0;
+    transform: translateY(-1px) rotate(45deg);
+  }
+
+  .cl-ordered .cl-mark {
+    width: 24px;
+    height: 24px;
+    margin-top: -1px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #fff;
+    background: var(--brand);
+  }
+
+  @media (max-width: 680px) {
+    .cl-2 { grid-template-columns: 1fr; }
+  }
+</style>

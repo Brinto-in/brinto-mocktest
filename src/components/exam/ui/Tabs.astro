@@ -1,0 +1,121 @@
+---
+/**
+ * Tabs — accessible tab strip. Each tab's content goes in a named slot matching its id:
+ *
+ *   <Tabs label="Vacancy" tabs={[{ id: "dept", label: "By department" }, …]}>
+ *     <Fragment slot="dept">…</Fragment>
+ *   </Tabs>
+ *
+ * The first tab is visible without JS; the script only switches panels (arrow keys too).
+ */
+import Bi from "./Bi.astro";
+import type { T } from "../../../data/exams/types";
+
+interface Props {
+  label: string;
+  tabs: { id: string; label: T }[];
+}
+
+const { label, tabs } = Astro.props;
+const uid = `tabs-${Math.random().toString(36).slice(2, 8)}`;
+
+// Named slots can't be rendered with a dynamic <slot name={…}>, so render each one up front.
+const panels = await Promise.all(tabs.map((t) => Astro.slots.render(t.id)));
+---
+
+<div class="tb" data-tabs>
+  <div class="tb-list" role="tablist" aria-label={label}>
+    {tabs.map((t, i) => (
+      <button
+        type="button"
+        role="tab"
+        class="tb-tab"
+        id={`${uid}-tab-${t.id}`}
+        aria-controls={`${uid}-panel-${t.id}`}
+        aria-selected={i === 0 ? "true" : "false"}
+        tabindex={i === 0 ? 0 : -1}
+      >
+        <Bi t={t.label} />
+      </button>
+    ))}
+  </div>
+
+  {tabs.map((t, i) => (
+    <div
+      role="tabpanel"
+      class="tb-panel"
+      id={`${uid}-panel-${t.id}`}
+      aria-labelledby={`${uid}-tab-${t.id}`}
+      hidden={i !== 0}
+      set:html={panels[i]}
+    />
+  ))}
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-tabs]").forEach((box) => {
+    const tabs = [...box.querySelectorAll<HTMLButtonElement>(':scope > .tb-list > [role="tab"]')];
+
+    function select(tab: HTMLButtonElement) {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute("aria-controls")!)!.hidden = !on;
+      });
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => select(tab));
+      tab.addEventListener("keydown", (e) => {
+        const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        const next = tabs[(i + step + tabs.length) % tabs.length];
+        next.focus();
+        select(next);
+      });
+    });
+  });
+</script>
+
+<style>
+  .tb-list {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 14px;
+  }
+  .tb-list::-webkit-scrollbar { display: none; }
+
+  .tb-tab {
+    flex-shrink: 0;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-pill);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .tb-tab:hover {
+    border-color: var(--brand-mid);
+    color: var(--brand);
+  }
+
+  .tb-tab[aria-selected="true"] {
+    color: #fff;
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+
+  .tb-tab:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+</style>

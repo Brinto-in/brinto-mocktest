@@ -1,0 +1,682 @@
+---
+/**
+ * SubjectTests — main section of the SSB page, same layout as the Odisha 10th page
+ * (src/pages/odisha-10th-mock-test.astro):
+ *   1. Subject filter pills
+ *   2. Full mock tests row
+ *   3. One row per subject: full subject test poster + chapter test cards
+ * Anything without a testId shows "Coming soon" and doesn't link.
+ */
+import Bi from "../../exam/ui/Bi.astro";
+import type { Exam } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+  id?: string;
+}
+
+const { exam, id = "tests" } = Astro.props;
+const tests = exam.tests!;
+const BRAND = "#B00020";
+
+const testHref = (testId?: number) => (testId ? `/mocktest/test/${testId}` : undefined);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const poster = (path?: string) => (path ? `${base}${path}` : "");
+const IMG_FALLBACK = "this.remove()"; // missing poster → gradient + icon underneath shows
+const pad = (n: number) => String(n + 1).padStart(2, "0");
+const qm = (q?: number, m?: number) => [q ? `${q} MCQs` : "", m ? `${m} min` : "", "Free"].filter(Boolean).join(" · ");
+---
+
+<section id={id} class="sx-section" aria-labelledby={`${id}-title`} data-exam-section>
+  <div class="wrap">
+  <!-- Heading kept for screen readers / SEO only -->
+  <h2 id={`${id}-title`} class="sr-only"><Bi t={tests.title} /></h2>
+
+  <!-- 1. Subject filter pills -->
+  <div class="sx-filters" role="group" aria-label="Filter by subject" data-sx-filters>
+    <button type="button" class="sx-filter is-active" data-filter="all" aria-pressed="true">
+      <Bi t={{ en: `All subjects (${tests.subjects.length})`, or: `ସମସ୍ତ ବିଷୟ (${tests.subjects.length})` }} />
+    </button>
+    {tests.subjects.map((s) => (
+      <button type="button" class="sx-filter" data-filter={s.id} aria-pressed="false">
+        <span aria-hidden="true">{s.icon}</span> <Bi t={s.name} />
+      </button>
+    ))}
+  </div>
+
+  <div class="sx-rows">
+    <!-- 2. Full mock tests -->
+    {!!tests.fullMocks?.length && (
+      <article class="sx-subject" data-subject-id="full" style={`--accent:${BRAND};`} aria-labelledby={`${id}-full-title`}>
+        <header class="sx-head">
+          <div class="sx-head-text">
+            <h3 id={`${id}-full-title`} class="sx-title">
+              <span class="sx-title-icon" aria-hidden="true">📝</span>
+              <Bi t={{ en: "Full mock tests", or: "ପୂର୍ଣ୍ଣ ମକ୍ ଟେଷ୍ଟ" }} />
+            </h3>
+            <p class="sx-meta"><Bi t={{ en: "All four written subjects, real exam timing", or: "ଚାରିଟି ଲିଖିତ ବିଷୟ, ପ୍ରକୃତ ପରୀକ୍ଷା ସମୟ" }} /></p>
+          </div>
+        </header>
+        <ul class="sx-row">
+          {tests.fullMocks!.map((f) => {
+            const href = testHref(f.testId);
+            const Tag = href ? "a" : "div";
+            return (
+              <li>
+                <Tag href={href} class:list={["sx-card sx-main", { "is-soon": !href }]} aria-disabled={href ? undefined : "true"} aria-label={`${f.name.en} – ${href ? f.meta.en : "coming soon"}`}>
+                  <span class="sx-fallback" aria-hidden="true">📝</span>
+                  <span class="sx-badge">FULL TEST</span>
+                  {!href && <span class="sx-badge sx-badge-pop sx-badge-soon">COMING SOON</span>}
+                  <span class="sx-overlay">
+                    <span class="sx-kicker">{exam.board.short} · <Bi t={{ en: "Full mock", or: "ପୂର୍ଣ୍ଣ ମକ୍" }} /></span>
+                    <span class="sx-name"><Bi t={f.name} /></span>
+                    <span class="sx-info"><Bi t={f.meta} /></span>
+                  </span>
+                </Tag>
+              </li>
+            );
+          })}
+        </ul>
+      </article>
+    )}
+
+    <!-- 3. Subject rows -->
+    {tests.subjects.map((s) => {
+      const fullHref = testHref(s.testId);
+      const FullTag = fullHref ? "a" : "div";
+      return (
+        <article class="sx-subject" data-subject-id={s.id} id={`${id}-${s.id}`} style={`--accent:${s.accent};`} aria-labelledby={`${id}-${s.id}-title`}>
+          <header class="sx-head">
+            <div class="sx-head-text">
+              <h3 id={`${id}-${s.id}-title`} class="sx-title">
+                <span class="sx-title-icon" aria-hidden="true">{s.icon}</span>
+                <Bi t={s.name} />
+              </h3>
+              <p class="sx-meta">
+                <Bi t={s.meta} /> · {s.chapters.length} <Bi t={{ en: "chapter tests", or: "ଅଧ୍ୟାୟ ଟେଷ୍ଟ" }} />
+              </p>
+            </div>
+            <div class="sx-head-right">
+              <a href="#syllabus" class="sx-syllabus"><Bi t={{ en: "Syllabus", or: "ପାଠ୍ୟକ୍ରମ" }} /></a>
+              <div class="sx-nav" aria-hidden="true">
+                <button type="button" class="sx-arrow" data-dir="-1" tabindex="-1">‹</button>
+                <button type="button" class="sx-arrow" data-dir="1" tabindex="-1">›</button>
+              </div>
+            </div>
+          </header>
+
+          <ul class="sx-row">
+            <!-- Full subject test -->
+            <li>
+              <FullTag
+                href={fullHref}
+                class:list={["sx-card sx-main", { "is-soon": !fullHref }]}
+                aria-disabled={fullHref ? undefined : "true"}
+                aria-label={`${s.name.en} subject test – ${fullHref ? qm(s.questions, s.minutes) : "coming soon"}`}
+              >
+                <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
+                {s.poster && <img class="sx-img" src={poster(s.poster)} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />}
+                <span class="sx-badge">SUBJECT TEST</span>
+                {!fullHref && <span class="sx-badge sx-badge-pop sx-badge-soon">COMING SOON</span>}
+                <span class="sx-overlay">
+                  <span class="sx-kicker"><Bi t={s.meta} /></span>
+                  <span class="sx-name"><Bi t={s.name} /></span>
+                  <span class="sx-info">
+                    {fullHref ? qm(s.questions, s.minutes) : <Bi t={{ en: "Subject test coming soon", or: "ବିଷୟ ଟେଷ୍ଟ ଶୀଘ୍ର ଆସୁଛି" }} />}
+                  </span>
+                </span>
+              </FullTag>
+            </li>
+
+            <!-- Chapter tests -->
+            {s.chapters.map((c, i) => {
+              const href = testHref(c.testId);
+              const Tag = href ? "a" : "div";
+              const soon = !href;
+              const topics = c.topics ?? [];
+              return (
+                <li>
+                  <Tag
+                    href={href}
+                    class:list={["sx-card sx-chapter", { "is-soon": soon }]}
+                    aria-disabled={soon ? "true" : undefined}
+                    aria-label={`${s.name.en} chapter test: ${c.name.en} – ${soon ? "coming soon" : qm(c.questions, c.minutes)}`}
+                  >
+                    <span class="sx-ch-top">
+                      <span class="sx-ch-num">{pad(i)}</span>
+                      <span class="sx-ch-marks">
+                        {soon ? <Bi t={{ en: "Soon", or: "ଶୀଘ୍ର" }} /> : c.questions ? `${c.questions} MCQs` : "Live"}
+                      </span>
+                    </span>
+                    <span class="sx-ch-label"><Bi t={{ en: "Chapter test", or: "ଅଧ୍ୟାୟ ଟେଷ୍ଟ" }} /></span>
+                    <span class="sx-ch-title"><Bi t={c.name} /></span>
+                    {topics.length > 0 && (
+                      <span class="sx-ch-topics">
+                        {topics.slice(0, 3).map((t) => <span><Bi t={t} /></span>)}
+                        {topics.length > 3 && <span class="sx-ch-more">+{topics.length - 3} <Bi t={{ en: "more topics", or: "ଅଧିକ ବିଷୟ" }} /></span>}
+                      </span>
+                    )}
+                    <span class="sx-ch-cta">
+                      {soon ? <Bi t={{ en: "Coming soon", or: "ଶୀଘ୍ର ଆସୁଛି" }} /> : <Bi t={{ en: "Practice →", or: "ଅଭ୍ୟାସ →" }} />}
+                    </span>
+                  </Tag>
+                </li>
+              );
+            })}
+          </ul>
+        </article>
+      );
+    })}
+  </div>
+  </div>
+</section>
+
+<script>
+  // Subject filter pills: show one subject row (or all)
+  document.querySelectorAll<HTMLElement>("[data-sx-filters]").forEach((bar) => {
+    const section = bar.closest("section")!;
+    const pills = [...bar.querySelectorAll<HTMLButtonElement>("[data-filter]")];
+    const rows = [...section.querySelectorAll<HTMLElement>("[data-subject-id]")];
+
+    pills.forEach((pill) =>
+      pill.addEventListener("click", () => {
+        const f = pill.dataset.filter!;
+        pills.forEach((p) => {
+          const on = p === pill;
+          p.classList.toggle("is-active", on);
+          p.setAttribute("aria-pressed", String(on));
+        });
+        rows.forEach((row) => {
+          row.hidden = !(f === "all" || row.dataset.subjectId === f);
+        });
+        rows.forEach((row) => row.dispatchEvent(new Event("sx:resize")));
+      }),
+    );
+  });
+
+  // Row arrows (hidden when the row doesn't overflow)
+  document.querySelectorAll<HTMLElement>(".sx-subject").forEach((sec) => {
+    const row = sec.querySelector<HTMLElement>(".sx-row");
+    const arrows = sec.querySelectorAll<HTMLButtonElement>(".sx-arrow");
+    if (!row || arrows.length < 2) return;
+    const update = () => {
+      const max = row.scrollWidth - row.clientWidth - 2;
+      arrows[0].disabled = row.scrollLeft <= 2;
+      arrows[1].disabled = row.scrollLeft >= max;
+      sec.classList.toggle("sx-no-scroll", max <= 0);
+    };
+    arrows.forEach((a) =>
+      a.addEventListener("click", () => {
+        row.scrollBy({ left: Number(a.dataset.dir) * row.clientWidth * 0.85, behavior: "smooth" });
+      }),
+    );
+    row.addEventListener("scroll", update, { passive: true });
+    sec.addEventListener("sx:resize", update);
+    window.addEventListener("resize", update);
+    update();
+  });
+</script>
+
+<style>
+  /* Same card system as the Odisha 10th page (.sx-*) */
+
+  .sx-section {
+    padding: 32px 0 40px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* ── Filter pills ── */
+  .sx-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .sx-filter {
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .sx-filter:hover {
+    border-color: var(--brand-mid);
+    color: var(--brand);
+  }
+
+  .sx-filter.is-active {
+    background: var(--brand);
+    color: #ffffff;
+    border-color: var(--brand);
+    box-shadow: 0 2px 8px rgba(176, 0, 32, 0.2);
+  }
+
+  /* ── Rows ── */
+  .sx-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .sx-subject[hidden] {
+    display: none;
+  }
+
+  .sx-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+
+  .sx-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: clamp(1.05rem, 2vw, 1.3rem);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .sx-title-icon {
+    font-size: 1.15em;
+  }
+
+  .sx-meta {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+  }
+
+  .sx-head-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .sx-syllabus {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brand);
+    white-space: nowrap;
+  }
+
+  .sx-syllabus:hover {
+    text-decoration: underline;
+  }
+
+  .sx-nav {
+    display: flex;
+    gap: 6px;
+  }
+
+  .sx-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 1.3rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  }
+
+  .sx-arrow:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: #f3f4f6;
+  }
+
+  .sx-arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .sx-no-scroll .sx-nav {
+    display: none;
+  }
+
+  .sx-row {
+    --pw: 184px; /* card width */
+    list-style: none;
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    /* Room for hover shadows; negative margin keeps the layout unchanged */
+    padding: 6px 14px 28px;
+    margin: 0 -14px -18px;
+    scroll-padding-inline: 14px;
+  }
+
+  .sx-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sx-row > li {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  /* ── Card base ── */
+  .sx-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: var(--pw);
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    text-align: left;
+    color: #ffffff;
+    cursor: pointer;
+    background:
+      radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.2), transparent 45%),
+      linear-gradient(160deg, var(--accent), color-mix(in srgb, var(--accent) 45%, #000));
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .sx-card:hover,
+  .sx-card:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 22px -8px rgba(15, 23, 42, 0.32);
+  }
+
+  .sx-card:focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  /* Poster cards */
+  .sx-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding-bottom: 35%;
+    font-size: calc(var(--pw) * 0.3);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+  }
+
+  .sx-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .sx-card:hover .sx-img {
+    transform: scale(1.05);
+  }
+
+  .sx-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--brand);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+
+  .sx-badge-pop {
+    left: auto;
+    right: 8px;
+    background: #ffffff;
+    color: var(--gold);
+  }
+
+  .sx-overlay {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 40px 10px 10px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sx-kicker {
+    font-size: 0.66rem;
+    font-weight: 600;
+    opacity: 0.85;
+  }
+
+  .sx-name {
+    font-size: 0.92rem;
+    font-weight: 800;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sx-info {
+    font-size: 0.66rem;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  /* Text chapter cards: light, tinted with the subject colour */
+  .sx-chapter {
+    color: var(--ink);
+    padding: 14px 12px 12px;
+    gap: 6px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, #fff) 0%, #ffffff 55%);
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--rule));
+  }
+
+  .sx-chapter:hover,
+  .sx-chapter:focus-visible {
+    border-color: var(--accent);
+  }
+
+  .sx-ch-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .sx-ch-num {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--accent);
+  }
+
+  .sx-ch-marks {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, #fff);
+    padding: 3px 7px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+
+  .sx-ch-label {
+    margin-top: 4px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .sx-ch-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sx-ch-topics {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    line-height: 1.3;
+    overflow: hidden;
+  }
+
+  .sx-ch-topics > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sx-ch-topics > span::before {
+    content: "• ";
+    color: var(--accent);
+  }
+
+  .sx-ch-topics .sx-ch-more {
+    color: var(--ink-muted);
+  }
+
+  .sx-ch-topics .sx-ch-more::before {
+    content: "";
+  }
+
+  .sx-ch-cta {
+    margin-top: auto;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Coming soon: muted, not clickable */
+  .sx-card.is-soon {
+    cursor: default;
+  }
+
+  .sx-card.is-soon:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+  }
+
+  .sx-card.is-soon .sx-img,
+  .sx-card.is-soon .sx-fallback {
+    filter: saturate(0.45) brightness(0.85);
+  }
+
+  .sx-chapter.is-soon {
+    background: var(--surface-2);
+    border-color: var(--rule);
+  }
+
+  .sx-chapter.is-soon .sx-ch-num,
+  .sx-chapter.is-soon .sx-ch-marks,
+  .sx-chapter.is-soon .sx-ch-cta {
+    color: var(--ink-muted);
+  }
+
+  .sx-chapter.is-soon .sx-ch-marks {
+    background: var(--rule);
+  }
+
+  .sx-badge-soon {
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--ink);
+  }
+
+  /* ── Responsive (same as the 10th page) ── */
+  @media (max-width: 768px) {
+    .sx-filters {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: 0 -16px 24px;
+      padding: 0 16px 4px;
+    }
+    .sx-filters::-webkit-scrollbar {
+      display: none;
+    }
+    .sx-filter {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    .sx-rows {
+      gap: 22px;
+    }
+    .sx-row {
+      --pw: 150px;
+      gap: 10px;
+    }
+    .sx-nav {
+      display: none;
+    }
+    .sx-ch-num {
+      font-size: 1.8rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sx-row {
+      --pw: 146px;
+      gap: 8px;
+    }
+    .sx-card {
+      aspect-ratio: 3 / 5;
+    }
+    .sx-badge-pop {
+      display: none;
+    }
+    .sx-info {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sx-name {
+      font-size: 0.84rem;
+    }
+    .sx-ch-title {
+      font-size: 0.86rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sx-card,
+    .sx-img {
+      transition: none;
+    }
+  }
+</style>

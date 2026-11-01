@@ -1,0 +1,60 @@
+---
+// PostsPay — the posts / institutions candidates choose from, with pay scale and status.
+import Section from "../../exam/ui/Section.astro";
+import Bi from "../../exam/ui/Bi.astro";
+import DataTable from "../../exam/ui/DataTable.astro";
+import type { Exam } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+  id?: string;
+}
+
+const { exam, id = "posts" } = Astro.props;
+const p = exam.postsTable!;
+---
+
+<Section
+  id={id}
+  tone="alt"
+  title={{ en: "Posts, pay scale & preferences", or: "ପଦବୀ, ଦରମା ଓ ପସନ୍ଦ କ୍ରମ" }}
+  sub={{ en: "The options you rank in the application form.", or: "ଆବେଦନ ଫର୍ମରେ ପସନ୍ଦ କ୍ରମରେ ଦେବାକୁ ଥିବା ବିକଳ୍ପ।" }}
+>
+  <DataTable data={p.table} caption="Posts and pay scale" />
+  {p.note && (
+    <p class="pp-note">
+      <span class="pp-icon" aria-hidden="true">i</span>
+      <span><Bi t={p.note} /></span>
+    </p>
+  )}
+</Section>
+
+<style>
+  .pp-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    background: var(--gold-light);
+    border-radius: var(--radius-sm);
+  }
+
+  .pp-icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 800;
+    font-style: italic;
+    font-family: Georgia, serif;
+    color: #fff;
+    background: var(--gold);
+  }
+</style>

@@ -123,6 +123,43 @@ const testId = id || "11";
                         <textarea id="explanation" name="explanation" rows={2} placeholder="Explanation for correct answer…"></textarea>
                     </div>
 
+                    <!-- Question Metadata (Optional) -->
+                    <div class="metadata-fieldset">
+                        <div class="metadata-fieldset-header">
+                            <span class="metadata-fieldset-title">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                                Question Metadata
+                            </span>
+                            <span class="metadata-fieldset-sub">Subject, exam, conductor info</span>
+                        </div>
+                        <div class="form-grid form-grid-2" style="gap:10px;">
+                            <div class="form-group">
+                                <label class="form-label" for="meta-subject" style="font-size:0.72rem;">Subject</label>
+                                <input type="text" id="meta-subject" name="meta_subject" placeholder="e.g. Mathematics" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="meta-chapter" style="font-size:0.72rem;">Chapter</label>
+                                <input type="text" id="meta-chapter" name="meta_chapter" placeholder="e.g. Percentages" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="meta-conductor" style="font-size:0.72rem;">Conductor</label>
+                                <input type="text" id="meta-conductor" name="meta_conductor" placeholder="e.g. TCS" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="meta-exam-for" style="font-size:0.72rem;">Exam For</label>
+                                <input type="text" id="meta-exam-for" name="meta_exam_for" placeholder="e.g. OSSSC Forester CRE" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="meta-exam-year" style="font-size:0.72rem;">Exam Year</label>
+                                <input type="text" id="meta-exam-year" name="meta_exam_year" placeholder="e.g. 2025-26" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="meta-shift" style="font-size:0.72rem;">Shift</label>
+                                <input type="number" id="meta-shift" name="meta_shift" placeholder="e.g. 1" min="1" max="10" />
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 8px;">
                         Save Question
                     </button>
@@ -133,22 +170,35 @@ const testId = id || "11";
             <form id="add-bulk-form" style="display:none;">
                 <div class="form-grid" style="gap:14px">
                     <div class="form-group">
-                        <label class="form-label" for="bulk-json">Questions JSON Array <span class="required">*</span></label>
-                        <textarea id="bulk-json" name="json" rows={12} required placeholder='[
-  {
-    "section": "General Knowledge",
-    "text": "What is the capital of India?",
-    "explanation": "New Delhi is the capital.",
-    "options": [
-      { "text": "New Delhi", "is_correct": true },
-      { "text": "Mumbai", "is_correct": false }
-    ]
-  }
-]' style="font-family:monospace;font-size:0.85rem;"></textarea>
-                        <span class="form-hint" style="margin-top:4px;display:block;">Paste a valid JSON array containing multiple questions matching the API format.</span>
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                            <label class="form-label" for="bulk-json" style="margin-bottom:0">Questions JSON Array <span class="required">*</span></label>
+                            <div style="display:flex;gap:6px">
+                                <button type="button" class="btn btn-ghost btn-sm" id="copy-sample-btn" style="padding:3px 9px;font-size:0.75rem;">
+                                    <span id="copy-sample-text">📋 Copy Template</span>
+                                </button>
+                                <button type="button" class="btn btn-ghost btn-sm" id="load-sample-btn" style="padding:3px 9px;font-size:0.75rem;">
+                                    ⚡ Fill Template
+                                </button>
+                            </div>
+                        </div>
+                        <textarea id="bulk-json" name="json" rows={13} required placeholder="Paste questions JSON array here..." style="font-family:monospace;font-size:0.84rem;"></textarea>
+                        <span class="form-hint" style="margin-top:4px;display:block;">Paste a valid JSON array matching the API format including optional <code>metadata</code>.</span>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 8px;">
+                    <!-- Sample preview card with Copy button -->
+                    <div style="background:var(--surface-2);border:1px solid var(--rule);border-radius:var(--r-sm);padding:12px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                            <span style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-soft);">
+                                💡 Sample JSON Format
+                            </span>
+                            <button type="button" class="btn btn-ghost btn-sm" id="copy-preview-btn" style="padding:2px 8px;font-size:0.72rem;">
+                                <span id="copy-preview-text">📋 Copy</span>
+                            </button>
+                        </div>
+                        <pre id="sample-json-preview" style="margin:0;font-size:0.75rem;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:10px;overflow-x:auto;max-height:180px;font-family:monospace;color:var(--ink);line-height:1.45;"></pre>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 4px;">
                         Upload Multiple Questions
                     </button>
                 </div>
@@ -160,6 +210,16 @@ const testId = id || "11";
 <script is:inline define:vars={{ testId }}>
   let currentPage = 1;
   const limit = 20;
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
   async function loadTestAndQuestions() {
     const token = localStorage.getItem("brinto_token") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMmQxMDQwZThkM2U0MTdhNjcwYjhjYSIsInVzZXJfaWQiOiJCNjQzIiwidXNlcl9uYW1lIjoibmxocmJwdHIiLCJyb2xlIjpbIkFETUlNIl0sIm1vYmlsZSI6IjkxNzg0NjkwNDacheIsImlhdCI6MTc5MjUwNDQ1NCwiZXhwIjoxNzkzMTA5MjU0f0.fLKmw6EsvA760i_elckhKWD22RKvA0cmEHr5PRcX760";
@@ -245,15 +305,96 @@ const testId = id || "11";
       qContainer.innerHTML = questions.map((q, idx) => {
         const options = Array.isArray(q.options) ? q.options : [];
         const qNum = (currentPage - 1) * limit + (idx + 1);
+
+        let meta = null;
+        if (q.metadata) {
+          if (typeof q.metadata === 'object') {
+            meta = q.metadata;
+          } else if (typeof q.metadata === 'string') {
+            try {
+              meta = JSON.parse(q.metadata);
+            } catch (e) {
+              meta = null;
+            }
+          }
+        }
+
+        const hasMetadata = meta && typeof meta === 'object' && Object.keys(meta).length > 0;
+
+        let metaBoxHtml = '';
+        if (hasMetadata) {
+          metaBoxHtml = `
+            <div class="q-meta-card">
+              <div class="q-meta-card-header">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <span>Question Metadata</span>
+              </div>
+              <div class="q-meta-chips">
+                ${meta.subject ? `
+                  <div class="q-meta-chip">
+                    <span class="q-meta-chip-label">Subject</span>
+                    <span class="q-meta-chip-val">${escapeHtml(meta.subject)}</span>
+                  </div>
+                ` : ''}
+                ${meta.chapter ? `
+                  <div class="q-meta-chip">
+                    <span class="q-meta-chip-label">Chapter</span>
+                    <span class="q-meta-chip-val">${escapeHtml(meta.chapter)}</span>
+                  </div>
+                ` : ''}
+                ${meta.exam_for ? `
+                  <div class="q-meta-chip">
+                    <span class="q-meta-chip-label">Exam For</span>
+                    <span class="q-meta-chip-val">${escapeHtml(meta.exam_for)}</span>
+                  </div>
+                ` : ''}
+                ${meta.conductor ? `
+                  <div class="q-meta-chip">
+                    <span class="q-meta-chip-label">Conductor</span>
+                    <span class="q-meta-chip-val">${escapeHtml(meta.conductor)}</span>
+                  </div>
+                ` : ''}
+                ${meta.exam_year ? `
+                  <div class="q-meta-chip">
+                    <span class="q-meta-chip-label">Year</span>
+                    <span class="q-meta-chip-val">${escapeHtml(meta.exam_year)}</span>
+                  </div>
+                ` : ''}
+                ${meta.shift !== undefined && meta.shift !== null && meta.shift !== '' ? `
+                  <div class="q-meta-chip">
+                    <span class="q-meta-chip-label">Shift</span>
+                    <span class="q-meta-chip-val">Shift ${escapeHtml(meta.shift)}</span>
+                  </div>
+                ` : ''}
+                ${Object.entries(meta)
+                  .filter(([k]) => !['subject', 'chapter', 'exam_for', 'conductor', 'exam_year', 'shift'].includes(k))
+                  .map(([k, v]) => `
+                    <div class="q-meta-chip">
+                      <span class="q-meta-chip-label">${escapeHtml(k.replace(/_/g, ' '))}</span>
+                      <span class="q-meta-chip-val">${escapeHtml(typeof v === 'object' ? JSON.stringify(v) : v)}</span>
+                    </div>
+                  `).join('')}
+              </div>
+            </div>
+          `;
+        }
+
         return `
           <div class="q-card">
               <div class="q-card-header">
                   <div class="q-num">${qNum}</div>
-                  <div class="q-card-text">${q.text || q.question}</div>
-                  <span class="q-section-tag">${q.section || 'General'}</span>
+                  <div class="q-card-text">${escapeHtml(q.text || q.question)}</div>
+                  <div class="q-card-tags">
+                      <span class="q-section-tag">${escapeHtml(q.section || 'General')}</span>
+                      ${meta?.subject ? `<span class="q-tag-badge q-tag-subject" title="Subject: ${escapeHtml(meta.subject)}">${escapeHtml(meta.subject)}</span>` : ''}
+                      ${meta?.exam_for ? `<span class="q-tag-badge q-tag-exam" title="Exam: ${escapeHtml(meta.exam_for)}">${escapeHtml(meta.exam_for)}</span>` : ''}
+                      ${meta?.exam_year ? `<span class="q-tag-badge q-tag-year" title="Year: ${escapeHtml(meta.exam_year)}">${escapeHtml(meta.exam_year)}</span>` : ''}
+                      ${meta?.shift !== undefined && meta?.shift !== null && meta?.shift !== '' ? `<span class="q-tag-badge q-tag-shift" title="Shift: ${escapeHtml(meta.shift)}">Shift ${escapeHtml(meta.shift)}</span>` : ''}
+                  </div>
                   <svg class="q-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
               </div>
               <div class="q-card-body">
+                  ${metaBoxHtml}
                   <div class="q-options">
                       ${options.map((opt, oi) => {
                           const optText = typeof opt === 'object' && opt !== null ? (opt.text || opt.option) : opt;
@@ -261,13 +402,13 @@ const testId = id || "11";
                           return `
                               <div class="q-opt${isCorrect ? ' correct' : ''}">
                                   <span class="q-opt-key">${OPTION_KEYS[oi] || (oi + 1)}.</span>
-                                  ${optText}
-                                  ${isCorrect ? '<span style="margin-left:auto;font-size:0.72rem">✓ Correct</span>' : ''}
+                                  <span style="flex:1">${escapeHtml(optText)}</span>
+                                  ${isCorrect ? '<span style="margin-left:auto;font-size:0.72rem;font-weight:700">✓ Correct</span>' : ''}
                               </div>
                           `;
                       }).join('')}
                   </div>
-                  ${q.explanation ? `<div class="q-explanation"><strong>Explanation:</strong> ${q.explanation}</div>` : ''}
+                  ${q.explanation ? `<div class="q-explanation"><strong>Explanation:</strong> ${escapeHtml(q.explanation)}</div>` : ''}
               </div>
           </div>
         `;
@@ -351,12 +492,33 @@ const testId = id || "11";
       is_correct: i === correctIndex
     }));
 
+    const metaSubject = formData.get("meta_subject")?.trim();
+    const metaChapter = formData.get("meta_chapter")?.trim();
+    const metaConductor = formData.get("meta_conductor")?.trim();
+    const metaExamFor = formData.get("meta_exam_for")?.trim();
+    const metaExamYear = formData.get("meta_exam_year")?.trim();
+    const metaShift = formData.get("meta_shift")?.trim();
+
+    const metadata = {};
+    if (metaSubject) metadata.subject = metaSubject;
+    if (metaChapter) metadata.chapter = metaChapter;
+    if (metaConductor) metadata.conductor = metaConductor;
+    if (metaExamFor) metadata.exam_for = metaExamFor;
+    if (metaExamYear) metadata.exam_year = metaExamYear;
+    if (metaShift !== undefined && metaShift !== null && metaShift !== '') {
+      metadata.shift = isNaN(Number(metaShift)) ? metaShift : Number(metaShift);
+    }
+
     const questionObj = {
       section,
       text,
       explanation,
       options
     };
+
+    if (Object.keys(metadata).length > 0) {
+      questionObj.metadata = metadata;
+    }
 
     try {
       const res = await fetch(`https://brintoapi.brinto.in/api/admin/mocktests/${testId}/questions`, {
@@ -429,6 +591,89 @@ const testId = id || "11";
       console.error("Error adding bulk questions:", err);
       alertContainer.innerHTML = `<div class="alert alert-error">✗ ${err.message}</div>`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  // Sample Bulk JSON template helper
+  const SAMPLE_BULK_JSON = JSON.stringify([
+    {
+      "section": "General Knowledge",
+      "text": "What is the capital of India?",
+      "explanation": "New Delhi is the capital of India.",
+      "metadata": {
+        "subject": "Mathematics",
+        "chapter": "Percentages",
+        "conductor": "TCS",
+        "exam_for": "OSSSC Forester CRE",
+        "exam_year": "2025-26",
+        "shift": 1
+      },
+      "options": [
+        { "text": "New Delhi", "is_correct": true },
+        { "text": "Mumbai", "is_correct": false },
+        { "text": "Kolkata", "is_correct": false },
+        { "text": "Chennai", "is_correct": false }
+      ]
+    }
+  ], null, 2);
+
+  const samplePreviewEl = document.getElementById("sample-json-preview");
+  if (samplePreviewEl) {
+    samplePreviewEl.textContent = SAMPLE_BULK_JSON;
+  }
+
+  function copyTextToClipboard(text, targetSpanId) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        const target = document.getElementById(targetSpanId);
+        if (target) {
+          const orig = target.textContent;
+          target.textContent = "✓ Copied!";
+          setTimeout(() => { target.textContent = orig; }, 2000);
+        }
+      }).catch(err => {
+        fallbackCopyText(text, targetSpanId);
+      });
+    } else {
+      fallbackCopyText(text, targetSpanId);
+    }
+  }
+
+  function fallbackCopyText(text, targetSpanId) {
+    const tempInput = document.createElement("textarea");
+    tempInput.value = text;
+    tempInput.style.position = "fixed";
+    tempInput.style.left = "-9999px";
+    document.body.appendChild(tempInput);
+    tempInput.focus();
+    tempInput.select();
+    try {
+      document.execCommand("copy");
+      const target = document.getElementById(targetSpanId);
+      if (target) {
+        const orig = target.textContent;
+        target.textContent = "✓ Copied!";
+        setTimeout(() => { target.textContent = orig; }, 2000);
+      }
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+    }
+    document.body.removeChild(tempInput);
+  }
+
+  document.getElementById("copy-sample-btn")?.addEventListener("click", () => {
+    copyTextToClipboard(SAMPLE_BULK_JSON, "copy-sample-text");
+  });
+
+  document.getElementById("copy-preview-btn")?.addEventListener("click", () => {
+    copyTextToClipboard(SAMPLE_BULK_JSON, "copy-preview-text");
+  });
+
+  document.getElementById("load-sample-btn")?.addEventListener("click", () => {
+    const textarea = document.getElementById("bulk-json");
+    if (textarea) {
+      textarea.value = SAMPLE_BULK_JSON;
+      textarea.focus();
     }
   });
 
@@ -509,5 +754,143 @@ const testId = id || "11";
       display: flex;
       flex-direction: column;
       gap: 16px;
+  }
+
+  /* Metadata Fieldset in Drawer */
+  .metadata-fieldset {
+      background: var(--surface-2);
+      border: 1.5px solid var(--rule);
+      border-radius: var(--r-sm);
+      padding: 14px;
+  }
+  .metadata-fieldset-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 10px;
+  }
+  .metadata-fieldset-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+  }
+  .metadata-fieldset-sub {
+      font-size: 0.72rem;
+      color: var(--ink-muted);
+  }
+
+  /* Header Badges & Tags */
+  .q-card-tags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex-shrink: 0;
+      max-width: 48%;
+  }
+  .q-tag-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding: 3px 8px;
+      border-radius: var(--r-pill);
+      border: 1px solid var(--rule);
+      white-space: nowrap;
+  }
+  .q-tag-subject {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+  }
+  .q-tag-chapter {
+      background: #f5f3ff;
+      border-color: #ddd6fe;
+      color: #6d28d9;
+  }
+  .q-tag-exam {
+      background: #fdf2f8;
+      border-color: #fbcfe8;
+      color: #be185d;
+  }
+  .q-tag-conductor {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #15803d;
+  }
+  .q-tag-year {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #047857;
+  }
+  .q-tag-shift {
+      background: #fefce8;
+      border-color: #fef08a;
+      color: #a16207;
+  }
+
+  /* Expanded Metadata Card */
+  .q-meta-card {
+      background: var(--surface-2);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+  }
+  .q-meta-card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-muted);
+      margin-bottom: 10px;
+  }
+  .q-meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+  }
+  .q-meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-sm);
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .q-meta-chip-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      letter-spacing: 0.03em;
+  }
+  .q-meta-chip-val {
+      font-weight: 600;
+      color: var(--ink);
+  }
+
+  @media (max-width: 640px) {
+      .q-card-header {
+          flex-wrap: wrap;
+      }
+      .q-card-tags {
+          max-width: 100%;
+          justify-content: flex-start;
+          width: 100%;
+          margin-top: 6px;
+          padding-left: 40px;
+      }
   }
 </style>

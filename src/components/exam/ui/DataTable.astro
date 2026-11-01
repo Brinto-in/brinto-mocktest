@@ -1,0 +1,162 @@
+---
+/**
+ * DataTable — responsive table driven by TableData (columns + rows + optional total row).
+ * Scrolls sideways on small screens with the first column pinned, so long tables
+ * (e.g. 28 districts × 8 categories) stay readable on phones.
+ */
+import Bi from "./Bi.astro";
+import type { TableData } from "../../../data/exams/types";
+
+interface Props {
+  data: TableData;
+  caption?: string; // screen-reader caption
+}
+
+const { data, caption } = Astro.props;
+const { columns, rows, total } = data;
+---
+
+<div class="dt-wrap" tabindex="0" role="region" aria-label={caption}>
+  <table class="dt">
+    {caption && <caption class="sr-only">{caption}</caption>}
+    <thead>
+      <tr>
+        {columns.map((c) => (
+          <th scope="col" class={`dt-${c.align ?? "left"}`}><Bi t={c.label} /></th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr>
+          {columns.map((c, i) =>
+            i === 0 ? (
+              <th scope="row" class={`dt-${c.align ?? "left"}`}><Bi t={r[c.key] ?? "–"} /></th>
+            ) : (
+              <td class={`dt-${c.align ?? "left"}`}><Bi t={r[c.key] ?? "–"} /></td>
+            ),
+          )}
+        </tr>
+      ))}
+    </tbody>
+    {total && (
+      <tfoot>
+        <tr>
+          {columns.map((c, i) =>
+            i === 0 ? (
+              <th scope="row" class={`dt-${c.align ?? "left"}`}><Bi t={{ en: "Total", or: "ମୋଟ" }} /></th>
+            ) : (
+              <td class={`dt-${c.align ?? "left"}`}><Bi t={total[c.key] ?? "–"} /></td>
+            ),
+          )}
+        </tr>
+      </tfoot>
+    )}
+  </table>
+</div>
+
+<style>
+  .dt-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dt-wrap:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .dt {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .dt th,
+  .dt td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+    vertical-align: top;
+  }
+
+  .dt thead th {
+    position: sticky;
+    top: 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: var(--surface-2);
+  }
+
+  .dt tbody th {
+    font-weight: 600;
+    color: var(--ink);
+    white-space: normal;
+    min-width: 220px;
+  }
+
+  .dt td {
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dt tbody tr:hover > * {
+    background: var(--brand-light);
+  }
+
+  .dt tfoot > tr > * {
+    font-weight: 800;
+    color: var(--ink);
+    background: var(--surface-2);
+    border-bottom: 0;
+  }
+
+  .dt tbody tr:last-child > * {
+    border-bottom-color: var(--rule);
+  }
+
+  .dt-center { text-align: center; }
+  .dt-right { text-align: right; }
+  .dt-left { text-align: left; }
+
+  /* Pin the first column while the rest scrolls sideways */
+  .dt tr > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+    box-shadow: 1px 0 0 var(--rule);
+  }
+
+  .dt thead tr > :first-child {
+    z-index: 2;
+    background: var(--surface-2);
+  }
+
+  .dt tfoot tr > :first-child {
+    background: var(--surface-2);
+  }
+
+  @media (max-width: 600px) {
+    .dt { font-size: 0.82rem; }
+    .dt th,
+    .dt td { padding: 9px 10px; }
+    .dt tbody th { min-width: 160px; }
+  }
+</style>

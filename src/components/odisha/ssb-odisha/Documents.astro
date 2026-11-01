@@ -1,0 +1,22 @@
+---
+// Documents — checklist of originals to carry for document verification.
+import Section from "../../exam/ui/Section.astro";
+import CheckList from "../../exam/ui/CheckList.astro";
+import type { Exam } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+  id?: string;
+}
+
+const { exam, id = "documents" } = Astro.props;
+---
+
+<Section
+  id={id}
+  tone="alt"
+  title={{ en: "Documents for verification", or: "ଯାଞ୍ଚ ପାଇଁ ଆବଶ୍ୟକ ପ୍ରମାଣପତ୍ର" }}
+  sub={{ en: "Keep these ready — originals must be shown at document verification.", or: "ଏସବୁ ପ୍ରସ୍ତୁତ ରଖନ୍ତୁ — ଯାଞ୍ଚ ସମୟରେ ମୂଳ ପ୍ରମାଣପତ୍ର ଦେଖାଇବାକୁ ପଡ଼ିବ।" }}
+>
+  <CheckList items={exam.documents!} columns={2} />
+</Section>

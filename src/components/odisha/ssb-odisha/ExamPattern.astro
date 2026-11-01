@@ -1,0 +1,260 @@
+---
+/**
+ * ExamPattern — one card per stage (written, skill test …) with its rules, plus a
+ * marks-split bar and table for stages that list subjects.
+ */
+import Section from "../../exam/ui/Section.astro";
+import Bi from "../../exam/ui/Bi.astro";
+import type { Exam, L } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+  id?: string;
+}
+
+const { exam, id = "pattern" } = Astro.props;
+const { stages, total, notes } = exam.pattern!;
+
+// Fixed palette for the marks-split bar (subject order)
+const COLORS = ["#1D4ED8", "#0E7490", "#7C3AED", "#B45309", "#15803D", "#BE185D"];
+
+const RULES: { key: "duration" | "mode" | "marking" | "qualifying"; label: L }[] = [
+  { key: "duration", label: { en: "Duration", or: "ସମୟ" } },
+  { key: "mode", label: { en: "Mode", or: "ପ୍ରକାର" } },
+  { key: "marking", label: { en: "Marking", or: "ମାର୍କିଂ" } },
+  { key: "qualifying", label: { en: "Qualifying", or: "ଯୋଗ୍ୟତା ମାର୍କ" } },
+];
+---
+
+<Section
+  id={id}
+  title={{ en: `Exam pattern – ${total} marks`, or: `ପରୀକ୍ଷା ଢାଞ୍ଚା – ${total} ମାର୍କ` }}
+  sub={{ en: "Stages, marks and the rules for each.", or: "ପର୍ଯ୍ୟାୟ, ମାର୍କ ଓ ପ୍ରତ୍ୟେକର ନିୟମ।" }}
+>
+  <div class="ep-stages">
+    {stages.map((s, i) => (
+      <article class="ep-card">
+        <header class="ep-head">
+          <span class="ep-step">{i + 1}</span>
+          <h3 class="ep-name"><Bi t={s.name} /></h3>
+          <span class="ep-marks">
+            <strong>{s.marks}</strong> <Bi t={{ en: "marks", or: "ମାର୍କ" }} />
+          </span>
+        </header>
+
+        <dl class="ep-rules">
+          {s.questions && (
+            <div>
+              <dt><Bi t={{ en: "Questions", or: "ପ୍ରଶ୍ନ" }} /></dt>
+              <dd>{s.questions}</dd>
+            </div>
+          )}
+          {RULES.filter((r) => s[r.key]).map((r) => (
+            <div>
+              <dt><Bi t={r.label} /></dt>
+              <dd><Bi t={s[r.key]!} /></dd>
+            </div>
+          ))}
+        </dl>
+
+        {s.subjects && (
+          <div class="ep-split">
+            <div class="ep-bar" aria-hidden="true">
+              {s.subjects.map((sub, j) => (
+                <span style={`flex:${sub.marks};background:${COLORS[j % COLORS.length]}`}></span>
+              ))}
+            </div>
+            <table class="ep-table">
+              <thead>
+                <tr>
+                  <th scope="col"><Bi t={{ en: "Subject", or: "ବିଷୟ" }} /></th>
+                  <th scope="col"><Bi t={{ en: "Qs", or: "ପ୍ରଶ୍ନ" }} /></th>
+                  <th scope="col"><Bi t={{ en: "Marks", or: "ମାର୍କ" }} /></th>
+                </tr>
+              </thead>
+              <tbody>
+                {s.subjects.map((sub, j) => (
+                  <tr>
+                    <th scope="row">
+                      <span class="ep-swatch" style={`background:${COLORS[j % COLORS.length]}`} aria-hidden="true"></span>
+                      <Bi t={sub.name} />
+                    </th>
+                    <td>{sub.questions ?? "–"}</td>
+                    <td>{sub.marks}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </article>
+    ))}
+  </div>
+
+  {notes && (
+    <ul class="ep-notes">
+      {notes.map((n) => <li><Bi t={n} /></li>)}
+    </ul>
+  )}
+</Section>
+
+<style>
+  .ep-stages {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .ep-card {
+    padding: 20px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+
+  .ep-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .ep-step {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #fff;
+    background: var(--brand);
+  }
+
+  .ep-name {
+    flex: 1;
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .ep-marks {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+  }
+
+  .ep-marks strong {
+    font-size: 1.3rem;
+    color: var(--brand);
+  }
+
+  .ep-rules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+    margin: 0;
+  }
+
+  .ep-rules dt {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 2px;
+  }
+
+  .ep-rules dd {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .ep-split {
+    margin-top: 18px;
+  }
+
+  .ep-bar {
+    display: flex;
+    height: 10px;
+    gap: 2px;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .ep-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .ep-table th,
+  .ep-table td {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule);
+    text-align: right;
+  }
+
+  .ep-table tr > :first-child {
+    text-align: left;
+  }
+
+  .ep-table thead th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .ep-table tbody th {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .ep-table td {
+    width: 64px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ep-table tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .ep-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    margin-right: 8px;
+  }
+
+  .ep-notes {
+    margin: 16px 0 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 860px) {
+    .ep-stages { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .ep-card { padding: 16px; }
+    .ep-table td { width: 48px; }
+  }
+</style>

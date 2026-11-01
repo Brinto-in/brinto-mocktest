@@ -1,0 +1,78 @@
+---
+/**
+ * Vacancies — category summary tiles + tabbed tables (by department / university / district …).
+ * Views come from exam.vacancy.views, so any exam can add or drop tabs in its data file.
+ */
+import Section from "../../exam/ui/Section.astro";
+import Bi from "../../exam/ui/Bi.astro";
+import StatGrid from "../../exam/ui/StatGrid.astro";
+import DataTable from "../../exam/ui/DataTable.astro";
+import Tabs from "../../exam/ui/Tabs.astro";
+import type { Exam } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+  id?: string;
+}
+
+const { exam, id = "vacancy" } = Astro.props;
+const v = exam.vacancy!;
+const textOf = (t: unknown) => (typeof t === "object" && t ? (t as { en: string }).en : String(t));
+---
+
+<Section
+  id={id}
+  title={{ en: `Vacancy details – ${v.total} posts`, or: `ପଦବୀ ବିବରଣୀ – ${v.total} ପଦ` }}
+  sub={{ en: "Category-wise posts. Numbers in brackets are reserved for women.", or: "ବର୍ଗ ଅନୁଯାୟୀ ପଦ। ବନ୍ଧନୀ ମଧ୍ୟରେ ଥିବା ସଂଖ୍ୟା ମହିଳାଙ୍କ ପାଇଁ ସଂରକ୍ଷିତ।" }}
+>
+  <div class="vc-summary">
+    <StatGrid items={v.summary} />
+  </div>
+
+  <Tabs label="Vacancy tables" tabs={v.views.map((view) => ({ id: view.id, label: view.label }))}>
+    {v.views.map((view) => (
+      <Fragment slot={view.id}>
+        {view.note && <p class="vc-note"><Bi t={view.note} /></p>}
+        <DataTable data={view.table} caption={textOf(view.label)} />
+      </Fragment>
+    ))}
+  </Tabs>
+
+  {v.notes && (
+    <ul class="vc-notes">
+      {v.notes.map((n) => <li><Bi t={n} /></li>)}
+    </ul>
+  )}
+</Section>
+
+<style>
+  .vc-summary {
+    margin-bottom: 22px;
+  }
+
+  .vc-summary :global(.sg) {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  }
+
+  .vc-note {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+  }
+
+  .vc-notes {
+    margin: 16px 0 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 480px) {
+    .vc-summary :global(.sg) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

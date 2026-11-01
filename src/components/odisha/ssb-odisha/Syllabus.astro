@@ -1,0 +1,102 @@
+---
+/**
+ * Syllabus — one tab per subject; each panel lists that subject's topics.
+ */
+import Section from "../../exam/ui/Section.astro";
+import Bi from "../../exam/ui/Bi.astro";
+import Tabs from "../../exam/ui/Tabs.astro";
+import type { Exam } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+  id?: string;
+}
+
+const { exam, id = "syllabus" } = Astro.props;
+const subjects = exam.syllabus!;
+---
+
+<Section
+  id={id}
+  tone="alt"
+  title={{ en: "Detailed syllabus", or: "ବିସ୍ତୃତ ପାଠ୍ୟକ୍ରମ" }}
+  sub={{ en: "Topics as listed in the official advertisement.", or: "ସରକାରୀ ବିଜ୍ଞପ୍ତିରେ ଥିବା ଅଧ୍ୟାୟ।" }}
+>
+  <Tabs label="Syllabus subjects" tabs={subjects.map((s) => ({ id: `${id}-${s.id}`, label: s.name }))}>
+    {subjects.map((s) => (
+      <Fragment slot={`${id}-${s.id}`}>
+        <div class="sy-panel">
+          <div class="sy-head">
+            <h3 class="sy-name"><Bi t={s.name} /></h3>
+            <span class="sy-stage"><Bi t={s.stage} /></span>
+          </div>
+          <ol class="sy-topics">
+            {s.topics.map((t) => <li><Bi t={t} /></li>)}
+          </ol>
+        </div>
+      </Fragment>
+    ))}
+  </Tabs>
+</Section>
+
+<style>
+  .sy-panel {
+    padding: 20px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+
+  .sy-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 16px;
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .sy-name {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .sy-stage {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--brand);
+    background: var(--brand-light);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .sy-topics {
+    margin: 0;
+    padding-left: 22px;
+    columns: 2;
+    column-gap: 36px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  .sy-topics li {
+    break-inside: avoid;
+    margin-bottom: 9px;
+  }
+
+  .sy-topics li::marker {
+    font-weight: 800;
+    color: var(--brand);
+  }
+
+  @media (max-width: 720px) {
+    .sy-panel { padding: 16px; }
+    .sy-topics { columns: 1; font-size: 0.88rem; }
+  }
+</style>

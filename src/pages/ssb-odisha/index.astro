@@ -1,0 +1,11 @@
+---
+export const prerender = false; // application status and date badges are worked out per request
+/**
+ * /mocktest/ssb-odisha — SSB Odisha Junior Assistant & Junior Clerk recruitment (Advt. 01/2026).
+ * All content lives in src/data/exams/odisha/ssb-junior-assistant-2026.ts.
+ */
+import ExamPage from "../../components/odisha/ssb-odisha/ExamPage.astro";
+import { ssbJuniorAssistant2026 } from "../../data/exams/odisha/ssb-junior-assistant-2026";
+---
+
+<ExamPage exam={ssbJuniorAssistant2026} />

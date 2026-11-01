@@ -1,0 +1,82 @@
+---
+/**
+ * Section — page block with a heading. Every exam section is wrapped in this so spacing,
+ * headings and jump-link scroll offsets stay the same.
+ *
+ *   <Section id="syllabus" title={{ en: "Syllabus", or: "ପାଠ୍ୟକ୍ରମ" }} tone="alt"> … </Section>
+ */
+import Bi from "./Bi.astro";
+import type { T } from "../../../data/exams/types";
+
+interface Props {
+  id: string;
+  title: T;
+  sub?: T;
+  eyebrow?: T;
+  tone?: "plain" | "alt"; // alt = light grey band
+}
+
+const { id, title, sub, eyebrow, tone = "plain" } = Astro.props;
+---
+
+<section id={id} class:list={["xs", `xs-${tone}`]} aria-labelledby={`${id}-title`} data-exam-section>
+  <div class="wrap">
+    <header class="xs-head">
+      {eyebrow && <p class="xs-eyebrow"><Bi t={eyebrow} /></p>}
+      <h2 id={`${id}-title`} class="xs-title"><Bi t={title} /></h2>
+      {sub && <p class="xs-sub"><Bi t={sub} /></p>}
+      <slot name="head-extra" />
+    </header>
+    <slot />
+  </div>
+</section>
+
+<style>
+  .xs {
+    padding: 40px 0;
+  }
+
+  .xs-alt {
+    background: var(--surface-2);
+    border-block: 1px solid var(--rule);
+  }
+
+  .xs-head {
+    margin-bottom: 20px;
+    max-width: 720px;
+  }
+
+  .xs-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin: 0 0 6px;
+  }
+
+  .xs-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.2rem, 2.3vw, 1.6rem);
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .xs-sub {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  @media (max-width: 600px) {
+    .xs {
+      padding: 28px 0;
+    }
+    .xs-head {
+      margin-bottom: 16px;
+    }
+  }
+</style>

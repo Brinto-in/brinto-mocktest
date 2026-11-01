@@ -1,0 +1,89 @@
+---
+/**
+ * StatGrid — row of big number + label tiles.
+ *   <StatGrid items={exam.stats} />                 light tiles
+ *   <StatGrid items={exam.stats} variant="onBrand" /> for use on the red hero
+ */
+import Bi from "./Bi.astro";
+import type { Stat } from "../../../data/exams/types";
+
+interface Props {
+  items: Stat[];
+  variant?: "light" | "onBrand";
+}
+
+const { items, variant = "light" } = Astro.props;
+---
+
+<dl class:list={["sg", `sg-${variant}`]} style={`--sg-count:${items.length};`}>
+  {items.map((s) => (
+    <div class="sg-item">
+      <dt class="sg-label"><Bi t={s.label} /></dt>
+      <dd class="sg-value">{s.value}</dd>
+    </div>
+  ))}
+</dl>
+
+<style>
+  .sg {
+    display: grid;
+    grid-template-columns: repeat(var(--sg-count), minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+  }
+
+  .sg-item {
+    display: flex;
+    flex-direction: column-reverse; /* value above label, but label stays first in the DOM (dt before dd) */
+    justify-content: flex-end;
+    gap: 2px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+  }
+
+  .sg-value {
+    margin: 0;
+    font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sg-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  /* Light */
+  .sg-light .sg-item {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+  }
+  .sg-light .sg-value { color: var(--ink); }
+  .sg-light .sg-label { color: var(--ink-muted); }
+
+  /* On the brand hero */
+  .sg-onBrand .sg-item {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+  }
+  .sg-onBrand .sg-value { color: #fff; }
+  .sg-onBrand .sg-label { color: rgba(255, 255, 255, 0.78); }
+
+  @media (max-width: 900px) {
+    .sg {
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sg {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .sg-item {
+      padding: 12px;
+    }
+  }
+</style>

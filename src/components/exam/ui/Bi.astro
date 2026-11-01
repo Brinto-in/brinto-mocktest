@@ -1,0 +1,20 @@
+---
+/**
+ * Bi — prints exam text in the selected language.
+ * Plain strings print as-is; { en, or } prints both and LangBar's CSS hides the other one
+ * (both stay in the HTML, so search engines see the Odia text too).
+ */
+import type { T } from "../../../data/exams/types";
+
+interface Props {
+  t: T | number;
+}
+
+const { t } = Astro.props;
+---
+
+{typeof t === "object" ? (
+  <Fragment><span class="bi-en">{t.en}</span><span class="bi-or" lang="or">{t.or}</span></Fragment>
+) : (
+  t
+)}

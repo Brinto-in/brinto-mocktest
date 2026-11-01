@@ -1,0 +1,350 @@
+---
+/**
+ * ExamHero — top of an exam page, same look as the OSSSC hero (OssscHero): breadcrumb, pill,
+ * two-tone H1, buttons and a ticked trust row, with a fanned stack of the exam's
+ * mock-test cards on the right (drawn from exam.tests, so no images are needed).
+ */
+import Bi from "../../exam/ui/Bi.astro";
+import type { Exam, L } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+}
+
+const { exam } = Astro.props;
+
+const TRUST: L[] = [
+  { en: "100% Free", or: "100% ମାଗଣା" },
+  { en: "Real exam pattern", or: "ପ୍ରକୃତ ପରୀକ୍ଷା ଢାଞ୍ଚା" },
+  { en: "Instant results", or: "ତୁରନ୍ତ ଫଳାଫଳ" },
+  { en: "Odia + English", or: "ଓଡ଼ିଆ + ଇଂରାଜୀ" },
+];
+
+// Three subject cards for the fanned stack: centre = first subject with a live test (else the first)
+const items = exam.tests?.subjects ?? [];
+const centre = items.find((s) => s.testId) ?? items[0];
+const sides = items.filter((s) => s !== centre).slice(0, 2);
+const stack = centre ? [sides[0], sides[1], centre].filter(Boolean) : [];
+---
+
+<section class="xh">
+  <nav class="wrap xh-crumb" aria-label="Breadcrumb">
+    <a href="/mocktest">Home</a>
+    <span aria-hidden="true">›</span>
+    <span aria-current="page">{exam.board.short}</span>
+  </nav>
+
+  <div class="wrap xh-inner">
+    <div class="xh-text">
+      <span class="xh-pill">
+        <span class="xh-pill-dot" aria-hidden="true"></span>
+        <Bi t={exam.board.name} />{exam.board.department && <Fragment>{" · "}<Bi t={exam.board.department} /></Fragment>}
+      </span>
+
+      <h1>
+        <Bi t={exam.hero.line} /><br />
+        <em><Bi t={exam.hero.highlight} /></em>
+      </h1>
+
+      <p class="xh-sub"><Bi t={exam.summary} /></p>
+
+      <div class="xh-actions">
+        {!!exam.syllabus?.length && (
+          <a href="#syllabus" class="xh-btn-outline"><Bi t={{ en: "Syllabus", or: "ପାଠ୍ୟକ୍ରମ" }} /></a>
+        )}
+        <a href={exam.notice.url ?? exam.board.website} class="xh-btn-outline" target="_blank" rel="noopener">
+          <Bi t={{ en: "Official website ↗", or: "ସରକାରୀ ୱେବସାଇଟ ↗" }} />
+        </a>
+        {!!items.length && (
+          <a href="#tests" class="xh-btn-primary"><Bi t={{ en: "Start mock test →", or: "ମକ୍ ଟେଷ୍ଟ ଆରମ୍ଭ →" }} /></a>
+        )}
+      </div>
+
+      <div class="xh-trust">
+        {TRUST.map((t) => (
+          <span>✓ <Bi t={t} /></span>
+        ))}
+      </div>
+    </div>
+
+    {stack.length > 0 && (
+      <div class="xh-stack" aria-hidden="true">
+        {stack.map((s, i) => (
+          <div
+            class={`xh-card xh-card-${stack.length === 3 ? i : i + 3 - stack.length}`}
+            style={`--tone-a:${s!.accent};--tone-b:color-mix(in srgb, ${s!.accent} 45%, #000);`}
+          >
+            <span class="xh-card-sub">{exam.board.short}</span>
+            <span class="xh-card-icon">{s!.icon}</span>
+            <span class="xh-card-title"><Bi t={s!.name} /></span>
+            <span class="xh-card-meta"><Bi t={s!.meta} /></span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .xh {
+    background:
+      radial-gradient(circle at 85% 20%, rgba(176, 0, 32, 0.07), transparent 45%),
+      var(--surface);
+    border-bottom: 1px solid var(--rule);
+    padding: 40px 0 48px;
+    overflow: hidden;
+  }
+
+  .xh-inner {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  /* Breadcrumb */
+  .xh-crumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin-bottom: 18px;
+  }
+
+  .xh-crumb a {
+    color: var(--ink-soft);
+  }
+
+  .xh-crumb a:hover {
+    color: var(--brand);
+  }
+
+  .xh-crumb [aria-current] {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Pill */
+  .xh-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--brand);
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    margin-bottom: 16px;
+  }
+
+  .xh-pill-dot {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+
+  h1 {
+    font-size: clamp(2rem, 4.4vw, 3.2rem);
+    color: var(--ink);
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  h1 em {
+    color: var(--brand);
+  }
+
+  .xh-sub {
+    color: var(--ink-soft);
+    font-size: 1.02rem;
+    line-height: 1.6;
+    max-width: 56ch;
+    margin: 0 0 24px;
+  }
+
+  /* Buttons — same as the OSSSC hero */
+  .xh-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+    margin-bottom: 20px;
+  }
+
+  .xh-btn-primary,
+  .xh-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 12px 22px;
+    border-radius: var(--radius-pill);
+    font-size: 0.95rem;
+    line-height: 1.3;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+
+  .xh-btn-primary {
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--brand);
+    border: 1.5px solid var(--brand);
+    box-shadow: 0 6px 18px rgba(176, 0, 32, 0.2);
+  }
+
+  .xh-btn-primary:hover {
+    transform: translateY(-1px);
+    background: var(--brand-dark);
+    border-color: var(--brand-dark);
+    box-shadow: 0 10px 24px rgba(176, 0, 32, 0.28);
+  }
+
+  .xh-btn-outline {
+    font-weight: 600;
+    color: var(--brand);
+    background: transparent;
+    border: 1.5px solid var(--brand);
+  }
+
+  .xh-btn-outline:hover {
+    border-color: var(--brand-dark);
+    background: var(--brand-light);
+    color: var(--brand-dark);
+    transform: translateY(-1px);
+  }
+
+  .xh-trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+
+  /* Fanned stack of test cards (same geometry as the OSSSC poster stack) */
+  .xh-stack {
+    --w: clamp(150px, 15vw, 210px);
+    position: relative;
+    height: calc(var(--w) * 1.5 + 40px);
+    display: grid;
+    place-items: center;
+  }
+
+  .xh-card {
+    position: absolute;
+    width: var(--w);
+    aspect-ratio: 2 / 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    color: #fff;
+    background:
+      radial-gradient(circle at 75% 15%, rgba(255, 255, 255, 0.22), transparent 45%),
+      linear-gradient(160deg, var(--tone-a), var(--tone-b));
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    transition: transform 0.35s ease;
+  }
+
+  .xh-card-sub {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  .xh-card-icon {
+    position: absolute;
+    top: 34%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: calc(var(--w) * 0.3);
+    line-height: 1;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
+  }
+
+  .xh-card-title {
+    font-size: calc(var(--w) * 0.085);
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .xh-card-meta {
+    font-size: calc(var(--w) * 0.06);
+    opacity: 0.85;
+  }
+
+  .xh-card-0 {
+    transform: translateX(-62%) rotate(-10deg) scale(0.9);
+  }
+
+  .xh-card-1 {
+    transform: translateX(62%) rotate(10deg) scale(0.9);
+  }
+
+  .xh-card-2 {
+    z-index: 2;
+    transform: translateY(-6px);
+  }
+
+  .xh-stack:hover .xh-card-0 {
+    transform: translateX(-72%) rotate(-13deg) scale(0.9);
+  }
+
+  .xh-stack:hover .xh-card-1 {
+    transform: translateX(72%) rotate(13deg) scale(0.9);
+  }
+
+  /* Responsive (same breakpoints as the OSSSC hero) */
+  @media (max-width: 900px) {
+    .xh {
+      padding: 28px 0 36px;
+    }
+    .xh-inner {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+    .xh-stack {
+      --w: clamp(120px, 32vw, 170px);
+      order: -1;
+    }
+    .xh-crumb {
+      margin-bottom: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .xh-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .xh-btn-primary {
+      order: -1; /* main action first on phones */
+    }
+    .xh-btn-primary,
+    .xh-btn-outline {
+      width: 100%;
+      padding: 13px 20px;
+      font-size: 0.92rem;
+      white-space: normal;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .xh-card { transition: none; }
+  }
+</style>

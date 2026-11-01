@@ -1,0 +1,149 @@
+---
+/**
+ * KeyDates — timeline of the recruitment. Each row is marked done / live / upcoming / awaited
+ * by comparing its dates with now (IST).
+ */
+import Section from "../../exam/ui/Section.astro";
+import Bi from "../../exam/ui/Bi.astro";
+import { formatKeyDate, keyDateStatus, type DateStatus } from "../../../lib/examDates";
+import type { Exam, L } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+  id?: string;
+}
+
+const { exam, id = "dates" } = Astro.props;
+
+const STATUS: Record<DateStatus, L> = {
+  done: { en: "Done", or: "ସମାପ୍ତ" },
+  live: { en: "Live now", or: "ଚାଲିଛି" },
+  upcoming: { en: "Upcoming", or: "ଆଗାମୀ" },
+  awaited: { en: "Awaited", or: "ଅପେକ୍ଷିତ" },
+};
+
+const rows = exam.dates.map((d) => ({ ...d, when: formatKeyDate(d), status: keyDateStatus(d) }));
+---
+
+<Section id={id} tone="alt" title={{ en: "Important dates", or: "ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ତାରିଖ" }} sub={{ en: "Dates not yet announced are marked “Awaited”.", or: "ଘୋଷଣା ହୋଇନଥିବା ତାରିଖ “ଅପେକ୍ଷିତ” ଭାବେ ଦର୍ଶାଯାଇଛି।" }}>
+  <ol class="kd">
+    {rows.map((r) => (
+      <li class:list={["kd-row", `is-${r.status}`]}>
+        <span class="kd-dot" aria-hidden="true"></span>
+        <div class="kd-body">
+          <span class="kd-label"><Bi t={r.label} /></span>
+          <span class="kd-when">{r.when ?? <Bi t={{ en: "To be announced", or: "ଘୋଷଣା ହେବ" }} />}</span>
+          {r.note && <span class="kd-note"><Bi t={r.note} /></span>}
+        </div>
+        <span class="kd-status"><Bi t={STATUS[r.status]} /></span>
+      </li>
+    ))}
+  </ol>
+</Section>
+
+<style>
+  .kd {
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 820px;
+  }
+
+  /* Vertical line through the dots */
+  .kd::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    bottom: 22px;
+    left: 8px;
+    width: 2px;
+    background: var(--rule);
+  }
+
+  .kd-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+  }
+
+  .kd-dot {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid var(--surface);
+    background: var(--rule);
+    box-shadow: 0 0 0 1px var(--rule);
+    z-index: 1;
+  }
+
+  .is-done .kd-dot { background: var(--green); }
+  .is-live .kd-dot { background: var(--brand); box-shadow: 0 0 0 4px var(--brand-light); }
+  .is-upcoming .kd-dot { background: var(--gold); }
+
+  .kd-body {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 16px;
+    align-items: baseline;
+    padding: 12px 16px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+
+  .is-live .kd-body {
+    border-color: var(--brand);
+    background: var(--brand-light);
+  }
+
+  .kd-label {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .kd-when {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .kd-note {
+    grid-column: 1 / -1;
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+  }
+
+  .kd-status {
+    flex-shrink: 0;
+    width: 86px;
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
+    color: var(--ink-muted);
+    background: var(--surface-2);
+  }
+
+  .is-done .kd-status { color: var(--green); background: var(--green-light); }
+  .is-live .kd-status { color: #fff; background: var(--brand); }
+  .is-upcoming .kd-status { color: var(--gold); background: var(--gold-light); }
+
+  @media (max-width: 600px) {
+    .kd-row { gap: 10px; }
+    .kd-body { grid-template-columns: 1fr; padding: 10px 12px; }
+    .kd-when { text-align: left; }
+    .kd-status { position: absolute; top: 18px; right: 10px; width: auto; }
+    .kd-label { padding-right: 86px; }
+  }
+</style>

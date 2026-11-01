@@ -1,0 +1,111 @@
+---
+// ExamFaq — accordion + FAQPage structured data (English) for Google rich results.
+import Section from "../../exam/ui/Section.astro";
+import Bi from "../../exam/ui/Bi.astro";
+import type { Exam } from "../../../data/exams/types";
+
+interface Props {
+  exam: Exam;
+  id?: string;
+}
+
+const { exam, id = "faq" } = Astro.props;
+const faq = exam.faq!;
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((f) => ({
+    "@type": "Question",
+    name: f.q.en,
+    acceptedAnswer: { "@type": "Answer", text: f.a.en },
+  })),
+};
+---
+
+<Section id={id} title={{ en: "Frequently asked questions", or: "ବାରମ୍ବାର ପଚରାଯାଉଥିବା ପ୍ରଶ୍ନ" }}>
+  <div class="fq">
+    {faq.map((f, i) => (
+      <details class="fq-item" open={i === 0}>
+        <summary>
+          <span class="fq-q"><Bi t={f.q} /></span>
+          <span class="fq-icon" aria-hidden="true"></span>
+        </summary>
+        <p class="fq-a"><Bi t={f.a} /></p>
+      </details>
+    ))}
+  </div>
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+</Section>
+
+<style>
+  .fq {
+    max-width: 820px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .fq-item {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+
+  .fq-item[open] {
+    border-color: var(--brand-mid);
+  }
+
+  .fq-item summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .fq-item summary::-webkit-details-marker { display: none; }
+
+  .fq-item summary:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+  }
+
+  .fq-q {
+    flex: 1;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  /* Plus that becomes a minus */
+  .fq-icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+  .fq-icon::before,
+  .fq-icon::after {
+    content: "";
+    position: absolute;
+    inset: 6px 0 auto 0;
+    height: 2px;
+    background: var(--brand);
+    transition: transform 0.2s;
+  }
+  .fq-icon::after { transform: rotate(90deg); }
+  .fq-item[open] .fq-icon::after { transform: rotate(0deg); }
+
+  .fq-a {
+    margin: 0;
+    padding: 0 16px 16px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fq-icon::before,
+    .fq-icon::after { transition: none; }
+  }
+</style>
