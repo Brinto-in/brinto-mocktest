@@ -319,7 +319,9 @@ const deltaKpi = (label: string, latest: number, prev: number | undefined, unit:
 export interface ChartAttempt {
   title?: string;
   exam?: string;
-  score: number; // percent 0–100
+  score: number; // percent 0–100 of the test's maximum marks (net of negative marking)
+  marks?: number | null; // marks scored, e.g. 17.5
+  maxMarks?: number | null; // e.g. 200
   correct: number;
   wrong: number;
   skipped: number;
@@ -348,7 +350,7 @@ export function renderPerformanceChart(root: HTMLElement, attempts: ChartAttempt
       value: a.score,
       band: band(a.score),
       date: a.submittedAt,
-      label: `${a.score}%`,
+      label: a.marks != null && a.maxMarks ? `${a.score}% · ${a.marks}/${a.maxMarks} marks` : `${a.score}%`,
       stats: [
         { cls: "c", text: `✓ ${a.correct}` },
         { cls: "w", text: `✕ ${a.wrong}` },
