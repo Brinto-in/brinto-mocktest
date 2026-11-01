@@ -6,6 +6,9 @@ export const AD_UNITS = {
   "728x90": { slot: "5770582790", width: 728, height: 90 },
   "320x100": { slot: "4569181768", width: 320, height: 100 },
   "300x250": { slot: "9765668120", width: 300, height: 250 },
+  "250x200": { slot: "4463708705", width: 250, height: 200 },
+  "200x200": { slot: "3113426020", width: 200, height: 200 },
+  "250x250": { slot: "4272137015", width: 250, height: 250 },
   "300x600": { slot: "8205174440", width: 300, height: 600 },
   // Custom size for the MCQ question column (610px wide).
   "600x90": { slot: "3564357327", width: 600, height: 90 },

@@ -1,0 +1,20 @@
+---
+---
+
+<div class="exam-error-view" id="exam-error-view" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:99999;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+  <div style="width:72px;height:72px;border-radius:50%;background:var(--brand-light);color:var(--brand);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+    <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+  </div>
+  <h2 style="font-size:1.6rem;color:var(--ink);margin-bottom:8px;font-family:var(--font-display);">Test Data Not Available</h2>
+  <p id="exam-error-msg" style="color:var(--ink-soft);max-width:440px;margin-bottom:28px;line-height:1.5;">
+    Unable to load the questions for this test. Please try again or explore other tests.
+  </p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+    <button onclick="window.location.reload()" style="background:var(--brand);color:#fff;font-weight:600;padding:12px 26px;border-radius:999px;border:none;">Retry</button>
+    <a href="/mocktest/tests" style="background:var(--surface);border:1px solid var(--rule);color:var(--ink);font-weight:600;padding:12px 26px;border-radius:999px;">Browse Other Tests</a>
+  </div>
+</div>

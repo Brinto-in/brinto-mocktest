@@ -97,7 +97,20 @@ const vars = (["mobile", "tablet", "desktop"] as const)
     renderAd(el.querySelector<HTMLElement>(".gad-box")!, unit, el.dataset.gadClient!, el.dataset.gadTest);
   }
 
-  document.querySelectorAll<HTMLElement>(".gad").forEach(fill);
+  // Ads inside hidden containers (e.g. exam stages that aren't active yet) have no width, and
+  // AdSense rejects them. Fill those only once they become visible.
+  const whenVisible = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting && e.boundingClientRect.width === 0) return;
+      whenVisible.unobserve(e.target);
+      fill(e.target as HTMLElement);
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>(".gad").forEach((el) => {
+    if (el.getClientRects().length) fill(el);
+    else whenVisible.observe(el);
+  });
 </script>
 
 <style>

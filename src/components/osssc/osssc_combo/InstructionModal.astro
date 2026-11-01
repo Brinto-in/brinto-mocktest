@@ -1,0 +1,172 @@
+---
+import type { Test } from "../../../lib/types";
+
+interface Props {
+  test?: Test;
+}
+
+const { test } = Astro.props;
+---
+
+<div
+  class="instr-overlay"
+  id="instr-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="instr-title"
+>
+  <div class="instr-modal">
+    <div class="instr-header">
+      <div class="instr-exam-name" id="instr-exam-name">
+        {test?.exam ? `${test.exam} · Combo Mock Test` : "OSSSC · Combo Mock Test"}
+      </div>
+      <div class="instr-test-title" id="instr-title">
+        {test?.title || "OSSSC Combined Recruitment Mock Test & Typing"}
+      </div>
+      <div class="instr-meta-pills">
+        <span class="instr-pill">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span id="instr-duration">{test?.duration || 120}</span> Minutes
+        </span>
+        <span class="instr-pill">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <span id="instr-questions">{test?.questions || 100}</span> MCQ Questions
+        </span>
+        <span class="instr-pill">
+          ⌨️ 2 Typing Tests
+        </span>
+        <span class="instr-pill">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+          <span id="instr-marks">
+            {
+              test?.total_marks !== undefined
+                ? test.total_marks
+                : (test?.questions || 100) * (test?.correct_marks !== undefined ? test.correct_marks : 1)
+            }
+          </span> Marks Total
+        </span>
+        <span
+          class="instr-pill"
+          id="instr-neg-pill"
+          style={
+            test?.wrong_penalty && test.wrong_penalty > 0
+              ? "background:rgba(176,0,32,0.3)"
+              : "background:rgba(27,107,58,0.2); color:#1b6b3a;"
+          }
+        >
+          <span id="instr-neg-text">
+            {
+              test?.wrong_penalty !== undefined
+                ? test.wrong_penalty > 0
+                  ? `Negative Marking (-${test.wrong_penalty})`
+                  : "No Negative Marking"
+                : "Negative Marking (-0.25)"
+            }
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="instr-body">
+      <div class="instr-section-label">General & Combo Instructions</div>
+      <ul class="instr-rules">
+        <li class="instr-rule-enhanced rule-combo-enhanced">
+          <div class="combo-flow-header">
+            <span class="combo-flow-badge">🧭 Sequential 3-Stage Workflow</span>
+            <span class="combo-flow-sub">Strict sequential progression · No going back</span>
+          </div>
+          <div class="combo-stages-grid">
+            <div class="combo-stage-card">
+              <div class="csc-number">1</div>
+              <div class="csc-content">
+                <div class="csc-title">MCQ Test</div>
+                <div class="csc-desc">Objective questions & marking scheme</div>
+              </div>
+            </div>
+            <div class="combo-stage-connector">→</div>
+            <div class="combo-stage-card">
+              <div class="csc-number">2</div>
+              <div class="csc-content">
+                <div class="csc-title">Passage 1</div>
+                <div class="csc-desc">Typing accuracy & WPM test</div>
+              </div>
+            </div>
+            <div class="combo-stage-connector">→</div>
+            <div class="combo-stage-card">
+              <div class="csc-number">3</div>
+              <div class="csc-content">
+                <div class="csc-title">Passage 2</div>
+                <div class="csc-desc">Typing accuracy & WPM test</div>
+              </div>
+            </div>
+          </div>
+          <div class="combo-flow-footer">
+            <span>🔒 <strong>Submission Lock:</strong> Submitting a stage locks your responses and advances you immediately to the next stage.</span>
+          </div>
+        </li>
+        <li class="instr-rule rule-warn">
+          <span class="instr-rule-icon">🚫</span>
+          <div class="instr-rule-text">
+            <strong>Do not switch tabs or windows</strong>
+            Switching browser tabs or windows is monitored. Please stay on this tab until your exam is submitted.
+          </div>
+        </li>
+        <li class="instr-rule rule-warn">
+          <span class="instr-rule-icon">🔄</span>
+          <div class="instr-rule-text">
+            <strong>Do not refresh or press Back</strong>
+            Refreshing the page or pressing back ends the active test session.
+          </div>
+        </li>
+        <li class="instr-rule rule-ok">
+          <span class="instr-rule-icon">⌨️</span>
+          <div class="instr-rule-text">
+            <strong>Computer Typing Skill Test (40 WPM Benchmark)</strong>
+            Type the given passage accurately. Copy / paste is disabled.
+          </div>
+        </li>
+      </ul>
+
+      <div class="instr-section-label">Marking Scheme</div>
+      <div class="instr-marking">
+        <div style="font-size:0.88rem;color:var(--ink-soft);" id="instr-marking-desc">
+          Each question carries <strong style="color:var(--ink)" id="instr-correct-text">
+            {test?.correct_marks !== undefined ? `${test.correct_marks} mark${test.correct_marks === 1 ? '' : 's'}` : "1 mark"}
+          </strong>. <span id="instr-penalty-desc">
+            {test?.wrong_penalty !== undefined ? (test.wrong_penalty > 0 ? "Wrong answers attract a penalty." : "No penalty for wrong answers.") : "Wrong answers attract -0.25 penalty."}
+          </span>
+        </div>
+        <div class="marking-grid">
+          <div class="mg-item mg-correct">
+            <div class="mg-val" id="instr-mg-correct">
+              {test?.correct_marks !== undefined ? `+${test.correct_marks}` : "+1"}
+            </div>
+            <div class="mg-label">Correct Answer</div>
+          </div>
+          <div class="mg-item mg-wrong">
+            <div class="mg-val" id="instr-mg-wrong">
+              {test?.wrong_penalty !== undefined ? (test.wrong_penalty > 0 ? `-${test.wrong_penalty}` : "0") : "-0.25"}
+            </div>
+            <div class="mg-label">Wrong Answer</div>
+          </div>
+          <div class="mg-item mg-skip">
+            <div class="mg-val" id="instr-mg-skip">0</div>
+            <div class="mg-label">Skipped</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="instr-footer">
+      <label class="instr-agree">
+        <input type="checkbox" id="instr-agree-cb" />
+        <span class="instr-agree-text">
+          I have read all instructions carefully and agree to follow all exam rules.
+        </span>
+      </label>
+      <button class="btn-start-test" id="btn-start-test" disabled>
+        Start Test →
+      </button>
+    </div>
+  </div>
+</div>

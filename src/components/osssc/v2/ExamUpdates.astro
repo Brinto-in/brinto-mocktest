@@ -1,0 +1,140 @@
+---
+// Exam updates timeline: notification, application, admit card, exam date (sample data).
+import Bi from "./Bi.astro";
+import V2Head from "./V2Head.astro";
+import { v2Updates, type L, type V2UpdateStatus } from "../../../data/osssc-v2";
+
+interface Props {
+  id?: string;
+}
+
+const { id = "updates" } = Astro.props;
+
+const STATUS: Record<V2UpdateStatus, L> = {
+  out: { en: "Out now", or: "ପ୍ରକାଶିତ" },
+  soon: { en: "Coming soon", or: "ଶୀଘ୍ର" },
+  tba: { en: "Awaited", or: "ଅପେକ୍ଷିତ" },
+};
+---
+
+<section id={id} class="eu-section" aria-labelledby="eu-title" data-v2-section>
+  <div class="wrap">
+    <V2Head
+      id="eu-title"
+      title={{ en: "Exam updates", or: "ପରୀକ୍ଷା ସୂଚନା" }}
+      sub={{ en: "Key dates for RI, ARI & Amin recruitment.", or: "RI, ARI ଓ ଆମିନ ନିଯୁକ୍ତିର ମୁଖ୍ୟ ତାରିଖ।" }}
+    />
+
+    <ol class="eu-list">
+      {v2Updates.map((u) => {
+        const Tag = u.href ? "a" : "div";
+        return (
+          <li class:list={["eu-item", `is-${u.status}`]}>
+            <span class="eu-dot" aria-hidden="true"></span>
+            <Tag href={u.href} class="eu-body" target={u.href ? "_blank" : undefined} rel={u.href ? "noopener" : undefined}>
+              <span class="eu-title"><Bi t={u.title} /></span>
+              <span class="eu-date"><Bi t={u.date} /></span>
+            </Tag>
+            <span class="eu-status"><Bi t={STATUS[u.status]} /></span>
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .eu-section {
+    padding: 28px 0 12px;
+  }
+
+  .eu-list {
+    position: relative;
+    max-width: 760px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Vertical timeline line */
+  .eu-list::before {
+    content: "";
+    position: absolute;
+    top: 18px;
+    bottom: 18px;
+    left: 7px;
+    width: 2px;
+    background: var(--rule);
+  }
+
+  .eu-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+  }
+
+  .eu-dot {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--surface);
+    background: var(--ink-muted);
+    box-shadow: 0 0 0 1px var(--rule);
+    z-index: 1;
+  }
+
+  .is-out .eu-dot { background: var(--green); }
+  .is-soon .eu-dot { background: var(--gold); }
+
+  .eu-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  a.eu-body:hover {
+    border-color: var(--brand);
+  }
+
+  .eu-title {
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+
+  .eu-date {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+  }
+
+  .eu-status {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: var(--radius-pill);
+    color: var(--ink-soft);
+    background: var(--surface-2, #f3f4f6);
+  }
+
+  .is-out .eu-status { color: var(--green); background: var(--green-light); }
+  .is-soon .eu-status { color: var(--gold); background: var(--gold-light); }
+
+  @media (max-width: 600px) {
+    .eu-section { padding: 20px 0 8px; }
+    .eu-item { flex-wrap: wrap; gap: 10px; }
+    .eu-status { position: absolute; top: 18px; right: 10px; }
+    .eu-body { padding-right: 90px; }
+  }
+</style>

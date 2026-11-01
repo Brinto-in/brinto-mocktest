@@ -1,0 +1,285 @@
+---
+/**
+ * Question of the Day — one MCQ answered right on the page.
+ * The server picks the question for today's IST date; the choice is remembered in
+ * localStorage so a returning visitor sees their answer instead of a fresh question.
+ */
+import Bi from "./Bi.astro";
+import V2Head from "./V2Head.astro";
+import { questionOfTheDay, v2Subjects } from "../../../data/osssc-v2";
+
+interface Props {
+  id?: string;
+}
+
+const { id = "qotd" } = Astro.props;
+const q = questionOfTheDay();
+const subject = v2Subjects[q.subject];
+const istDate = new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10);
+const LETTERS = ["A", "B", "C", "D", "E"];
+---
+
+<section id={id} class="qd-section" aria-labelledby="qd-title" data-v2-section>
+  <div class="wrap">
+    <V2Head
+      id="qd-title"
+      pill={{ en: "Daily", or: "ଦୈନିକ" }}
+      title={{ en: "Question of the Day", or: "ଆଜିର ପ୍ରଶ୍ନ" }}
+      sub={{ en: "One question every day. Answer it and see the explanation.", or: "ପ୍ରତିଦିନ ଗୋଟିଏ ପ୍ରଶ୍ନ। ଉତ୍ତର ଦିଅନ୍ତୁ ଓ ବ୍ୟାଖ୍ୟା ଦେଖନ୍ତୁ।" }}
+    />
+
+    <div class="qd-card" data-qotd data-key={`brinto:qotd:${istDate}:${q.id}`} data-answer={q.answer}>
+      <div class="qd-top">
+        <span class="qd-subject" style={`--sub-color:${subject.color}`}>
+          <span aria-hidden="true">{subject.icon}</span>
+          <Bi t={subject.name} />
+        </span>
+        <span class="qd-date">{istDate}</span>
+      </div>
+
+      <p class="qd-q"><Bi t={q.q} /></p>
+
+      <div class="qd-options" role="group" aria-labelledby="qd-title">
+        {q.options.map((opt, i) => (
+          <button type="button" class="qd-opt" data-index={i}>
+            <span class="qd-letter" aria-hidden="true">{LETTERS[i]}</span>
+            <span class="qd-text"><Bi t={opt} /></span>
+            <span class="qd-mark" aria-hidden="true"></span>
+          </button>
+        ))}
+      </div>
+
+      <div class="qd-result" hidden data-qd-result aria-live="polite">
+        <p class="qd-verdict qd-right">
+          <Bi t={{ en: "Correct! Well done.", or: "ସଠିକ! ବହୁତ ଭଲ।" }} />
+        </p>
+        <p class="qd-verdict qd-wrong">
+          <Bi t={{ en: `Not quite. The answer is ${LETTERS[q.answer]}.`, or: `ଭୁଲ। ସଠିକ ଉତ୍ତର ${LETTERS[q.answer]}।` }} />
+        </p>
+        <p class="qd-explain">
+          <strong><Bi t={{ en: "Explanation: ", or: "ବ୍ୟାଖ୍ୟା: " }} /></strong>
+          <Bi t={q.explain} />
+        </p>
+        <a href="#practice" class="qd-more">
+          <Bi t={{ en: "Practice more questions →", or: "ଆହୁରି ପ୍ରଶ୍ନ ଅଭ୍ୟାସ କରନ୍ତୁ →" }} />
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-qotd]").forEach((card) => {
+    const key = card.dataset.key!;
+    const answer = Number(card.dataset.answer);
+    const opts = [...card.querySelectorAll<HTMLButtonElement>(".qd-opt")];
+    const result = card.querySelector<HTMLElement>("[data-qd-result]")!;
+
+    function reveal(picked: number) {
+      card.classList.add("is-done", picked === answer ? "is-right" : "is-wrong");
+      opts.forEach((b, i) => {
+        b.disabled = true;
+        b.classList.toggle("is-answer", i === answer);
+        b.classList.toggle("is-picked", i === picked);
+      });
+      result.hidden = false;
+    }
+
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem(key);
+    } catch {}
+    if (saved !== null) reveal(Number(saved));
+
+    opts.forEach((b) =>
+      b.addEventListener("click", () => {
+        const picked = Number(b.dataset.index);
+        reveal(picked);
+        try {
+          localStorage.setItem(key, String(picked));
+        } catch {}
+      }),
+    );
+  });
+</script>
+
+<style>
+  .qd-section {
+    padding: 28px 0 12px;
+  }
+
+  .qd-card {
+    max-width: 760px;
+    padding: 22px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: 0 8px 24px -16px rgba(15, 23, 42, 0.3);
+  }
+
+  .qd-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .qd-subject {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--sub-color);
+    background: color-mix(in srgb, var(--sub-color) 10%, #fff);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .qd-date {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .qd-q {
+    font-size: 1.08rem;
+    font-weight: 700;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0 0 16px;
+  }
+
+  .qd-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .qd-opt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1.5px solid var(--rule);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .qd-opt:not(:disabled):hover,
+  .qd-opt:focus-visible {
+    border-color: var(--brand);
+    background: var(--brand-light);
+    outline: none;
+  }
+
+  .qd-opt:disabled {
+    cursor: default;
+  }
+
+  .qd-letter {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--ink-soft);
+    background: var(--surface-2, #f3f4f6);
+  }
+
+  .qd-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .qd-mark {
+    flex-shrink: 0;
+    font-weight: 800;
+  }
+
+  /* ── After answering ── */
+  .is-done .qd-opt {
+    opacity: 0.6;
+  }
+
+  .qd-opt.is-answer {
+    opacity: 1;
+    border-color: var(--green);
+    background: var(--green-light);
+  }
+  .qd-opt.is-answer .qd-letter {
+    color: #fff;
+    background: var(--green);
+  }
+  .qd-opt.is-answer .qd-mark::after {
+    content: "✓";
+    color: var(--green);
+  }
+
+  .qd-opt.is-picked:not(.is-answer) {
+    opacity: 1;
+    border-color: var(--brand);
+    background: var(--brand-light);
+  }
+  .qd-opt.is-picked:not(.is-answer) .qd-letter {
+    color: #fff;
+    background: var(--brand);
+  }
+  .qd-opt.is-picked:not(.is-answer) .qd-mark::after {
+    content: "✕";
+    color: var(--brand);
+  }
+
+  .qd-result {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .qd-verdict {
+    font-weight: 800;
+    margin: 0 0 6px;
+  }
+  .qd-right { color: var(--green); }
+  .qd-wrong { color: var(--brand); }
+  .is-right .qd-wrong,
+  .is-wrong .qd-right {
+    display: none;
+  }
+
+  .qd-explain {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0 0 12px;
+  }
+
+  .qd-more {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--brand);
+  }
+
+  @media (max-width: 600px) {
+    .qd-section { padding: 20px 0 8px; }
+    .qd-card { padding: 16px; }
+    .qd-q { font-size: 1rem; }
+    .qd-options { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .qd-opt { transition: none; }
+  }
+</style>

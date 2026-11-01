@@ -1,0 +1,618 @@
+---
+/**
+ * OssscTestList — list of OSSSC tests where only the first few are open to guests.
+ *
+ * Usage:
+ *   <OssscTestList />                         first 2 free, rest unlock after login
+ *   <OssscTestList tests={rows} freeCount={3} />
+ *
+ * Login lives in localStorage, so the server renders the guest (locked) state and the script
+ * below unlocks rows in the browser — on load and the moment the user logs in or out.
+ * Locked rows open the header's login modal instead of the test.
+ */
+
+export interface OssscTest {
+  id: string;
+  title: string;
+  meta: string; // e.g. "50 Qs · 30 min"
+  href: string;
+}
+
+interface Props {
+  tests?: OssscTest[];
+  freeCount?: number; // tests open without login
+  title?: string;
+}
+
+// Placeholder rows until the list comes from the API
+const SAMPLE: OssscTest[] = Array.from({ length: 20 }, (_, i) => ({
+  id: `t${i + 1}`,
+  title: `OSSSC CRE-1 2025 Computer Skill Test Level - ${i + 1}`,
+  meta: "30 Qs · 30 min",
+  href: `/mocktest/osssc/test/${25 + i}`,
+}));
+
+const { tests = SAMPLE, freeCount = 2, title = "OSSSC test series" } = Astro.props;
+const lockedCount = Math.max(0, tests.length - freeCount);
+---
+
+<section class="tl-section is-guest" aria-labelledby="tl-title" data-test-list>
+  <!-- No .wrap here: the page column already provides the width and padding -->
+  <div class="tl-inner">
+    <div class="tl-head">
+      <h2 id="tl-title" class="tl-title">{title}</h2>
+      {lockedCount > 0 && <span class="tl-note">{freeCount} free · log in to unlock {lockedCount} more</span>}
+    </div>
+
+    <ol class="tl-list">
+      {tests.map((t, i) => {
+        const lockable = i >= freeCount;
+        const testId = t.href ? t.href.split('/').pop() : t.id;
+        return (
+          <li>
+            <a
+              href={t.href}
+              data-test-id={testId}
+              class:list={["tl-item", { "is-locked": lockable }]}
+              data-lockable={lockable ? "" : undefined}
+              data-title={t.title}
+              aria-label={lockable ? `${t.title} – locked, log in to unlock` : t.title}
+            >
+              <span class="tl-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+
+              <span class="tl-body">
+                <span class="tl-name">{t.title}</span>
+                <span class="tl-meta">{t.meta}</span>
+              </span>
+
+              {lockable && (
+                <span class="tl-action tl-lock">
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" />
+                  </svg>
+                  <span class="tl-action-text">Login to unlock</span>
+                </span>
+              )}
+              <span class="tl-action tl-start">
+                {!lockable && <span class="tl-free">FREE</span>}
+                Start
+              </span>
+            </a>
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+
+  <!-- ── ERROR MODAL ── -->
+  <div
+    class="tl-modal-overlay"
+    id="tl-error-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tl-error-title"
+  >
+    <div class="tl-modal-card">
+      <div class="tl-modal-icon">
+        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h3 id="tl-error-title" class="tl-modal-title">Unable to Load Test</h3>
+      <p id="tl-error-msg" class="tl-modal-msg">Network error. Please check your connection and try again.</p>
+      <div class="tl-modal-actions">
+        <button type="button" id="tl-error-close-btn" class="tl-modal-btn">OK</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { isLoggedIn } from "../../lib/authService";
+  import { fetchTestDetails } from "../../lib/api/mockTestService";
+
+  function render(section: HTMLElement) {
+    const loggedIn = isLoggedIn();
+    section.classList.toggle("is-guest", !loggedIn);
+    section.querySelectorAll<HTMLElement>("[data-lockable]").forEach((row) => {
+      row.classList.toggle("is-locked", !loggedIn);
+      row.setAttribute("aria-label", loggedIn ? row.dataset.title! : `${row.dataset.title} – locked, log in to unlock`);
+    });
+  }
+
+  function showErrorModal(message: string) {
+    const modal = document.getElementById("tl-error-modal");
+    const msgEl = document.getElementById("tl-error-msg");
+    if (msgEl) msgEl.textContent = message;
+    if (modal) {
+      document.body.style.overflow = "hidden";
+      modal.classList.add("is-open");
+    }
+  }
+
+  function hideErrorModal() {
+    const modal = document.getElementById("tl-error-modal");
+    if (modal) {
+      document.body.style.overflow = "";
+      modal.classList.remove("is-open");
+    }
+  }
+
+  document.getElementById("tl-error-close-btn")?.addEventListener("click", hideErrorModal);
+  document.getElementById("tl-error-modal")?.addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) hideErrorModal();
+  });
+
+  const SPINNER_HTML =
+    `<svg class="tl-spinner" viewBox="0 0 24 24" aria-hidden="true">` +
+    `<circle class="tl-spinner-track" cx="12" cy="12" r="9" />` +
+    `<circle class="tl-spinner-arc" cx="12" cy="12" r="9" />` +
+    `</svg><span>Starting</span>`;
+
+  // Row loading state: progress line on the row, spinner in the button (width kept fixed)
+  function setLoading(row: HTMLElement, on: boolean) {
+    const startBtn = row.querySelector<HTMLElement>(".tl-start");
+    row.classList.toggle("is-loading", on);
+    if (on) {
+      row.dataset.loading = "true";
+      row.setAttribute("aria-busy", "true");
+    } else {
+      delete row.dataset.loading;
+      row.removeAttribute("aria-busy");
+    }
+    if (!startBtn) return;
+
+    if (on) {
+      if (!startBtn.dataset.originalHtml) startBtn.dataset.originalHtml = startBtn.innerHTML;
+      startBtn.style.minWidth = `${startBtn.offsetWidth}px`;
+      startBtn.innerHTML = SPINNER_HTML;
+    } else {
+      startBtn.style.minWidth = "";
+      if (startBtn.dataset.originalHtml) startBtn.innerHTML = startBtn.dataset.originalHtml;
+    }
+  }
+
+  function resetLoadingStates() {
+    document
+      .querySelectorAll<HTMLElement>("[data-loading='true']")
+      .forEach((row) => setLoading(row, false));
+  }
+
+  // Reset loading state when page is restored from bfcache or back button navigation
+  window.addEventListener("pageshow", resetLoadingStates);
+  window.addEventListener("popstate", resetLoadingStates);
+
+  document.querySelectorAll<HTMLElement>("[data-test-list]").forEach((section) => {
+    section.addEventListener("click", async (e) => {
+      const row = (e.target as Element).closest(".tl-item") as HTMLAnchorElement | null;
+      if (!row) return;
+
+      const isLocked = row.classList.contains("is-locked");
+
+      // Locked row → open the header's login modal
+      if (isLocked) {
+        e.preventDefault();
+        document.querySelector<HTMLElement>("[data-open-login]")?.click();
+        return;
+      }
+
+      // Unlocked row → call details API before proceeding
+      e.preventDefault();
+
+      if (row.dataset.loading === "true") return;
+
+      const href = row.getAttribute("href");
+      if (!href || href === "#") return;
+
+      const testId = row.dataset.testId || href.split("/").pop();
+      if (!testId) {
+        window.location.href = href;
+        return;
+      }
+
+      setLoading(row, true);
+
+      // Yield frame to force browser to paint spinner before starting fetch
+      await new Promise((resolve) => setTimeout(resolve, 40));
+
+      try {
+        const details = await fetchTestDetails(testId);
+        if (details) {
+          window.location.href = href;
+        } else {
+          throw new Error("Unable to load test details from API.");
+        }
+      } catch (err: any) {
+        console.error("API error fetching test details:", err);
+        showErrorModal(err?.message || "Unable to fetch test details from the server. Please check your connection and try again.");
+        setLoading(row, false);
+      }
+    });
+
+    render(section);
+    // Fired by saveAuth/clearAuth (this tab) and by storage changes (other tabs)
+    window.addEventListener("brinto:auth-changed", () => render(section));
+    window.addEventListener("storage", () => render(section));
+  });
+</script>
+
+<style>
+  .tl-section {
+    background: var(--surface);
+    padding: 16px 0 20px;
+  }
+
+  /* ── Header (matches OssscPrevYear) ── */
+  .tl-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .tl-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .tl-note {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* ── List ── */
+  .tl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr); /* let rows shrink below the longest title */
+    gap: 10px;
+  }
+
+  .tl-item {
+    position: relative;
+    overflow: hidden; /* clips the loading progress line to the row's corners */
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg, #fff);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+
+  .tl-item:hover,
+  .tl-item:focus-visible {
+    border-color: var(--brand);
+    box-shadow: 0 6px 16px -10px rgba(15, 23, 42, 0.35);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .tl-num {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--brand);
+    background: var(--brand-light);
+  }
+
+  .tl-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tl-name {
+    font-weight: 700;
+    font-size: 0.98rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tl-meta {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+  }
+
+  .tl-action {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+  }
+
+  /* ── Loading (row clicked, fetching test details) ── */
+  .tl-item.is-loading {
+    cursor: progress;
+    border-color: var(--brand);
+    background: var(--brand-light);
+    transform: none;
+  }
+
+  .tl-item.is-loading .tl-start {
+    pointer-events: none;
+    justify-content: center;
+    background: var(--brand-dark);
+  }
+
+  /* Indeterminate progress line along the bottom edge of the row */
+  .tl-item.is-loading::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 35%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--brand), transparent);
+    animation: tl-progress 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes tl-progress {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(300%); }
+  }
+
+  /* Spinner is injected with innerHTML, so it has no scoped attribute → :global */
+  .tl-start :global(.tl-spinner) {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    animation: tl-spin 0.8s linear infinite;
+  }
+
+  .tl-start :global(.tl-spinner circle) {
+    fill: none;
+    stroke-width: 3;
+  }
+
+  .tl-start :global(.tl-spinner-track) {
+    stroke: rgba(255, 255, 255, 0.25);
+  }
+
+  .tl-start :global(.tl-spinner-arc) {
+    stroke: #ffffff;
+    stroke-linecap: round;
+    stroke-dasharray: 57;
+    stroke-dashoffset: 42;
+    transform-origin: center;
+    animation: tl-dash 1.4s ease-in-out infinite;
+  }
+
+  @keyframes tl-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Arc grows and shrinks while rotating (Material-style) */
+  @keyframes tl-dash {
+    0% { stroke-dashoffset: 52; }
+    50% { stroke-dashoffset: 18; transform: rotate(90deg); }
+    100% { stroke-dashoffset: 52; transform: rotate(360deg); }
+  }
+
+  .tl-start {
+    color: #fff;
+    background: var(--brand);
+  }
+
+  .tl-free {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--brand);
+    background: #fff;
+  }
+
+  /* ── Locked ── (row shows either the lock or Start; guest-only bits hide after login) */
+  .tl-item:not(.is-locked) .tl-lock,
+  .is-locked .tl-start,
+  .tl-section:not(.is-guest) .tl-free,
+  .tl-section:not(.is-guest) .tl-note {
+    display: none;
+  }
+
+  .tl-lock {
+    color: var(--ink-soft);
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+  }
+
+  .is-locked .tl-num {
+    color: var(--ink-muted);
+    background: var(--surface-2);
+  }
+
+  .is-locked .tl-name,
+  .is-locked .tl-meta {
+    opacity: 0.6;
+  }
+
+  .is-locked:hover .tl-lock {
+    color: var(--brand);
+    border-color: var(--brand);
+  }
+
+  /* ── Responsive ── */
+  /* Tablet: no sidebar yet, so use the width for two columns */
+  @media (min-width: 720px) and (max-width: 1023px) {
+    .tl-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tl-item {
+      height: 100%;
+    }
+    .tl-name {
+      white-space: normal;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .tl-section { padding: 8px 0 12px; }
+    .tl-note { display: none; }
+    .tl-head { padding: 0 16px; margin-bottom: 10px; }
+
+    /* Full-width list: flush rows separated by dividers */
+    .tl-list {
+      gap: 0;
+      border-top: 1px solid var(--rule);
+    }
+    .tl-item {
+      gap: 12px;
+      padding: 14px 16px;
+      border: 0;
+      border-bottom: 1px solid var(--rule);
+      border-radius: 0;
+    }
+    .tl-item:hover,
+    .tl-item:focus-visible {
+      transform: none;
+      box-shadow: none;
+      background: var(--brand-light);
+    }
+    .tl-item:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: -2px;
+    }
+    .tl-num { width: 32px; height: 32px; font-size: 0.78rem; }
+    .tl-name {
+      font-size: 0.9rem;
+      line-height: 1.3;
+      white-space: normal; /* wrap to 2 lines instead of cutting the title */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .tl-meta { font-size: 0.75rem; }
+    .tl-action { font-size: 0.8rem; }
+    .tl-free { display: none; } /* "Start" alone is enough on phones */
+    .tl-action { padding: 7px 12px; }
+    .tl-lock .tl-action-text { display: none; } /* icon only */
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tl-item { transition: none; }
+    .tl-item.is-loading::after { animation-duration: 2.5s; }
+    .tl-start :global(.tl-spinner),
+    .tl-start :global(.tl-spinner-arc) { animation-duration: 2.5s; }
+  }
+
+  /* ── Error Modal ── */
+  .tl-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .tl-modal-overlay.is-open {
+    display: flex;
+  }
+
+  .tl-modal-card {
+    background: var(--surface, #fff);
+    border-radius: var(--radius-md, 14px);
+    padding: 28px 24px 22px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    animation: tl-modal-pop 0.2s ease-out;
+  }
+
+  @keyframes tl-modal-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .tl-modal-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--brand-light, #fff0f2);
+    color: var(--brand, #b00020);
+    display: grid;
+    place-items: center;
+    margin: 0 auto 14px;
+  }
+
+  .tl-modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink, #0f172a);
+    margin-bottom: 8px;
+    font-family: var(--font-body);
+  }
+
+  .tl-modal-msg {
+    font-size: 0.9rem;
+    color: var(--ink-soft, #475569);
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  .tl-modal-actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  .tl-modal-btn {
+    background: var(--brand, #b00020);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 10px 28px;
+    border-radius: var(--radius-pill, 999px);
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .tl-modal-btn:hover {
+    background: var(--brand-dark, #7b0015);
+  }
+</style>

@@ -1,0 +1,17 @@
+---
+/**
+ * Bi — renders a bilingual string. Both languages are in the HTML (good for SEO);
+ * LangBar's global CSS hides the one that isn't selected.
+ *
+ *   <Bi t={{ en: "Syllabus", or: "ପାଠ୍ୟକ୍ରମ" }} />
+ */
+import type { L } from "../../../data/osssc-v2";
+
+interface Props {
+  t: L;
+}
+
+const { t } = Astro.props;
+---
+
+<span class="bi-en">{t.en}</span><span class="bi-or" lang="or">{t.or}</span>

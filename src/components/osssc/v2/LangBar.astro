@@ -1,0 +1,189 @@
+---
+/**
+ * Sticky bar under the site header: English / ଓଡ଼ିଆ switch + jump links to each section.
+ * Also holds the global CSS that shows only the selected language (see Bi.astro).
+ *
+ * The page sets <html data-lang> in <head> before paint (see LangInit in osssc/new.astro),
+ * so there's no flash of the wrong language.
+ */
+import Bi from "./Bi.astro";
+import type { L } from "../../../data/osssc-v2";
+
+interface Props {
+  links: { id: string; label: L }[];
+}
+
+const { links } = Astro.props;
+---
+
+<div class="lb" data-lang-bar>
+  <div class="wrap lb-inner">
+    <div class="lb-switch" role="group" aria-label="Language / ଭାଷା">
+      <button type="button" class="lb-opt" data-set-lang="en">English</button>
+      <button type="button" class="lb-opt" data-set-lang="or" lang="or">ଓଡ଼ିଆ</button>
+    </div>
+
+    <nav class="lb-links" aria-label="On this page">
+      {links.map((l) => (
+        <a href={`#${l.id}`} class="lb-link" data-lb-link={l.id}>
+          <Bi t={l.label} />
+        </a>
+      ))}
+    </nav>
+  </div>
+</div>
+
+<script>
+  const KEY = "brinto:lang";
+  const root = document.documentElement;
+
+  function apply(lang: string) {
+    root.dataset.lang = lang;
+    document.querySelectorAll<HTMLElement>("[data-set-lang]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(b.dataset.setLang === lang));
+    });
+  }
+
+  apply(root.dataset.lang === "or" ? "or" : "en");
+
+  document.querySelectorAll<HTMLElement>("[data-set-lang]").forEach((b) => {
+    b.addEventListener("click", () => {
+      const lang = b.dataset.setLang!;
+      apply(lang);
+      try {
+        localStorage.setItem(KEY, lang);
+      } catch {}
+    });
+  });
+
+  // Highlight the jump link of the section currently on screen
+  const links = new Map<string, HTMLElement>();
+  document.querySelectorAll<HTMLElement>("[data-lb-link]").forEach((a) => links.set(a.dataset.lbLink!, a));
+
+  const seen = new Set<string>();
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => (e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id)));
+      const current = [...links.keys()].find((id) => seen.has(id));
+      links.forEach((a, id) => {
+        const on = id === current;
+        a.classList.toggle("is-active", on);
+        // Keep the active link visible in the horizontally scrolling nav (without moving the page)
+        const nav = a.parentElement!;
+        if (on) nav.scrollTo({ left: a.offsetLeft - (nav.clientWidth - a.offsetWidth) / 2, behavior: "smooth" });
+      });
+    },
+    { rootMargin: "-130px 0px -55% 0px" },
+  );
+  links.forEach((_, id) => {
+    const el = document.getElementById(id);
+    if (el) io.observe(el);
+  });
+</script>
+
+<style is:global>
+  /* Show only the selected language */
+  html:not([data-lang="or"]) .bi-or,
+  html[data-lang="or"] .bi-en {
+    display: none !important;
+  }
+
+  [lang="or"] {
+    font-family: "Noto Sans Oriya", "Noto Sans Odia", "Kalinga", var(--font-body);
+  }
+
+  /* Sections scroll in below the site header (72px) + this bar */
+  [data-v2-section] {
+    scroll-margin-top: 130px;
+  }
+</style>
+
+<style>
+  .lb {
+    position: sticky;
+    top: 72px; /* below the site header */
+    z-index: 30;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .lb-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 52px;
+  }
+
+  .lb-switch {
+    flex-shrink: 0;
+    display: inline-flex;
+    padding: 3px;
+    border-radius: var(--radius-pill);
+    background: var(--brand-light);
+    border: 1px solid var(--brand-mid);
+  }
+
+  .lb-opt {
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--brand);
+    background: transparent;
+    border: 0;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .lb-opt[aria-pressed="true"] {
+    color: #ffffff;
+    background: var(--brand);
+  }
+
+  .lb-links {
+    position: relative; /* offsetParent for the active-link scroll maths */
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, #000 92%, transparent);
+  }
+
+  .lb-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lb-link {
+    flex-shrink: 0;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .lb-link:hover {
+    color: var(--brand);
+  }
+
+  .lb-link.is-active {
+    color: var(--brand);
+    background: var(--brand-light);
+  }
+
+  @media (max-width: 600px) {
+    .lb-inner {
+      gap: 10px;
+      height: 48px;
+    }
+    .lb-opt {
+      padding: 5px 10px;
+    }
+  }
+</style>

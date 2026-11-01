@@ -1,0 +1,204 @@
+---
+export const prerender = false;
+/**
+ * /mocktest/osssc/new — new OSSSC hub page (bilingual English / Odia), built alongside the
+ * current /mocktest/osssc so both can be compared. When this replaces index.astro:
+ * move it over, drop the noindex meta below and delete the unused old components.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PosterRow from "../../components/PosterRow.astro";
+import type { PosterItem } from "../../components/PosterRow.astro";
+import OssscHero from "../../components/osssc/OssscHero.astro";
+import OssscLiveTest from "../../components/osssc/OssscLiveTest.astro";
+import OssscPrevYear from "../../components/osssc/OssscPrevYear.astro";
+
+import Bi from "../../components/osssc/v2/Bi.astro";
+import LangBar from "../../components/osssc/v2/LangBar.astro";
+import QuestionOfDay from "../../components/osssc/v2/QuestionOfDay.astro";
+import SyllabusTabs from "../../components/osssc/v2/SyllabusTabs.astro";
+import ExamPattern from "../../components/osssc/v2/ExamPattern.astro";
+import PracticeTopics from "../../components/osssc/v2/PracticeTopics.astro";
+import Leaderboard from "../../components/osssc/v2/Leaderboard.astro";
+import ExamUpdates from "../../components/osssc/v2/ExamUpdates.astro";
+import OssscFaq from "../../components/osssc/v2/OssscFaq.astro";
+
+import { ossscItems } from "../../data/osssc";
+import { fetchMockTests } from "../../lib/api";
+import { examTone } from "../../lib/examTone";
+import { testImagePath } from "../../lib/testImages";
+
+// Same test list as the current OSSSC page
+let apiItems: PosterItem[] = [];
+
+try {
+  const rows = await fetchMockTests(1, 50);
+  const listed = new Set(ossscItems.map((i) => i.href));
+  apiItems = (Array.isArray(rows) ? rows : [])
+    .filter((r: any) => String(r.exam || r.category || "").toUpperCase() === "OSSSC")
+    .map((r: any): PosterItem => {
+      const qCount = Array.isArray(r.questions) ? r.questions.length : (r.questions || 0);
+      return {
+        id: `api-${r.id}`,
+        title: r.title || r.name,
+        sub: "OSSSC",
+        meta: `${qCount} Qs · ${r.duration || 30} min`,
+        image: testImagePath(r.id),
+        tone: examTone("OSSSC"),
+        href: `/mocktest/test/${r.id}`,
+        isNew: !!(r.isNew || r.is_new),
+      };
+    })
+    .filter((item) => !listed.has(item.href));
+} catch (err) {
+  console.error("Error fetching OSSSC tests:", err);
+}
+
+const allTests = [...ossscItems, ...apiItems];
+
+// Jump links in the sticky language bar — ids match the sections below
+const links = [
+  { id: "live-test", label: { en: "Live test", or: "ଲାଇଭ ଟେଷ୍ଟ" } },
+  { id: "qotd", label: { en: "Today's question", or: "ଆଜିର ପ୍ରଶ୍ନ" } },
+  { id: "tests", label: { en: "Mock tests", or: "ମକ୍ ଟେଷ୍ଟ" } },
+  { id: "syllabus", label: { en: "Syllabus", or: "ପାଠ୍ୟକ୍ରମ" } },
+  { id: "pattern", label: { en: "Exam pattern", or: "ପରୀକ୍ଷା ଢାଞ୍ଚା" } },
+  { id: "practice", label: { en: "Practice", or: "ଅଭ୍ୟାସ" } },
+  { id: "pyq", label: { en: "Previous papers", or: "ପୂର୍ବ ପ୍ରଶ୍ନପତ୍ର" } },
+  { id: "leaderboard", label: { en: "Leaderboard", or: "ମେଧା ତାଲିକା" } },
+  { id: "updates", label: { en: "Updates", or: "ସୂଚନା" } },
+  { id: "faq", label: { en: "FAQ", or: "ପ୍ରଶ୍ନୋତ୍ତର" } },
+];
+---
+
+<BaseLayout
+  title="OSSSC RI, ARI & Amin 2026 – Syllabus, Mock Tests & Daily Live Test"
+  description="Free OSSSC preparation in English and Odia: RI, ARI & Amin syllabus, exam pattern, daily 8 PM live test, question of the day, topic-wise MCQ practice and previous year papers."
+  image="/mocktest/images/osssc/osssc_cgl_og.jpeg"
+>
+  <Fragment slot="head">
+    <!-- Preview page: keep out of search until it replaces /mocktest/osssc -->
+    <meta name="robots" content="noindex, follow" />
+    <!-- Apply the saved language before first paint (no flash of English) -->
+    <script is:inline>
+      try {
+        if (localStorage.getItem("brinto:lang") === "or") document.documentElement.dataset.lang = "or";
+      } catch (e) {}
+    </script>
+  </Fragment>
+
+  <OssscHero />
+
+  <LangBar links={links} />
+
+  <div id="live-test" data-v2-section>
+    <OssscLiveTest id="live-test-card" />
+  </div>
+
+  <QuestionOfDay id="qotd" />
+
+  <div id="tests" data-v2-section>
+    <PosterRow sectionId="osssc-tests" title="OSSSC mock tests & typing practice" items={allTests} cols={6} />
+  </div>
+
+  <SyllabusTabs id="syllabus" />
+
+  <ExamPattern id="pattern" />
+
+  <PracticeTopics id="practice" />
+
+  <div id="pyq" data-v2-section>
+    <OssscPrevYear id="pyq-row" />
+  </div>
+
+  <Leaderboard id="leaderboard" />
+
+  <ExamUpdates id="updates" />
+
+  <OssscFaq id="faq" />
+
+  <!-- ── CTA BANNER ────────────────────────────── -->
+  <section class="cta-band">
+    <div class="wrap cta-inner">
+      <div>
+        <h2><Bi t={{ en: "See you at 8 PM for today's live test.", or: "ଆଜି ରାତି 8 ଟାରେ ଲାଇଭ ଟେଷ୍ଟରେ ଦେଖା ହେବା।" }} /></h2>
+        <p><Bi t={{ en: "Free, always. Practise now and climb the All-Odisha leaderboard.", or: "ସର୍ବଦା ମାଗଣା। ଏବେ ଅଭ୍ୟାସ କରନ୍ତୁ ଓ ସମଗ୍ର ଓଡ଼ିଶା ମେଧା ତାଲିକାରେ ଆଗକୁ ଆସନ୍ତୁ।" }} /></p>
+      </div>
+      <div class="cta-btns">
+        <a href="#live-test" class="cta-btn-primary"><Bi t={{ en: "Live test", or: "ଲାଇଭ ଟେଷ୍ଟ" }} /></a>
+        <a href="/mocktest/osssc/tests" class="cta-btn-ghost"><Bi t={{ en: "All mock tests", or: "ସମସ୍ତ ମକ୍ ଟେଷ୍ଟ" }} /></a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Same CTA band as the current OSSSC page */
+  .cta-band {
+    background: var(--brand);
+    padding: 48px 0;
+    margin-bottom: -40px; /* sit flush on the footer */
+  }
+
+  .cta-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .cta-band h2 {
+    font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .cta-band p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+  }
+
+  .cta-btns {
+    display: flex;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .cta-btn-primary {
+    font-weight: 700;
+    color: var(--brand);
+    background: #fff;
+    padding: 14px 28px;
+    border-radius: var(--radius-pill);
+    font-size: 0.98rem;
+    transition: transform 0.1s;
+  }
+
+  .cta-btn-primary:hover {
+    transform: translateY(-1px);
+  }
+
+  .cta-btn-ghost {
+    font-weight: 600;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    padding: 14px 28px;
+    border-radius: var(--radius-pill);
+    font-size: 0.98rem;
+    transition: border-color 0.15s;
+  }
+
+  .cta-btn-ghost:hover {
+    border-color: #fff;
+  }
+
+  @media (max-width: 768px) {
+    .cta-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+    .cta-btns {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+</style>
