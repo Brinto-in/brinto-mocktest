@@ -2,6 +2,7 @@
 // src/pages/odisha-10th-mock-test.astro
 // Dedicated comprehensive mock test & syllabus portal for BSE Odisha Class 10 (HSC Matriculation)
 import BaseLayout from '../layouts/BaseLayout.astro';
+import GAd from '../components/GAd.astro';
 import { ODISHA_10TH_SUBJECTS, ODISHA_10TH_ACTIVE } from '../lib/odisha/hsc/10/subjects';
 import {
   EXAM_PATTERN_DETAILS,
@@ -313,6 +314,11 @@ const webPageJsonLd = {
             );
           })}
         </div>
+
+        <!-- ── In-flow Ad: below subjects & chapter cards ── -->
+        <div class="hsc-ad-wrap">
+          <GAd sizes={{ mobile: "320x100", tablet: "728x90", desktop: "728x90" }} />
+        </div>
       </div>
     </section>
 
@@ -552,6 +558,11 @@ const webPageJsonLd = {
               </div>
             </details>
           ))}
+        </div>
+
+        <!-- ── In-flow Ad: below FAQs, before final CTA ── -->
+        <div class="hsc-ad-wrap">
+          <GAd sizes={{ mobile: "300x250", tablet: "728x90", desktop: "728x90" }} />
         </div>
       </div>
     </section>
@@ -1388,6 +1399,14 @@ const webPageJsonLd = {
     border-top: 1px solid var(--surface-2);
   }
 
+  /* ── RESPONSIVE AD BANNERS ──────────────────────────── */
+  .hsc-ad-wrap {
+    margin-top: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
   /* ── FINAL CTA ──────────────────────────────────────── */
   .hsc-final-cta {
     background: linear-gradient(135deg, #7b0015 0%, #b00020 100%);
@@ -1532,6 +1551,10 @@ const webPageJsonLd = {
     .hsc-section-header {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    .hsc-ad-wrap {
+      margin-top: 20px;
     }
   }
 
