@@ -507,6 +507,13 @@ export const ssbJuniorAssistant2026: Exam = {
           { name: { en: "Parts of speech", or: "ଶବ୍ଦ ଭେଦ (Parts of speech)" }, topics: ["Articles", "Nouns", "Adverbs", "Adjectives", "Prepositions"] },
           { name: { en: "Reading comprehension", or: "ବୋଧପରୀକ୍ଷା" }, topics: ["Unseen passage (400–450 words)", "Vocabulary in context"] },
         ],
+        levels: [
+          { level: 1, name: { en: "Level 1 Test", or: "ସ୍ତର 1 ଟେଷ୍ଟ" }, meta: { en: "Easy · Basic Level", or: "ସହଜ · ମୌଳିକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 2, name: { en: "Level 2 Test", or: "ସ୍ତର 2 ଟେଷ୍ଟ" }, meta: { en: "Medium · Standard Level", or: "ମଧ୍ୟମ · ମାନକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 3, name: { en: "Level 3 Test", or: "ସ୍ତର 3 ଟେଷ୍ଟ" }, meta: { en: "Hard · Advanced Level", or: "କଠିନ · ଉଚ୍ଚ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 4, name: { en: "Level 4 Test", or: "ସ୍ତର 4 ଟେଷ୍ଟ" }, meta: { en: "Expert · Pro Level", or: "ବିଶେଷଜ୍ଞ · ପ୍ରୋ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 5, name: { en: "Level 5 Test", or: "ସ୍ତର 5 ଟେଷ୍ଟ" }, meta: { en: "Master · Exam Level", or: "ମାଷ୍ଟର · ପରୀକ୍ଷା ସ୍ତର" }, questions: 25, minutes: 25 },
+        ],
       },
       {
         id: "reasoning",
@@ -519,6 +526,13 @@ export const ssbJuniorAssistant2026: Exam = {
           { name: { en: "Reasoning", or: "ତର୍କ" }, topics: ["Coding-decoding", "Blood relations", "Directions", "Analogy & classification"] },
           { name: { en: "Aptitude test", or: "ଦକ୍ଷତା ପରୀକ୍ଷା" }, topics: ["Ranking & order", "Seating arrangement", "Puzzles"] },
           { name: { en: "Problem solving & decision making", or: "ସମସ୍ୟା ସମାଧାନ ଓ ନିଷ୍ପତ୍ତି" }, topics: ["Statement & conclusion", "Course of action", "Situation-based questions"] },
+        ],
+        levels: [
+          { level: 1, name: { en: "Level 1 Test", or: "ସ୍ତର 1 ଟେଷ୍ଟ" }, meta: { en: "Easy · Basic Level", or: "ସହଜ · ମୌଳିକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 2, name: { en: "Level 2 Test", or: "ସ୍ତର 2 ଟେଷ୍ଟ" }, meta: { en: "Medium · Standard Level", or: "ମଧ୍ୟମ · ମାନକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 3, name: { en: "Level 3 Test", or: "ସ୍ତର 3 ଟେଷ୍ଟ" }, meta: { en: "Hard · Advanced Level", or: "କଠିନ · ଉଚ୍ଚ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 4, name: { en: "Level 4 Test", or: "ସ୍ତର 4 ଟେଷ୍ଟ" }, meta: { en: "Expert · Pro Level", or: "ବିଶେଷଜ୍ଞ · ପ୍ରୋ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 5, name: { en: "Level 5 Test", or: "ସ୍ତର 5 ଟେଷ୍ଟ" }, meta: { en: "Master · Exam Level", or: "ମାଷ୍ଟର · ପରୀକ୍ଷା ସ୍ତର" }, questions: 25, minutes: 25 },
         ],
       },
       {
@@ -534,6 +548,13 @@ export const ssbJuniorAssistant2026: Exam = {
           { name: { en: "Books & authors", or: "ପୁସ୍ତକ ଓ ଲେଖକ" }, topics: ["Famous books", "Authors"] },
           { name: { en: "Science & discoveries", or: "ବିଜ୍ଞାନ ଓ ଆବିଷ୍କାର" }, topics: ["Scientific facts", "Discoveries & inventors", "Uses"] },
           { name: { en: "Current affairs", or: "ସାମ୍ପ୍ରତିକ ଘଟଣା" }, topics: ["Current events", "Places & personalities", "Matching questions"] },
+        ],
+        levels: [
+          { level: 1, name: { en: "Level 1 Test", or: "ସ୍ତର 1 ଟେଷ୍ଟ" }, meta: { en: "Easy · Basic Level", or: "ସହଜ · ମୌଳିକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 2, name: { en: "Level 2 Test", or: "ସ୍ତର 2 ଟେଷ୍ଟ" }, meta: { en: "Medium · Standard Level", or: "ମଧ୍ୟମ · ମାନକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 3, name: { en: "Level 3 Test", or: "ସ୍ତର 3 ଟେଷ୍ଟ" }, meta: { en: "Hard · Advanced Level", or: "କଠିନ · ଉଚ୍ଚ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 4, name: { en: "Level 4 Test", or: "ସ୍ତର 4 ଟେଷ୍ଟ" }, meta: { en: "Expert · Pro Level", or: "ବିଶେଷଜ୍ଞ · ପ୍ରୋ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 5, name: { en: "Level 5 Test", or: "ସ୍ତର 5 ଟେଷ୍ଟ" }, meta: { en: "Master · Exam Level", or: "ମାଷ୍ଟର · ପରୀକ୍ଷା ସ୍ତର" }, questions: 25, minutes: 25 },
         ],
       },
       {
@@ -552,6 +573,13 @@ export const ssbJuniorAssistant2026: Exam = {
           { name: { en: "Time & work, time & distance", or: "ସମୟ ଓ କାର୍ୟ୍ୟ, ସମୟ ଓ ଦୂରତା" }, topics: ["Time & work", "Time & distance"] },
           { name: { en: "Statistics", or: "ପରିସଂଖ୍ୟାନ" }, topics: ["Mean, median & mode", "Data interpretation"] },
         ],
+        levels: [
+          { level: 1, name: { en: "Level 1 Test", or: "ସ୍ତର 1 ଟେଷ୍ଟ" }, meta: { en: "Easy · Basic Level", or: "ସହଜ · ମୌଳିକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 2, name: { en: "Level 2 Test", or: "ସ୍ତର 2 ଟେଷ୍ଟ" }, meta: { en: "Medium · Standard Level", or: "ମଧ୍ୟମ · ମାନକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 3, name: { en: "Level 3 Test", or: "ସ୍ତର 3 ଟେଷ୍ଟ" }, meta: { en: "Hard · Advanced Level", or: "କଠିନ · ଉଚ୍ଚ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 4, name: { en: "Level 4 Test", or: "ସ୍ତର 4 ଟେଷ୍ଟ" }, meta: { en: "Expert · Pro Level", or: "ବିଶେଷଜ୍ଞ · ପ୍ରୋ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 5, name: { en: "Level 5 Test", or: "ସ୍ତର 5 ଟେଷ୍ଟ" }, meta: { en: "Master · Exam Level", or: "ମାଷ୍ଟର · ପରୀକ୍ଷା ସ୍ତର" }, questions: 25, minutes: 25 },
+        ],
       },
       {
         id: "computer",
@@ -568,6 +596,13 @@ export const ssbJuniorAssistant2026: Exam = {
           { name: { en: "MS PowerPoint", or: "MS PowerPoint" }, topics: ["2–3 slide presentation", "Editing & formatting slides"] },
           { name: { en: "MS Excel", or: "MS Excel" }, topics: ["Formatting cells & data", "Functions & formulas", "Relative, absolute & mixed reference"] },
           { name: { en: "MS Access", or: "MS Access" }, topics: ["Create a database", "Enter data", "Set the primary key"] },
+        ],
+        levels: [
+          { level: 1, name: { en: "Level 1 Test", or: "ସ୍ତର 1 ଟେଷ୍ଟ" }, meta: { en: "Easy · Basic Level", or: "ସହଜ · ମୌଳିକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 2, name: { en: "Level 2 Test", or: "ସ୍ତର 2 ଟେଷ୍ଟ" }, meta: { en: "Medium · Standard Level", or: "ମଧ୍ୟମ · ମାନକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 3, name: { en: "Level 3 Test", or: "ସ୍ତର 3 ଟେଷ୍ଟ" }, meta: { en: "Hard · Advanced Level", or: "କଠିନ · ଉଚ୍ଚ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 4, name: { en: "Level 4 Test", or: "ସ୍ତର 4 ଟେଷ୍ଟ" }, meta: { en: "Expert · Pro Level", or: "ବିଶେଷଜ୍ଞ · ପ୍ରୋ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 5, name: { en: "Level 5 Test", or: "ସ୍ତର 5 ଟେଷ୍ଟ" }, meta: { en: "Master · Exam Level", or: "ମାଷ୍ଟର · ପରୀକ୍ଷା ସ୍ତର" }, questions: 25, minutes: 25 },
         ],
       },
     ],

@@ -123,6 +123,15 @@ export interface ChapterTest {
   poster?: string; // path under /public; falls back to a text card
 }
 
+export interface LevelTest {
+  level?: number;
+  name: L;
+  meta?: L;
+  testId?: number;
+  questions?: number;
+  minutes?: number;
+}
+
 export interface SubjectTests {
   id: string;
   name: L;
@@ -134,6 +143,7 @@ export interface SubjectTests {
   minutes?: number;
   poster?: string;
   chapters: ChapterTest[];
+  levels?: LevelTest[];
 }
 
 /** Full-length papers (all subjects), shown first. */
