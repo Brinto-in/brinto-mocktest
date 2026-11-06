@@ -49,8 +49,8 @@ try {
       <span>Typing Test</span>
     </nav>
     <div class="page-meta">
-      <div class="meta-chip">⏱ 15 minutes</div>
-      <div class="meta-chip">🎯 40 WPM target</div>
+      <div class="meta-chip">⏱ 10 minutes</div>
+      <div class="meta-chip">🎯 30 WPM target</div>
       <div class="meta-chip">🆓 Free</div>
     </div>
   </div>
@@ -64,8 +64,8 @@ try {
           title="OSSSC Typing Test"
           examName="OSSSC"
           passage={passage}
-          duration={900}
-          wpmGoal={40}
+          duration={600}
+          wpmGoal={30}
           showTips={true}
           apiUrl="https://brintoapi.brinto.in/api/mocktest-passages?test_name=Odisha%20RI%20Typing%20Test"
           trackBackspaces={true}
@@ -81,17 +81,6 @@ try {
       <!-- ── Info section below ── -->
       <section class="info-section">
         <div class="info-grid">
-          <div class="info-card">
-            <h3>📋 OSSSC Typing Norms</h3>
-            <ul>
-              <li>English: <strong>40 WPM</strong> minimum</li>
-              <li>Odia: <strong>30 WPM</strong> minimum</li>
-              <li>Duration: <strong>15 minutes</strong></li>
-              <li>Accuracy must be <strong>≥ 80%</strong></li>
-              <li>Errors reduce your effective WPM</li>
-            </ul>
-          </div>
-
           <div class="info-card">
             <h3>💡 Tips to Improve</h3>
             <ul>
@@ -239,7 +228,7 @@ try {
   }
   .info-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
   .info-card {
