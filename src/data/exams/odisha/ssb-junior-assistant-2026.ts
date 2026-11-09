@@ -508,11 +508,11 @@ export const ssbJuniorAssistant2026: Exam = {
           { name: { en: "Reading comprehension", or: "ବୋଧପରୀକ୍ଷା" }, topics: ["Unseen passage (400–450 words)", "Vocabulary in context"] },
         ],
         levels: [
-          { level: 1, name: { en: "Level 1 Test", or: "ସ୍ତର 1 ଟେଷ୍ଟ" }, meta: { en: "Easy · Basic Level", or: "ସହଜ · ମୌଳିକ ସ୍ତର" }, questions: 25, minutes: 25 },
-          { level: 2, name: { en: "Level 2 Test", or: "ସ୍ତର 2 ଟେଷ୍ଟ" }, meta: { en: "Medium · Standard Level", or: "ମଧ୍ୟମ · ମାନକ ସ୍ତର" }, questions: 25, minutes: 25 },
-          { level: 3, name: { en: "Level 3 Test", or: "ସ୍ତର 3 ଟେଷ୍ଟ" }, meta: { en: "Hard · Advanced Level", or: "କଠିନ · ଉଚ୍ଚ ସ୍ତର" }, questions: 25, minutes: 25 },
-          { level: 4, name: { en: "Level 4 Test", or: "ସ୍ତର 4 ଟେଷ୍ଟ" }, meta: { en: "Expert · Pro Level", or: "ବିଶେଷଜ୍ଞ · ପ୍ରୋ ସ୍ତର" }, questions: 25, minutes: 25 },
-          { level: 5, name: { en: "Level 5 Test", or: "ସ୍ତର 5 ଟେଷ୍ଟ" }, meta: { en: "Master · Exam Level", or: "ମାଷ୍ଟର · ପରୀକ୍ଷା ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 1, testId: 46, name: { en: "Level 1 Test", or: "ସ୍ତର 1 ଟେଷ୍ଟ" }, meta: { en: "Easy · Basic Level", or: "ସହଜ · ମୌଳିକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 2, testId: 47, name: { en: "Level 2 Test", or: "ସ୍ତର 2 ଟେଷ୍ଟ" }, meta: { en: "Medium · Standard Level", or: "ମଧ୍ୟମ · ମାନକ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 3, testId: 48, name: { en: "Level 3 Test", or: "ସ୍ତର 3 ଟେଷ୍ଟ" }, meta: { en: "Hard · Advanced Level", or: "କଠିନ · ଉଚ୍ଚ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 4, testId: 49, name: { en: "Level 4 Test", or: "ସ୍ତର 4 ଟେଷ୍ଟ" }, meta: { en: "Expert · Pro Level", or: "ବିଶେଷଜ୍ଞ · ପ୍ରୋ ସ୍ତର" }, questions: 25, minutes: 25 },
+          { level: 5, testId: 50, name: { en: "Level 5 Test", or: "ସ୍ତର 5 ଟେଷ୍ଟ" }, meta: { en: "Master · Exam Level", or: "ମାଷ୍ଟର · ପରୀକ୍ଷା ସ୍ତର" }, questions: 25, minutes: 25 },
         ],
       },
       {
