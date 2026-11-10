@@ -23,7 +23,7 @@ import { testImagePath } from "../../lib/testImages";
 let apiItems: PosterItem[] = [];
 
 try {
-  const rows = await fetchMockTests(1, 50);
+  const { data: rows } = await fetchMockTests(1, 50);
   const listed = new Set(ossscItems.map((i) => i.href));
   apiItems = (Array.isArray(rows) ? rows : [])
     .filter((r: any) => String(r.exam || r.category || "").toUpperCase() === "OSSSC")

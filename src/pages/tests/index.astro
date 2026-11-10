@@ -5,10 +5,22 @@ import { fetchMockTests } from '../../lib/api/mockTestService';
 
 const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 'Police', 'General'];
 
-// ── SSR: Fetch tests on the server so the page renders with data instantly ──
+// ── Read filter params from URL for SSR-side filtering ──
+const url = new URL(Astro.request.url);
+const ssrDifficulty = url.searchParams.get('difficulty') || 'All';
+const ssrExam      = url.searchParams.get('exam')       || 'All';
+const ssrSearch    = url.searchParams.get('q')          || '';
+
+// ── SSR: Fetch tests on the server with active filters applied ──
 let ssrTests: any[] = [];
+let ssrTotal = 0;
 try {
-  const rows = await fetchMockTests(1, 50);
+  const { data: rows, pagination } = await fetchMockTests(1, 100, {
+    difficulty: ssrDifficulty,
+    exam: ssrExam,
+    search: ssrSearch,
+  });
+  ssrTotal = pagination?.total ?? rows.length;
   ssrTests = (Array.isArray(rows) ? rows : []).map((t: any) => ({
     id: t.id,
     slug: String(t.id ?? t.slug ?? ""),
@@ -238,8 +250,12 @@ try {
 </BaseLayout>
 
 <!-- SSR data for client hydration -->
-<script is:inline define:vars={{ ssrTestsJSON: JSON.stringify(ssrTests) }}>
-  window.__SSR_TESTS__ = JSON.parse(ssrTestsJSON);
+<script is:inline define:vars={{
+  ssrTestsJSON: JSON.stringify(ssrTests),
+  ssrFilters: { difficulty: ssrDifficulty, exam: ssrExam, search: ssrSearch }
+}}>
+  window.__SSR_TESTS__   = JSON.parse(ssrTestsJSON);
+  window.__SSR_FILTERS__ = ssrFilters;
 </script>
 
 <script is:inline>
@@ -250,27 +266,33 @@ function __initTestsPage() {
   if (gridEl.dataset.initialized === 'true') return;
   gridEl.dataset.initialized = 'true';
 
+  // Restore filter state from SSR (server already applied difficulty/exam/search)
+  const ssrFilters = window.__SSR_FILTERS__ || {};
+
   // Use SSR-fetched data as initial state (instant render, no loading spinner)
   let allTests = Array.isArray(window.__SSR_TESTS__) ? window.__SSR_TESTS__.slice() : [];
-  let activeExam = 'All';
-  let activeDiff = 'All';
-  let activeDur = 'All';
-  let searchQ = '';
+  let activeExam = ssrFilters.exam || 'All';
+  let activeDiff = ssrFilters.difficulty || 'All';
+  let activeDur = 'All'; // duration filter is client-side only (API doesn't support it)
+  let searchQ = ssrFilters.search ? ssrFilters.search.toLowerCase() : '';
   let sortBy = 'popular';
 
   const urlParams = new URLSearchParams(window.location.search);
+  // Sync URL params (may differ from SSR if JS navigated here)
   const paramExam = urlParams.get('exam');
-  if (paramExam) {
-    activeExam = paramExam;
-  }
-
+  if (paramExam) activeExam = paramExam;
   const paramQ = urlParams.get('q');
-  if (paramQ) {
-    searchQ = paramQ.trim().toLowerCase();
-  }
+  if (paramQ) searchQ = paramQ.trim().toLowerCase();
+  const paramDiff = urlParams.get('difficulty');
+  if (paramDiff) activeDiff = paramDiff;
 
   const paramTest = urlParams.get('test');
 
+  /**
+   * Fetch tests from the API, sending server-supported filters (difficulty, exam, search).
+   * Duration is filtered client-side only.
+   * @param {boolean} silent - if true, don't show loading spinner (background refresh)
+   */
   async function loadTestsFromAPI(silent = false) {
     const grid = document.getElementById('tests-grid');
     const loadingEl = document.getElementById('tests-loading');
@@ -298,7 +320,13 @@ function __initTestsPage() {
     }
 
     try {
-      const res = await fetch("https://brintoapi.brinto.in/api/mocktests?page=1&limit=50", {
+      // Build API URL with server-supported filters
+      const apiParams = new URLSearchParams({ page: '1', limit: '100' });
+      if (activeDiff && activeDiff !== 'All') apiParams.set('difficulty', activeDiff);
+      if (activeExam && activeExam !== 'All') apiParams.set('exam', activeExam);
+      if (searchQ && searchQ.trim()) apiParams.set('search', searchQ.trim());
+
+      const res = await fetch(`https://brintoapi.brinto.in/api/mocktests?${apiParams.toString()}`, {
         headers: { "Accept": "application/json" }
       });
       if (!res.ok) throw new Error("API error: " + res.status);
@@ -511,7 +539,19 @@ function __initTestsPage() {
       if (prop === 'diff') activeDiff = val;
       if (prop === 'dur') activeDur = val;
       syncFilterUI();
-      renderTests();
+      // Update URL so the filter is reflected on hard refresh (SSR)
+      const p = new URLSearchParams(window.location.search);
+      if (prop === 'exam') { if (val === 'All') p.delete('exam'); else p.set('exam', val); }
+      if (prop === 'diff') { if (val === 'All') p.delete('difficulty'); else p.set('difficulty', val); }
+      const newUrl = `${window.location.pathname}${p.toString() ? '?' + p.toString() : ''}`;
+      window.history.replaceState({}, '', newUrl);
+      // Server-supported filters (exam, difficulty, search) → re-fetch from API
+      // Client-only filter (duration) → just re-render local data
+      if (prop === 'dur') {
+        renderTests();
+      } else {
+        loadTestsFromAPI(false);
+      }
     });
   }
 
@@ -550,7 +590,8 @@ function __initTestsPage() {
     if (applyBtn) {
       applyBtn.addEventListener('click', () => {
         closeSheet();
-        renderTests();
+        // Apply re-fetches from API since exam/diff may have changed
+        loadTestsFromAPI(false);
       });
     }
     if (resetBtn) {
@@ -558,35 +599,50 @@ function __initTestsPage() {
         activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = '';
         const searchInput = document.getElementById('search-input');
         if (searchInput) searchInput.value = '';
+        window.history.replaceState({}, '', window.location.pathname);
         syncFilterUI();
-        renderTests();
+        closeSheet();
+        loadTestsFromAPI(false);
       });
     }
   }
 
   setupBottomSheet();
 
+  // Search: debounce 400ms then re-fetch from API (search is server-supported)
+  let _searchTimer = null;
   document.getElementById('search-input').addEventListener('input', e => {
     searchQ = e.target.value.trim().toLowerCase();
-    renderTests();
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(() => {
+      const p = new URLSearchParams(window.location.search);
+      if (searchQ) p.set('q', searchQ); else p.delete('q');
+      window.history.replaceState({}, '', `${window.location.pathname}${p.toString() ? '?' + p.toString() : ''}`);
+      loadTestsFromAPI(false);
+    }, 400);
   });
 
   document.getElementById('reset-filters').addEventListener('click', () => {
     activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = '';
     document.getElementById('search-input').value = '';
+    window.history.replaceState({}, '', window.location.pathname);
     syncFilterUI();
-    renderTests();
+    loadTestsFromAPI(false);
   });
 
-  // If SSR provided tests, render immediately; then refresh from API in background
+  // Apply URL-based search input display
+  const searchInputEl = document.getElementById('search-input');
+  if (searchInputEl && searchQ) searchInputEl.value = searchQ;
+
+  // If SSR provided tests, render immediately; then do a silent background refresh
   if (allTests.length > 0) {
     syncFilterUI();
     renderTests();
     updateExamCounts();
-    // Refresh in background for freshest data (silent — don't show loading spinner)
+    // Silent background refresh — picks up any new tests since SSR
     loadTestsFromAPI(true);
   } else {
-    // No SSR data — fall back to client-only fetch (shows spinner)
+    // No SSR data — fall back to full client fetch (shows spinner)
     loadTestsFromAPI(false);
   }
 }

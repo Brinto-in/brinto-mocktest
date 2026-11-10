@@ -13,16 +13,29 @@ export interface AttemptPayload {
   answers: AttemptAnswer[];
 }
 
-export async function fetchMockTests(page = 1, limit = 10) {
+export interface MockTestFilters {
+  difficulty?: string;  // 'Easy' | 'Medium' | 'Hard'
+  exam?: string;        // e.g. 'OSSSC', 'SSC', etc.
+  search?: string;      // keyword search
+}
+
+export async function fetchMockTests(page = 1, limit = 10, filters: MockTestFilters = {}) {
   try {
-    const json = await apiClient(`/api/mocktests?page=${page}&limit=${limit}`);
-    return json?.data || json?.tests || (Array.isArray(json) ? json : []);
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (filters.difficulty && filters.difficulty !== 'All') params.set('difficulty', filters.difficulty);
+    if (filters.exam && filters.exam !== 'All') params.set('exam', filters.exam);
+    if (filters.search && filters.search.trim()) params.set('search', filters.search.trim());
+    const json = await apiClient(`/api/mocktests?${params.toString()}`);
+    return {
+      data: json?.data || json?.tests || (Array.isArray(json) ? json : []),
+      pagination: json?.pagination || null,
+    };
   } catch (err: any) {
     console.error("Error fetching mock tests:", err);
     if (typeof window !== "undefined") {
       alert(`API Connection Error: ${err?.message || err}`);
     }
-    return [];
+    return { data: [], pagination: null };
   }
 }
 
