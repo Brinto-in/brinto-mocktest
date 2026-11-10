@@ -123,21 +123,29 @@ const posters = [
     margin-bottom: 24px;
   }
   .btn-hero-primary {
-    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.92rem;
     font-weight: 700;
+    line-height: 1.3;
     color: #fff;
     background: var(--brand);
-    padding: 14px 28px;
+    padding: 10px 20px;
     border-radius: var(--radius-pill);
     transition: background 0.15s, transform 0.1s;
   }
   .btn-hero-primary:hover { background: var(--brand-dark); transform: translateY(-1px); }
   .btn-hero-ghost {
-    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.92rem;
     font-weight: 600;
+    line-height: 1.3;
     color: var(--ink);
     background: var(--surface-2);
-    padding: 14px 28px;
+    padding: 10px 20px;
     border-radius: var(--radius-pill);
     border: 1px solid var(--rule);
     transition: border-color 0.15s;

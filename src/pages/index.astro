@@ -33,7 +33,6 @@ import { ssbOdishaItems, SSB_ODISHA_PAGE } from "../data/exams/odisha/ssb-junior
     items={ssbOdishaItems}
     cols={6}
   />
-  -->
 
   <!-- ── OSSSC SECTION ───────────────────────────── -->
   <PosterRow
@@ -201,24 +200,32 @@ import { ssbOdishaItems, SSB_ODISHA_PAGE } from "../data/exams/odisha/ssb-junior
     flex-shrink: 0;
   }
   .cta-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.92rem;
     font-weight: 700;
+    line-height: 1.3;
     color: var(--brand);
     background: #fff;
-    padding: 14px 28px;
+    padding: 10px 20px;
     border-radius: var(--radius-pill);
-    font-size: 0.98rem;
     transition: transform 0.1s;
   }
   .cta-btn-primary:hover {
     transform: translateY(-1px);
   }
   .cta-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.92rem;
     font-weight: 600;
+    line-height: 1.3;
     color: #fff;
     border: 2px solid rgba(255, 255, 255, 0.5);
-    padding: 14px 28px;
+    padding: 10px 20px;
     border-radius: var(--radius-pill);
-    font-size: 0.98rem;
     transition: border-color 0.15s;
   }
   .cta-btn-ghost:hover {
