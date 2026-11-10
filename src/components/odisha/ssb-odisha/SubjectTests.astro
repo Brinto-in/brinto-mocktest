@@ -210,7 +210,7 @@ const qm = (q?: number, m?: number) => [q ? `${q} MCQs` : "", m ? `${m} min` : "
             <!-- See all card -->
             <li>
               <a
-                href={`/mocktest/tests?q=${encodeURIComponent(typeof s.name === 'string' ? s.name : s.name.en)}`}
+                href={`/mocktest/tests?q=${encodeURIComponent(typeof s.name === 'string' ? s.name : s.name.en)}&test=ssbodisha`}
                 class="sx-card sx-see-all"
                 aria-label={`See all ${typeof s.name === 'string' ? s.name : s.name.en} tests`}
               >
