@@ -118,6 +118,10 @@ try {
 
   <!-- Main content -->
   <div class="tests-main">
+    <div class="tests-ad-top" style="margin-bottom: 20px; display: flex; justify-content: center;">
+      <GAd sizes={{ mobile: "320x100", tablet: "728x90", desktop: "728x90" }} />
+    </div>
+
     <div class="toolbar">
       <span class="result-count" id="result-count">{ssrTests.length > 0 ? `${ssrTests.length} test${ssrTests.length !== 1 ? 's' : ''}` : 'Loading tests...'}</span>
       <div class="toolbar-right">
