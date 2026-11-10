@@ -17,6 +17,7 @@ export interface MockTestFilters {
   difficulty?: string;  // 'Easy' | 'Medium' | 'Hard'
   exam?: string;        // e.g. 'OSSSC', 'SSC', etc.
   search?: string;      // keyword search
+  title?: string;       // title search / filter
 }
 
 export async function fetchMockTests(page = 1, limit = 10, filters: MockTestFilters = {}) {
@@ -25,6 +26,7 @@ export async function fetchMockTests(page = 1, limit = 10, filters: MockTestFilt
     if (filters.difficulty && filters.difficulty !== 'All') params.set('difficulty', filters.difficulty);
     if (filters.exam && filters.exam !== 'All') params.set('exam', filters.exam);
     if (filters.search && filters.search.trim()) params.set('search', filters.search.trim());
+    if (filters.title && filters.title.trim()) params.set('title', filters.title.trim());
     const json = await apiClient(`/api/mocktests?${params.toString()}`);
     return {
       data: json?.data || json?.tests || (Array.isArray(json) ? json : []),

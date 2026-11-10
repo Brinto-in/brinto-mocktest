@@ -10,6 +10,7 @@ const url = new URL(Astro.request.url);
 const ssrDifficulty = url.searchParams.get('difficulty') || 'All';
 const ssrExam      = url.searchParams.get('exam')       || 'All';
 const ssrSearch    = url.searchParams.get('q')          || '';
+const ssrTitle     = url.searchParams.get('title')      || '';
 
 // ── SSR: Fetch tests on the server with active filters applied ──
 let ssrTests: any[] = [];
@@ -19,6 +20,7 @@ try {
     difficulty: ssrDifficulty,
     exam: ssrExam,
     search: ssrSearch,
+    title: ssrTitle,
   });
   ssrTotal = pagination?.total ?? rows.length;
   ssrTests = (Array.isArray(rows) ? rows : []).map((t: any) => ({
@@ -252,7 +254,7 @@ try {
 <!-- SSR data for client hydration -->
 <script is:inline define:vars={{
   ssrTestsJSON: JSON.stringify(ssrTests),
-  ssrFilters: { difficulty: ssrDifficulty, exam: ssrExam, search: ssrSearch }
+  ssrFilters: { difficulty: ssrDifficulty, exam: ssrExam, search: ssrSearch, title: ssrTitle }
 }}>
   window.__SSR_TESTS__   = JSON.parse(ssrTestsJSON);
   window.__SSR_FILTERS__ = ssrFilters;
@@ -266,7 +268,7 @@ function __initTestsPage() {
   if (gridEl.dataset.initialized === 'true') return;
   gridEl.dataset.initialized = 'true';
 
-  // Restore filter state from SSR (server already applied difficulty/exam/search)
+  // Restore filter state from SSR (server already applied difficulty/exam/search/title)
   const ssrFilters = window.__SSR_FILTERS__ || {};
 
   // Use SSR-fetched data as initial state (instant render, no loading spinner)
@@ -275,6 +277,7 @@ function __initTestsPage() {
   let activeDiff = ssrFilters.difficulty || 'All';
   let activeDur = 'All'; // duration filter is client-side only (API doesn't support it)
   let searchQ = ssrFilters.search ? ssrFilters.search.toLowerCase() : '';
+  let activeTitle = ssrFilters.title || '';
   let sortBy = 'popular';
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -285,6 +288,8 @@ function __initTestsPage() {
   if (paramQ) searchQ = paramQ.trim().toLowerCase();
   const paramDiff = urlParams.get('difficulty');
   if (paramDiff) activeDiff = paramDiff;
+  const paramTitle = urlParams.get('title');
+  if (paramTitle) activeTitle = paramTitle.trim();
 
   const paramTest = urlParams.get('test');
 
@@ -303,12 +308,13 @@ function __initTestsPage() {
     const heroTitle = document.getElementById('hero-title');
     const heroSub = document.getElementById('hero-sub');
 
-    if (paramTest) {
-      const titleText = paramTest.toLowerCase().endsWith('tests') || paramTest.toLowerCase().endsWith('test')
-        ? paramTest
-        : `${paramTest} Tests`;
+    const displayTitleParam = paramTitle || paramTest;
+    if (displayTitleParam) {
+      const titleText = displayTitleParam.toLowerCase().endsWith('tests') || displayTitleParam.toLowerCase().endsWith('test')
+        ? displayTitleParam
+        : `${displayTitleParam} Tests`;
       if (heroTitle) heroTitle.textContent = titleText;
-      if (heroSub) heroSub.textContent = `Free tests and practice papers for ${paramTest}.`;
+      if (heroSub) heroSub.textContent = `Free tests and practice papers for ${displayTitleParam}.`;
       if (examFilterGroup) examFilterGroup.style.display = 'none';
       const mExamFilterGroup = document.getElementById('m-exam-filter-group');
       if (mExamFilterGroup) mExamFilterGroup.style.display = 'none';
@@ -325,6 +331,7 @@ function __initTestsPage() {
       if (activeDiff && activeDiff !== 'All') apiParams.set('difficulty', activeDiff);
       if (activeExam && activeExam !== 'All') apiParams.set('exam', activeExam);
       if (searchQ && searchQ.trim()) apiParams.set('search', searchQ.trim());
+      if (activeTitle && activeTitle.trim()) apiParams.set('title', activeTitle.trim());
 
       const res = await fetch(`https://brintoapi.brinto.in/api/mocktests?${apiParams.toString()}`, {
         headers: { "Accept": "application/json" }
@@ -398,17 +405,25 @@ function __initTestsPage() {
           t.tags.some(tag => tag.toLowerCase().includes(term))
         );
       }
-      return matchesExam && matchesDiff && matchesDur && matchesSearch;
+
+      let matchesTitle = true;
+      if (activeTitle) {
+        const titleLower = activeTitle.toLowerCase();
+        matchesTitle = t.title.toLowerCase().includes(titleLower) ||
+                       t.exam.toLowerCase().includes(titleLower);
+      }
+      return matchesExam && matchesDiff && matchesDur && matchesSearch && matchesTitle;
     });
 
-    if (filtered.length === 0 && searchQ !== '') {
+    if (filtered.length === 0 && (searchQ !== '' || activeTitle !== '')) {
       filtered = allTests.filter(t => {
         const matchesExam = activeExam === 'All' || t.exam.toLowerCase() === activeExam.toLowerCase();
         const matchesDiff = activeDiff === 'All' || t.difficulty.toLowerCase() === activeDiff.toLowerCase();
         const matchesDur = durMatch(t.duration, activeDur);
         return matchesExam && matchesDiff && matchesDur;
       });
-      if (countEl) countEl.textContent = `No exact matches for "${paramQ || searchQ}". Showing ${filtered.length} available test${filtered.length !== 1 ? 's' : ''}:`;
+      const queryText = paramTitle || paramQ || searchQ || activeTitle;
+      if (countEl) countEl.textContent = `No exact matches for "${queryText}". Showing ${filtered.length} available test${filtered.length !== 1 ? 's' : ''}:`;
       emptyEl.style.display = 'none';
     } else {
       if (countEl) countEl.textContent = `${filtered.length} test${filtered.length !== 1 ? 's' : ''}`;
@@ -596,7 +611,7 @@ function __initTestsPage() {
     }
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
-        activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = '';
+        activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = ''; activeTitle = '';
         const searchInput = document.getElementById('search-input');
         if (searchInput) searchInput.value = '';
         window.history.replaceState({}, '', window.location.pathname);
@@ -623,7 +638,7 @@ function __initTestsPage() {
   });
 
   document.getElementById('reset-filters').addEventListener('click', () => {
-    activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = '';
+    activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = ''; activeTitle = '';
     document.getElementById('search-input').value = '';
     window.history.replaceState({}, '', window.location.pathname);
     syncFilterUI();
