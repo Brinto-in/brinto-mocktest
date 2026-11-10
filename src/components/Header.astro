@@ -1016,7 +1016,6 @@ function isNavActive(href: string) {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--rule, #e2e8f0);
-    overflow: hidden;
   }
   .bar {
     display: flex;
@@ -1063,11 +1062,14 @@ function isNavActive(href: string) {
     margin-left: 1px;
   }
 
-  /* ── Header Search Bar (Professional UI) ── */
+  /* ── Header Search Bar (Desktop - Positioned immediately to the left of Tests) ── */
   .header-search-container {
-    margin-left: 12px;
+    margin-left: auto;
+    margin-right: 8px;
     flex: 0 1 240px;
     max-width: 260px;
+    min-width: 130px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .header-search-form {
     display: flex;
@@ -1128,17 +1130,12 @@ function isNavActive(href: string) {
     transform: scale(1.05);
   }
 
-  @media (max-width: 900px) {
-    .header-search-container {
-      display: none;
-    }
-  }
-
   /* ── Desktop Pill Navigation ── */
   .nav-desktop {
-    margin-left: auto;
+    margin-left: 0;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    flex-shrink: 0;
   }
   .nav-desktop ul {
     list-style: none;
@@ -1994,6 +1991,9 @@ function isNavActive(href: string) {
   }
 
   @media (max-width: 768px) {
+    .header-search-container {
+      display: none;
+    }
     .nav-desktop {
       display: none;
     }
@@ -2021,16 +2021,79 @@ function isNavActive(href: string) {
       display: block;
     }
   }
+
+  @media (max-width: 380px) {
+    .bar,
+    .mobile-search-bar {
+      padding: 0 10px;
+    }
+    .mobile-actions {
+      gap: 2px;
+    }
+    .hamburger {
+      width: 35px;
+      height: 35px;
+      margin-right: 4px;
+    }
+    .logo-mark {
+      height: 28px;
+    }
+    .mobile-search-form {
+      gap: 5px;
+    }
+    .mobile-search-back-btn,
+    .mobile-search-submit-btn {
+      width: 34px;
+      height: 34px;
+    }
+    .mobile-search-input-wrap {
+      height: 35px;
+      padding: 0 8px 0 10px;
+      gap: 5px;
+    }
+    .mobile-search-input {
+      font-size: 0.82rem;
+    }
+  }
+
   @media (min-width: 769px) and (max-width: 1024px) {
     .brand-wordmark {
       display: none;
+    }
+    .header-search-container {
+      flex: 0 1 180px;
+      max-width: 190px;
+      min-width: 120px;
+      margin-right: 6px;
+    }
+    .header-search-form {
+      padding: 5px 8px 5px 12px;
+    }
+    .header-search-input {
+      font-size: 0.8rem;
     }
     .nav-pill-icon {
       display: none;
     }
     .nav-pill {
-      padding: 7px 12px;
-      font-size: 0.78rem;
+      padding: 6px 11px;
+      font-size: 0.82rem;
+      gap: 4px;
+    }
+    .btn-login-pill {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+    }
+  }
+
+  @media (min-width: 1025px) and (max-width: 1200px) {
+    .header-search-container {
+      flex: 0 1 210px;
+      max-width: 230px;
+    }
+    .nav-pill {
+      padding: 7px 13px;
+      font-size: 0.85rem;
     }
   }
 
@@ -2607,8 +2670,11 @@ function isNavActive(href: string) {
   }
 
   @media (max-width: 768px) {
-    .profile {
+    .header-cta .profile {
       display: none;
+    }
+    .mobile-auth-profile.profile {
+      display: flex;
     }
   }
 </style>
