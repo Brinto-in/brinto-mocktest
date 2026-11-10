@@ -440,35 +440,40 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "isPopular": false,
     "chapters": [
       {
-        "unit": "National Movement & Gandhi",
-        "unitOdia": "ଭାରତରେ ଜାତୀୟ ଆନ୍ଦୋଳନ ଓ ଗାନ୍ଧୀଜୀ",
+        "unit": "",
+        "unitOdia": "ଭାରତୀୟ ଜାତୀୟ ଆନ୍ଦୋଳନ – ଗାନ୍ଧୀଯୁଗ",
         "topics": []
       },
       {
-        "unit": "Freedom Struggle in Odisha",
-        "unitOdia": "ଓଡ଼ିଶାରେ ଅସହଯୋଗ ଓ ସ୍ୱାଧୀନତା ସଂଗ୍ରାମ",
+        "unit": "",
+        "unitOdia": "ସ୍ୱତନ୍ତ୍ର ଓଡ଼ିଶା ପ୍ରଦେଶ ଗଠନ",
         "topics": []
       },
       {
-        "unit": "Post-Independence India",
-        "unitOdia": "ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ଭାରତ ଓ ଓଡ଼ିଶାର ବିକାଶ",
+        "unit": "",
+        "unitOdia": "୨୦୦୦ ଖ୍ରୀଷ୍ଟାବ୍ଦ ପର୍ଯ୍ୟନ୍ତ ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ଭାରତ",
         "topics": []
       },
       {
-        "unit": "Constitution & Rights",
-        "unitOdia": "ଭାରତର ସମ୍ବିଧାନ, ମୌଳିକ କର୍ତ୍ତବ୍ୟ ଓ ଅଧିକାର",
+        "unit": "",
+        "unitOdia": "ସ୍ୱାଧୀନତୋତ୍ତର ଓଡ଼ିଶାର ବିକାଶ",
         "topics": []
       },
       {
-        "unit": "Elections & Democracy",
-        "unitOdia": "ଭାରତୀୟ ଗଣତନ୍ତ୍ର ଓ ନିର୍ବାଚନ ପ୍ରକ୍ରିୟା",
+        "unit": "",
+        "unitOdia": "ଭାରତରେ ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ରାଜ୍ୟ ପୁନର୍ଗଠନ",
         "topics": []
       },
       {
-        "unit": "India Foreign Policy",
-        "unitOdia": "ଭାରତର ବୈଦେଶିକ ନୀତି",
+        "unit": "",
+        "unitOdia": "ଭାରତରେ ଗଣତନ୍ତ୍ର",
         "topics": []
-      }
+      },
+     {
+       "unit": "",
+       "unitOdia": "ଭାରତର ବୈଦେଶିକ ନୀତି",
+       "topics": []
+     }
     ]
   },
   {
