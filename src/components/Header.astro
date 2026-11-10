@@ -41,10 +41,13 @@ function isNavActive(href: string) {
 
 <header class="header">
   <div class="wrap bar">
+    <!-- Logo & Brand -->
     <a href="/mocktest" class="brand" aria-label="Brinto MockTest home">
       <img src="/logo.png" alt="Brinto MockTest logo" width="32" height="32" class="logo-mark" onerror="this.onerror=null;this.src='/mocktest/logo.png';" />
+      <span class="brand-wordmark">Brinto<span class="brand-wordmark-accent">MockTest</span></span>
     </a>
 
+    <!-- Centered Pill Navigation -->
     <nav class="nav-desktop" aria-label="Primary">
       <ul>
         {nav.map(n => {
@@ -53,12 +56,13 @@ function isNavActive(href: string) {
             <li>
               <a
                 href={n.comingSoon ? undefined : n.href}
-                class={`${active ? 'active' : ''} ${n.comingSoon ? 'coming-soon-link' : ''}`}
+                class={`nav-pill ${active ? 'active' : ''} ${n.comingSoon ? 'coming-soon-link' : ''}`}
                 aria-current={active ? 'page' : undefined}
                 aria-disabled={n.comingSoon ? 'true' : undefined}
-                style={n.comingSoon ? 'pointer-events: none; opacity: 0.65; cursor: default;' : ''}
+                style={n.comingSoon ? 'pointer-events: none; opacity: 0.55; cursor: default;' : ''}
               >
-                {n.label}
+                <span class="nav-pill-icon" set:html={n.icon} />
+                <span>{n.label}</span>
                 {n.comingSoon && <span class="nav-soon-badge">Soon</span>}
               </a>
             </li>
@@ -67,9 +71,13 @@ function isNavActive(href: string) {
       </ul>
     </nav>
 
+    <!-- Right Actions -->
     <div class="header-cta">
       <div class="auth-guest" data-auth-guest>
-        <button type="button" class="btn-ghost" data-open-login>Log in</button>
+        <button type="button" class="btn-login-pill" data-open-login>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <span>Sign In</span>
+        </button>
       </div>
       <div class="profile" data-auth-user hidden>
         <button type="button" class="profile-btn" id="profile-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
@@ -86,6 +94,7 @@ function isNavActive(href: string) {
       </div>
     </div>
 
+    <!-- Mobile Hamburger -->
     <button class="hamburger" id="hamburger-btn" aria-label="Toggle navigation menu" aria-expanded="false" onclick="toggleMenu(this)">
       <span></span><span></span><span></span>
     </button>
@@ -715,72 +724,135 @@ function isNavActive(href: string) {
 </script>
 
 <style>
+  /* ── Full-Width Modern Header ── */
   .header {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFFAFB 100%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 1px solid rgba(176, 0, 32, 0.06);
   }
   .bar {
     display: flex;
     align-items: center;
-    gap: 24px;
-    height: 72px;
+    gap: 0;
+    height: 56px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
   }
+
+  /* ── Brand / Logo ── */
   .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-shrink: 0;
+    margin-right: 8px;
   }
   .logo-mark {
     width: auto;
-    height: 36px;
+    height: 32px;
     object-fit: contain;
   }
+  .brand-wordmark {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .brand-wordmark-accent {
+    color: var(--brand);
+    margin-left: 1px;
+  }
+
+  /* ── Desktop Pill Navigation ── */
   .nav-desktop {
     margin-left: auto;
+    display: flex;
+    justify-content: flex-end;
   }
   .nav-desktop ul {
     list-style: none;
     display: flex;
-    gap: 6px;
+    gap: 2px;
     margin: 0;
     padding: 0;
+    background: transparent;
+    border-radius: 10px;
+    border: none;
   }
-  .nav-desktop a {
-    font-size: 0.9rem;
+  .nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
     font-weight: 600;
     color: var(--ink-soft);
     padding: 8px 16px;
-    border-radius: var(--radius-pill, 999px);
-    transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    position: relative;
   }
-  .nav-desktop a:hover {
-    background: var(--surface-2);
-    color: var(--ink);
+  .nav-pill-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
   }
-  .nav-desktop a.active {
-    background: var(--brand-light, #FFF0F2);
+  .nav-pill-icon :global(svg) {
+    width: 15px;
+    height: 15px;
+  }
+  .nav-pill:hover {
+    background: rgba(176, 0, 32, 0.06);
+    color: var(--brand, #B00020);
+  }
+  .nav-pill.active {
+    background: rgba(176, 0, 32, 0.07);
     color: var(--brand, #B00020);
     font-weight: 700;
   }
+  .nav-pill.active .nav-pill-icon {
+    color: var(--brand, #B00020);
+  }
+  .nav-pill.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 12px;
+    right: 12px;
+    height: 2.5px;
+    background: var(--brand);
+    border-radius: 999px;
+  }
   .nav-soon-badge {
     display: inline-block;
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     font-weight: 700;
     text-transform: uppercase;
-    background: var(--surface-2);
+    background: rgba(0, 0, 0, 0.04);
     color: var(--ink-muted);
     border: 1px solid var(--rule);
     padding: 1px 5px;
-    border-radius: var(--radius-pill);
-    margin-left: 6px;
+    border-radius: 4px;
+    margin-left: 2px;
     vertical-align: middle;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }
+  .nav-pill.active .nav-soon-badge {
+    background: rgba(176, 0, 32, 0.1);
+    color: var(--brand, #B00020);
+    border-color: rgba(176, 0, 32, 0.2);
   }
   .drawer-soon-badge {
     display: inline-block;
@@ -794,17 +866,47 @@ function isNavActive(href: string) {
     border-radius: var(--radius-pill);
     letter-spacing: 0.03em;
   }
+
+  /* ── Right CTA Area ── */
   .header-cta {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
+    margin-left: 12px;
+    flex-shrink: 0;
+  }
+  .btn-login-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: inherit;
+    color: #ffffff;
+    padding: 8px 20px;
+    border-radius: 10px;
+    background: var(--brand);
+    border: none;
+    box-shadow: 0 1px 4px rgba(176, 0, 32, 0.2);
+    transition: background 0.2s, transform 0.12s, box-shadow 0.2s;
+    white-space: nowrap;
+  }
+  .btn-login-pill:hover {
+    background: var(--brand-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(176, 0, 32, 0.3);
+  }
+  .btn-login-pill svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
   }
   .btn-ghost {
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: var(--ink-soft);
-    padding: 8px 18px;
-    border-radius: var(--radius-pill, 999px);
+    padding: 7px 16px;
+    border-radius: 999px;
     border: 1px solid var(--rule);
     background: transparent;
     transition: border-color 0.2s, color 0.2s, background 0.2s;
@@ -814,21 +916,6 @@ function isNavActive(href: string) {
     color: var(--ink);
     background: var(--surface-2);
   }
-  .btn-primary {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #fff;
-    padding: 9px 22px;
-    border-radius: var(--radius-pill, 999px);
-    background: var(--brand);
-    box-shadow: 0 2px 8px rgba(176, 0, 32, 0.25);
-    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  }
-  .btn-primary:hover {
-    background: var(--brand-dark);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(176, 0, 32, 0.35);
-  }
 
   /* Hamburger Toggle Button */
   .hamburger {
@@ -836,39 +923,38 @@ function isNavActive(href: string) {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 5px;
-    width: 42px;
-    height: 42px;
+    gap: 4px;
+    width: 38px;
+    height: 38px;
     background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm, 8px);
+    border: none;
+    border-radius: 999px;
     padding: 0;
     margin-left: auto;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s;
     z-index: 41;
   }
   .hamburger:hover {
-    background: var(--surface-2);
-    border-color: var(--rule);
+    background: rgba(176, 0, 32, 0.08);
   }
   .hamburger span {
     display: block;
-    width: 22px;
+    width: 18px;
     height: 2px;
     background: var(--ink);
     border-radius: 2px;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s, background-color 0.2s;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s;
   }
   .hamburger.active span:nth-child(1) {
-    transform: translateY(7px) rotate(45deg);
+    transform: translateY(6px) rotate(45deg);
   }
   .hamburger.active span:nth-child(2) {
     opacity: 0;
     transform: translateX(-8px);
   }
   .hamburger.active span:nth-child(3) {
-    transform: translateY(-7px) rotate(-45deg);
+    transform: translateY(-6px) rotate(-45deg);
   }
 
   /* --- Professional iOS / Apple Style Glass Backdrop Overlay --- */
@@ -1215,6 +1301,24 @@ function isNavActive(href: string) {
     }
     .hamburger {
       display: flex;
+    }
+    .brand-wordmark {
+      display: none;
+    }
+    .bar {
+      height: 50px;
+    }
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .brand-wordmark {
+      display: none;
+    }
+    .nav-pill-icon {
+      display: none;
+    }
+    .nav-pill {
+      padding: 7px 12px;
+      font-size: 0.78rem;
     }
   }
 
@@ -1729,14 +1833,15 @@ function isNavActive(href: string) {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 999px;
     background: var(--brand);
     color: #fff;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 700;
     text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(176, 0, 32, 0.2);
   }
   .profile-menu {
     position: absolute;
