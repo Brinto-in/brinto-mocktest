@@ -41,6 +41,24 @@ export async function fetchMockTests(page = 1, limit = 10, filters: MockTestFilt
   }
 }
 
+export async function searchMockTests(q: string, page = 1, limit = 10) {
+  try {
+    const params = new URLSearchParams({
+      q: q.trim(),
+      page: String(page),
+      limit: String(limit),
+    });
+    const json = await apiClient(`/api/mocktests/search?${params.toString()}`);
+    return {
+      data: json?.data || json?.tests || (Array.isArray(json) ? json : []),
+      pagination: json?.pagination || null,
+    };
+  } catch (err: any) {
+    console.error("Error searching mock tests:", err);
+    return { data: [], pagination: null };
+  }
+}
+
 export async function createMockTestSession(testId: string | number): Promise<string | null> {
   try {
     const parsedTestId = typeof testId === "number" ? testId : parseInt(testId, 10);

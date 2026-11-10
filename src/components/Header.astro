@@ -53,14 +53,18 @@ function isNavActive(href: string) {
     </a>
 
     <!-- Professional Search Bar next to Logo -->
-    <div class="header-search-container">
-      <form action="/mocktest/tests" method="get" class="header-search-form" role="search">
+    <div class="header-search-container" id="desktop-search-container">
+      <form action="/mocktest/tests" method="get" class="header-search-form" role="search" autocomplete="off">
         <svg class="header-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input
           type="search"
           name="q"
+          id="desktop-search-input"
           placeholder="Search tests, exams…"
           aria-label="Search tests and exams"
+          aria-autocomplete="list"
+          aria-controls="desktop-search-suggestions"
+          aria-expanded="false"
           class="header-search-input"
           autocomplete="off"
         />
@@ -68,6 +72,8 @@ function isNavActive(href: string) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         </button>
       </form>
+      <!-- Desktop live search suggestions dropdown -->
+      <div class="search-suggestions" id="desktop-search-suggestions" role="dialog" aria-label="Search suggestions" hidden></div>
     </div>
 
     <!-- Centered Pill Navigation -->
@@ -198,6 +204,8 @@ function isNavActive(href: string) {
           </svg>
         </button>
       </form>
+      <!-- Mobile live search suggestions -->
+      <div class="search-suggestions mobile-search-suggestions" id="mobile-search-suggestions" role="dialog" aria-label="Search suggestions" hidden></div>
     </div>
   </div>
 </header>
@@ -478,6 +486,10 @@ function isNavActive(href: string) {
     if (searchBtn) {
       searchBtn.setAttribute('aria-expanded', 'false');
     }
+    const suggestions = document.getElementById('mobile-search-suggestions');
+    if (suggestions) {
+      suggestions.hidden = true;
+    }
     input?.blur();
   }
 
@@ -492,12 +504,17 @@ function isNavActive(href: string) {
   function clearMobileSearch() {
     const input = document.getElementById('mobile-search-input');
     const clearBtn = document.getElementById('mobile-search-clear-btn');
+    const suggestions = document.getElementById('mobile-search-suggestions');
     if (input) {
       input.value = '';
       input.focus();
     }
     if (clearBtn) {
       clearBtn.style.display = 'none';
+    }
+    if (suggestions) {
+      suggestions.hidden = true;
+      suggestions.innerHTML = '';
     }
   }
 
@@ -912,6 +929,9 @@ function isNavActive(href: string) {
       url.searchParams.delete('login');
       window.history.replaceState({}, '', url.pathname + url.search);
     }
+
+    // Wire up live search suggestions
+    initSearchSuggestions();
   }
 
   // Handle global Escape key and outside click for profile menu
@@ -1002,6 +1022,304 @@ function isNavActive(href: string) {
     }
   });
 
+  // ── LIVE SEARCH SUGGESTIONS (Professional Command Palette Style) ────────────
+  function initSearchSuggestions() {
+    const API_BASE = 'https://brintoapi.brinto.in';
+    const DEBOUNCE_MS = 250;
+
+    interface SearchResultItem {
+      id: number;
+      title: string;
+      exam: string;
+      difficulty: string;
+      questions: number;
+      duration: number;
+      attempts: number;
+      isFree: boolean;
+      isNew: boolean;
+    }
+
+    function setupSearch(
+      inputId: string,
+      containerId: string,
+      formEl: HTMLFormElement | null
+    ) {
+      const input = document.getElementById(inputId) as HTMLInputElement | null;
+      const container = document.getElementById(containerId) as HTMLElement | null;
+      if (!input || !container) return;
+
+      let timer: ReturnType<typeof setTimeout>;
+      let activeIdx = -1;
+      let results: SearchResultItem[] = [];
+      let totalCount = 0;
+      let controller: AbortController | null = null;
+      let currentQuery = '';
+
+      function showDropdown() {
+        container.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+      }
+      function hideDropdown() {
+        container.hidden = true;
+        input.setAttribute('aria-expanded', 'false');
+        activeIdx = -1;
+      }
+      function setActive(idx: number) {
+        const items = container.querySelectorAll<HTMLElement>('.ss-item');
+        items.forEach((el, i) => {
+          el.classList.toggle('ss-active', i === idx);
+          el.setAttribute('aria-selected', String(i === idx));
+        });
+        activeIdx = idx;
+        if (idx >= 0 && items[idx]) {
+          items[idx].scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      function escapeHtml(str: string) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function highlightMatch(text: string, query: string): string {
+        if (!query) return escapeHtml(text);
+        const terms = query
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+          .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        if (terms.length === 0) return escapeHtml(text);
+        const regex = new RegExp(`(${terms.join('|')})`, 'gi');
+        return escapeHtml(text).replace(regex, '<mark class="ss-mark">$1</mark>');
+      }
+
+      function renderLoading(q: string) {
+        container.innerHTML = `
+          <div class="ss-loading-state">
+            <div class="ss-spinner"></div>
+            <span>Searching tests for "<strong>${escapeHtml(q)}</strong>"…</span>
+          </div>
+        `;
+        showDropdown();
+      }
+
+      function renderResults(q: string) {
+        if (results.length === 0) {
+          container.innerHTML = `
+            <div class="ss-empty-state">
+              <div class="ss-empty-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                  <line x1="8" y1="11" x2="14" y2="11"/>
+                </svg>
+              </div>
+              <div class="ss-empty-title">No mock tests found</div>
+              <div class="ss-empty-sub">We couldn't find any test matching "<strong>${escapeHtml(q)}</strong>".</div>
+              <a href="/mocktest/tests" class="ss-empty-cta">Browse all tests →</a>
+            </div>
+          `;
+          showDropdown();
+          return;
+        }
+
+        const itemsHtml = results.map((r, i) => {
+          const diffCls = `ss-diff-${r.difficulty.toLowerCase()}`;
+          const attemptsFmt = r.attempts > 0 ? Number(r.attempts).toLocaleString('en-IN') : null;
+
+          return `
+            <li class="ss-item" role="option" aria-selected="false" data-href="/mocktest/test/${r.id}" data-idx="${i}">
+              <div class="ss-item-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <path d="m9 15 2 2 4-4"/>
+                </svg>
+              </div>
+              <div class="ss-item-main">
+                <div class="ss-item-badges">
+                  <span class="ss-badge-exam">${escapeHtml(r.exam)}</span>
+                  <span class="ss-badge-diff ${diffCls}">${escapeHtml(r.difficulty)}</span>
+                  ${r.isFree ? '<span class="ss-badge-free">FREE</span>' : ''}
+                  ${r.isNew ? '<span class="ss-badge-new">NEW</span>' : ''}
+                </div>
+                <div class="ss-item-title">${highlightMatch(r.title, q)}</div>
+                <div class="ss-item-meta">
+                  <span class="ss-meta-item">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    ${r.questions} Questions
+                  </span>
+                  <span class="ss-meta-sep">•</span>
+                  <span class="ss-meta-item">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    ${r.duration} min
+                  </span>
+                  ${attemptsFmt ? `
+                  <span class="ss-meta-sep">•</span>
+                  <span class="ss-meta-item">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    ${attemptsFmt}
+                  </span>` : ''}
+                </div>
+              </div>
+              <div class="ss-item-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </div>
+            </li>
+          `;
+        }).join('');
+
+        container.innerHTML = `
+          <div class="ss-panel-header">
+            <span class="ss-panel-label">MOCK TESTS</span>
+            <span class="ss-panel-badge">${totalCount > 0 ? `${totalCount} found` : `${results.length} found`}</span>
+          </div>
+          <ul class="ss-list" role="listbox">
+            ${itemsHtml}
+          </ul>
+          <div class="ss-panel-footer">
+            <div class="ss-footer-kbd-hints">
+              <span class="ss-kbd">↑</span><span class="ss-kbd">↓</span> navigate
+              <span class="ss-kbd" style="margin-left: 6px;">↵</span> select
+              <span class="ss-kbd" style="margin-left: 6px;">esc</span> close
+            </div>
+            <a href="/mocktest/tests?q=${encodeURIComponent(q)}" class="ss-footer-view-all">
+              <span>View all results (${totalCount || results.length})</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+          </div>
+        `;
+
+        showDropdown();
+        activeIdx = -1;
+
+        // Wire click & hover handlers
+        container.querySelectorAll<HTMLElement>('.ss-item').forEach(el => {
+          el.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const href = el.dataset.href;
+            if (href) window.location.href = href;
+          });
+          el.addEventListener('mousemove', () => {
+            const idx = parseInt(el.dataset.idx || '-1', 10);
+            setActive(idx);
+          });
+        });
+
+        const viewAllEl = container.querySelector<HTMLAnchorElement>('.ss-footer-view-all');
+        viewAllEl?.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          window.location.href = viewAllEl.href;
+        });
+      }
+
+      async function fetchSuggestions(q: string) {
+        controller?.abort();
+        controller = new AbortController();
+        currentQuery = q;
+        renderLoading(q);
+
+        try {
+          const url = `${API_BASE}/api/mocktests/search?q=${encodeURIComponent(q)}&page=1&limit=6`;
+          const res = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
+          if (!res.ok) {
+            container.innerHTML = `
+              <div class="ss-empty-state">
+                <div class="ss-empty-title">Search is temporarily unavailable</div>
+                <div class="ss-empty-sub">Please press enter to search on the main tests page.</div>
+              </div>
+            `;
+            return;
+          }
+          const json = await res.json();
+          const rawItems = json?.data || [];
+          totalCount = json?.pagination?.total ?? rawItems.length;
+
+          results = rawItems.map((r: any) => ({
+            id: r.id,
+            title: r.title || r.name || 'Mock Test',
+            exam: r.exam || r.category || 'General',
+            difficulty: r.difficulty || 'Medium',
+            questions: Array.isArray(r.questions) ? r.questions.length : (r.questions || 0),
+            duration: r.duration || 30,
+            attempts: r.attempts || 0,
+            isFree: !!(r.is_free || r.isFree),
+            isNew: !!(r.is_new || r.isNew),
+          }));
+
+          renderResults(q);
+        } catch (err: any) {
+          if (err?.name === 'AbortError') return;
+          console.warn('Search suggestion error:', err);
+        }
+      }
+
+      input.addEventListener('input', () => {
+        const q = input.value.trim();
+        clearTimeout(timer);
+        if (q.length < 2) {
+          hideDropdown();
+          results = [];
+          return;
+        }
+        timer = setTimeout(() => fetchSuggestions(q), DEBOUNCE_MS);
+      });
+
+      input.addEventListener('keydown', (e) => {
+        const items = container.querySelectorAll<HTMLElement>('.ss-item');
+        if (!container.hidden && items.length) {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActive(Math.min(activeIdx + 1, items.length - 1));
+            return;
+          }
+          if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActive(Math.max(activeIdx - 1, -1));
+            return;
+          }
+          if (e.key === 'Enter') {
+            if (activeIdx >= 0 && items[activeIdx]) {
+              e.preventDefault();
+              const href = items[activeIdx].dataset.href;
+              if (href) window.location.href = href;
+              return;
+            }
+          }
+        }
+        if (e.key === 'Escape') {
+          hideDropdown();
+        }
+      });
+
+      input.addEventListener('focus', () => {
+        if (input.value.trim().length >= 2 && results.length > 0) {
+          showDropdown();
+        }
+      });
+
+      input.addEventListener('blur', () => {
+        // Slight delay to allow mousedown on suggestions to execute
+        setTimeout(hideDropdown, 180);
+      });
+
+      formEl?.addEventListener('submit', () => hideDropdown());
+    }
+
+    // Desktop
+    const desktopForm = document.querySelector<HTMLFormElement>('#desktop-search-container form');
+    setupSearch('desktop-search-input', 'desktop-search-suggestions', desktopForm);
+
+    // Mobile
+    const mobileForm = document.getElementById('mobile-search-form') as HTMLFormElement | null;
+    setupSearch('mobile-search-input', 'mobile-search-suggestions', mobileForm);
+  }
+
   // Initialize on initial page load and on every ClientRouter page transition
   document.addEventListener('astro:page-load', initHeader);
 </script>
@@ -1064,6 +1382,7 @@ function isNavActive(href: string) {
 
   /* ── Header Search Bar (Desktop - Positioned immediately to the left of Tests) ── */
   .header-search-container {
+    position: relative;
     margin-left: auto;
     margin-right: 8px;
     flex: 0 1 240px;
@@ -1322,6 +1641,7 @@ function isNavActive(href: string) {
     transform: translateY(0) scale(1);
   }
   .mobile-search-bar {
+    position: relative;
     display: flex;
     align-items: center;
     width: 100%;
@@ -2675,6 +2995,382 @@ function isNavActive(href: string) {
     }
     .mobile-auth-profile.profile {
       display: flex;
+    }
+  }
+</style>
+
+<!-- Global Styles for Dynamic Live Search Suggestions (Command Palette UI) -->
+<style is:global>
+  .search-suggestions {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 440px;
+    max-width: calc(100vw - 24px);
+    background: #ffffff !important;
+    border: 1px solid var(--rule, #e2e8f0);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 20px 30px -5px rgba(0, 0, 0, 0.14),
+                0 0 0 1px rgba(15, 23, 42, 0.05);
+    margin: 0;
+    padding: 0;
+    z-index: 1000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: ssFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .search-suggestions[hidden] {
+    display: none !important;
+  }
+  @keyframes ssFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.99);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Mobile Search Suggestions Dropdown */
+  .mobile-search-suggestions {
+    top: calc(100% + 8px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(80vh - 60px);
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(15, 23, 42, 0.08);
+  }
+
+  /* Dropdown Header */
+  .ss-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--rule, #f1f5f9);
+    background: #fafbfc;
+  }
+  .ss-panel-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted, #94a3b8);
+    text-transform: uppercase;
+  }
+  .ss-panel-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--ink-soft, #64748b);
+    background: #edf2f7;
+    padding: 2px 8px;
+    border-radius: 99px;
+  }
+
+  /* Dropdown List */
+  .ss-list {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 6px !important;
+    max-height: 360px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .ss-list::-webkit-scrollbar {
+    width: 5px;
+  }
+  .ss-list::-webkit-scrollbar-thumb {
+    background: var(--rule, #cbd5e1);
+    border-radius: 99px;
+  }
+
+  /* Result Item Card */
+  .ss-item {
+    list-style: none !important;
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.12s ease, border-color 0.12s ease;
+    border: 1px solid transparent;
+    background: transparent;
+  }
+  .ss-item:hover,
+  .ss-item.ss-active {
+    background: var(--surface-2, #f8fafc) !important;
+    border-color: var(--rule, #e2e8f0) !important;
+  }
+
+  .ss-item-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--brand-light, #FFF0F2);
+    color: var(--brand, #B00020);
+    flex-shrink: 0;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .ss-item:hover .ss-item-icon-box,
+  .ss-item.ss-active .ss-item-icon-box {
+    background: var(--brand, #B00020);
+    color: #ffffff;
+    transform: scale(1.05);
+  }
+
+  .ss-item-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+  }
+
+  .ss-item-badges {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .ss-badge-exam {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--brand, #B00020);
+    background: var(--brand-light, #FFF0F2);
+    padding: 1px 7px;
+    border-radius: 99px;
+  }
+  .ss-badge-diff {
+    font-size: 0.63rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .ss-diff-easy {
+    color: #166534;
+    background: #dcfce7;
+  }
+  .ss-diff-medium {
+    color: #b45309;
+    background: #fef3c7;
+  }
+  .ss-diff-hard {
+    color: #991b1b;
+    background: #fee2e2;
+  }
+  .ss-badge-free {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #15803d;
+    background: #f0fdf4;
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 1px solid rgba(22, 163, 74, 0.2);
+  }
+  .ss-badge-new {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: #0369a1;
+    background: #f0f9ff;
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 1px solid rgba(2, 132, 199, 0.2);
+  }
+
+  .ss-item-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--ink, #0f172a);
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ss-mark {
+    background: rgba(176, 0, 32, 0.12) !important;
+    color: var(--brand, #B00020) !important;
+    font-weight: 700;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  .ss-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.73rem;
+    color: var(--ink-muted, #64748b);
+  }
+  .ss-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ss-meta-sep {
+    color: var(--rule, #cbd5e1);
+    font-size: 0.65rem;
+  }
+
+  .ss-item-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    color: var(--ink-muted, #94a3b8);
+    flex-shrink: 0;
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+  .ss-item:hover .ss-item-arrow,
+  .ss-item.ss-active .ss-item-arrow {
+    color: var(--brand, #B00020);
+    transform: translateX(3px);
+  }
+
+  /* Dropdown Footer */
+  .ss-panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+    background: #fafbfc;
+    border-top: 1px solid var(--rule, #f1f5f9);
+    font-size: 0.75rem;
+    gap: 8px;
+  }
+  .ss-footer-kbd-hints {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--ink-muted, #94a3b8);
+    font-size: 0.72rem;
+  }
+  .ss-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    font-size: 0.65rem;
+    font-family: inherit;
+    font-weight: 600;
+    color: var(--ink-soft, #475569);
+    background: #ffffff;
+    border: 1px solid var(--rule, #cbd5e1);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  }
+  .ss-footer-view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    color: var(--brand, #B00020);
+    text-decoration: none;
+    padding: 3px 6px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .ss-footer-view-all:hover {
+    background: var(--brand-light, #FFF0F2);
+  }
+
+  /* Loading State */
+  .ss-loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px 16px;
+    color: var(--ink-soft, #64748b);
+    font-size: 0.84rem;
+  }
+  .ss-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--rule, #e2e8f0);
+    border-top-color: var(--brand, #B00020);
+    border-radius: 50%;
+    animation: ssSpin 0.7s linear infinite;
+  }
+  @keyframes ssSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Empty State */
+  .ss-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 28px 18px 22px;
+  }
+  .ss-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--surface-2, #f8fafc);
+    color: var(--ink-muted, #94a3b8);
+    margin-bottom: 10px;
+    border: 1px solid var(--rule, #e2e8f0);
+  }
+  .ss-empty-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink, #0f172a);
+    margin-bottom: 4px;
+  }
+  .ss-empty-sub {
+    font-size: 0.8rem;
+    color: var(--ink-muted, #64748b);
+    line-height: 1.4;
+    margin-bottom: 14px;
+  }
+  .ss-empty-cta {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--brand, #B00020);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 99px;
+    background: var(--brand-light, #FFF0F2);
+    border: 1px solid rgba(176, 0, 32, 0.18);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .ss-empty-cta:hover {
+    background: #ffe3e7;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px) {
+    .ss-panel-footer .ss-footer-kbd-hints {
+      display: none;
     }
   }
 </style>
