@@ -1,8 +1,31 @@
 ---
 export const prerender = false;
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { fetchMockTests } from '../../lib/api/mockTestService';
 
 const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 'Police', 'General'];
+
+// ── SSR: Fetch tests on the server so the page renders with data instantly ──
+let ssrTests: any[] = [];
+try {
+  const rows = await fetchMockTests(1, 50);
+  ssrTests = (Array.isArray(rows) ? rows : []).map((t: any) => ({
+    id: t.id,
+    slug: String(t.id ?? t.slug ?? ""),
+    title: t.title || t.name,
+    exam: t.exam || t.category || "General",
+    questions: Array.isArray(t.questions) ? t.questions.length : (t.questions || 0),
+    duration: t.duration || 30,
+    difficulty: t.difficulty || "Medium",
+    attempts: t.attempts || 0,
+    rating: t.rating || 5,
+    isFree: !!(t.is_free || t.isFree),
+    isNew: !!(t.is_new || t.isNew),
+    tags: [t.exam || t.category || "General"]
+  }));
+} catch (err) {
+  console.error("SSR: Failed to fetch mock tests:", err);
+}
 ---
 
 <BaseLayout
@@ -81,7 +104,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   <!-- Main content -->
   <div class="tests-main">
     <div class="toolbar">
-      <span class="result-count" id="result-count">Loading tests...</span>
+      <span class="result-count" id="result-count">{ssrTests.length > 0 ? `${ssrTests.length} test${ssrTests.length !== 1 ? 's' : ''}` : 'Loading tests...'}</span>
       <div class="toolbar-right">
         <button type="button" id="open-filter-sheet" class="mobile-filter-btn" aria-label="Open filter options">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
@@ -92,10 +115,49 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     </div>
 
     <div class="tests-grid" id="tests-grid">
-      <div class="tests-loading" id="tests-loading" style="grid-column: 1 / -1; text-align: center; padding: 60px 0; color: var(--ink-soft);">
-        <div class="am-spinner" style="margin: 0 auto 12px; width: 32px; height: 32px; border: 3px solid var(--rule); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-        <p>Loading mock tests...</p>
-      </div>
+      {ssrTests.length > 0 ? (
+        ssrTests.map(t => (
+          <a href={`/mocktest/test/${t.slug}`} class="test-card">
+            <div class="tc-top">
+              <span class="exam-tag">{t.exam}</span>
+              <div class="badges">
+                {t.isNew && <span class="badge-new">New</span>}
+                <span class="badge-free">Free</span>
+              </div>
+            </div>
+            <h2 class="tc-title">{t.title}</h2>
+            <div class="tc-tags">
+              {t.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+            </div>
+            <div class="tc-meta">
+              <span class="meta-item">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                {t.questions} Questions
+              </span>
+              <span class="meta-item">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {t.duration} min
+              </span>
+              <span class={`diff-badge diff-${t.difficulty.toLowerCase()}`}>{t.difficulty}</span>
+            </div>
+            <div class="tc-footer">
+              <div class="tc-stats">
+                <span>
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  {(t.attempts || 0).toLocaleString('en-IN')}
+                </span>
+                <span class="star-rating">★ {t.rating}</span>
+              </div>
+              <span class="attempt-cta">Attempt →</span>
+            </div>
+          </a>
+        ))
+      ) : (
+        <div class="tests-loading" id="tests-loading" style="grid-column: 1 / -1; text-align: center; padding: 60px 0; color: var(--ink-soft);">
+          <div class="am-spinner" style="margin: 0 auto 12px; width: 32px; height: 32px; border: 3px solid var(--rule); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+          <p>Loading mock tests...</p>
+        </div>
+      )}
     </div>
 
     <p class="empty-msg" id="empty-msg" style="display:none">
@@ -175,8 +237,21 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
 
 </BaseLayout>
 
+<!-- SSR data for client hydration -->
+<script is:inline define:vars={{ ssrTestsJSON: JSON.stringify(ssrTests) }}>
+  window.__SSR_TESTS__ = JSON.parse(ssrTestsJSON);
+</script>
+
 <script is:inline>
-  let allTests = [];
+function __initTestsPage() {
+  // Guard: only init once per page instance (prevents duplicate listeners on ClientRouter nav)
+  const gridEl = document.getElementById('tests-grid');
+  if (!gridEl) return;
+  if (gridEl.dataset.initialized === 'true') return;
+  gridEl.dataset.initialized = 'true';
+
+  // Use SSR-fetched data as initial state (instant render, no loading spinner)
+  let allTests = Array.isArray(window.__SSR_TESTS__) ? window.__SSR_TESTS__.slice() : [];
   let activeExam = 'All';
   let activeDiff = 'All';
   let activeDur = 'All';
@@ -196,7 +271,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
 
   const paramTest = urlParams.get('test');
 
-  async function loadTestsFromAPI() {
+  async function loadTestsFromAPI(silent = false) {
     const grid = document.getElementById('tests-grid');
     const loadingEl = document.getElementById('tests-loading');
     const countEl = document.getElementById('result-count');
@@ -250,7 +325,10 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
       updateExamCounts();
     } catch (err) {
       console.error("Failed to load tests client-side:", err);
-      if (loadingEl) loadingEl.innerHTML = `<p style="color:var(--brand)">Failed to load tests. Please check your connection.</p>`;
+      // Only show error if we have no data to display (not a silent background refresh)
+      if (!silent && allTests.length === 0) {
+        if (loadingEl) loadingEl.innerHTML = `<p style="color:var(--brand)">Failed to load tests. Please check your connection.</p>`;
+      }
     }
   }
 
@@ -500,7 +578,22 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     renderTests();
   });
 
-  loadTestsFromAPI();
+  // If SSR provided tests, render immediately; then refresh from API in background
+  if (allTests.length > 0) {
+    syncFilterUI();
+    renderTests();
+    updateExamCounts();
+    // Refresh in background for freshest data (silent — don't show loading spinner)
+    loadTestsFromAPI(true);
+  } else {
+    // No SSR data — fall back to client-only fetch (shows spinner)
+    loadTestsFromAPI(false);
+  }
+}
+// Run on initial load
+__initTestsPage();
+// Re-run on Astro ClientRouter page transitions
+document.addEventListener('astro:page-load', __initTestsPage);
 </script>
 
 <style is:global>
