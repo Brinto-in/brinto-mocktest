@@ -89,21 +89,26 @@ const { links } = Astro.props;
     font-family: "Noto Sans Oriya", "Noto Sans Odia", "Kalinga", var(--font-body);
   }
 
-  /* Sections land below the site header (72px) + this bar */
+  /* Sections land below the site header + this bar */
   [data-exam-section] {
-    scroll-margin-top: 130px;
+    scroll-margin-top: 115px;
   }
 </style>
 
 <style>
   .lb {
     position: sticky;
-    top: 72px; /* below the site header */
+    top: 57px; /* directly below the site header */
     z-index: 30;
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--rule);
+    transition: top 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  :global(body.header-hidden) .lb {
+    top: 0 !important;
   }
 
   .lb-inner {

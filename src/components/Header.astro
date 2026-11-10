@@ -1318,6 +1318,92 @@ function isNavActive(href: string) {
     // Mobile
     const mobileForm = document.getElementById('mobile-search-form') as HTMLFormElement | null;
     setupSearch('mobile-search-input', 'mobile-search-suggestions', mobileForm);
+
+    setupScrollHeader();
+  }
+
+  // ── Header Scroll Hide/Show (Fade out on scroll down, fade in on scroll up) ──
+  let lastScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+  let scrollTicking = false;
+
+  function handleHeaderScroll() {
+    const currentScrollY = window.scrollY;
+    const header = document.querySelector('.header');
+    if (!header) return;
+
+    // Keep visible if search input is focused or mobile drawer/search overlay is open
+    const mobileNav = document.getElementById('mobile-nav');
+    const searchOverlay = document.getElementById('mobile-search-overlay');
+    const isMenuOpen = mobileNav?.classList.contains('is-open');
+    const isSearchOpen = searchOverlay?.classList.contains('is-open');
+    const activeEl = document.activeElement;
+    const isInputFocused = activeEl && (
+      activeEl.id === 'desktop-search-input' ||
+      activeEl.id === 'mobile-search-input'
+    );
+
+    if (isMenuOpen || isSearchOpen || isInputFocused) {
+      header.classList.remove('header--hidden');
+      document.body.classList.remove('header-hidden');
+      lastScrollY = currentScrollY;
+      return;
+    }
+
+    // Always keep header visible at the very top of the page
+    if (currentScrollY <= 20) {
+      header.classList.remove('header--hidden');
+      document.body.classList.remove('header-hidden');
+      lastScrollY = currentScrollY;
+      return;
+    }
+
+    // Guard against iOS bottom rubber-band bounce
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    if (currentScrollY > maxScroll - 10) return;
+
+    const diff = currentScrollY - lastScrollY;
+
+    // Small threshold (8px) to filter micro scroll jitters
+    if (Math.abs(diff) < 8) return;
+
+    if (diff > 0 && currentScrollY > 60) {
+      // Scroll DOWN (top to bottom) -> Fade out & slide up header
+      header.classList.add('header--hidden');
+      document.body.classList.add('header-hidden');
+      const desktopSuggestions = document.getElementById('desktop-search-suggestions');
+      if (desktopSuggestions && !desktopSuggestions.hidden) {
+        desktopSuggestions.hidden = true;
+      }
+    } else if (diff < 0) {
+      // Scroll UP (bottom to top) -> Fade in & slide down header
+      header.classList.remove('header--hidden');
+      document.body.classList.remove('header-hidden');
+    }
+
+    lastScrollY = currentScrollY;
+  }
+
+  function setupScrollHeader() {
+    const header = document.querySelector('.header');
+    if (header) {
+      header.classList.remove('header--hidden');
+      document.body.classList.remove('header-hidden');
+    }
+    lastScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+  }
+
+  // Attach global scroll listener once
+  if (typeof window !== 'undefined' && !(window as any).__headerScrollAttached) {
+    (window as any).__headerScrollAttached = true;
+    window.addEventListener('scroll', () => {
+      if (!scrollTicking) {
+        window.requestAnimationFrame(() => {
+          handleHeaderScroll();
+          scrollTicking = false;
+        });
+        scrollTicking = true;
+      }
+    }, { passive: true });
   }
 
   // Initialize on initial page load and on every ClientRouter page transition
@@ -1334,6 +1420,24 @@ function isNavActive(href: string) {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--rule, #e2e8f0);
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0.28s;
+    will-change: transform, opacity;
+  }
+
+  /* Fade out & slide up header on scroll down (top to bottom) */
+  .header.header--hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.25s ease,
+                visibility 0.25s;
   }
   .bar {
     display: flex;
