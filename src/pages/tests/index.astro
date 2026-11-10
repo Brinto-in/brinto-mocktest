@@ -33,7 +33,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
 
   <!-- Filters sidebar -->
   <aside class="filters" aria-label="Filter tests">
-    <div class="filter-group">
+    <div class="filter-group" id="exam-filter-group">
       <h3>Exam</h3>
       <ul class="filter-list" id="exam-filter">
         {examTypes.map((e, i) => (
@@ -123,11 +123,28 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     activeExam = paramExam;
   }
 
+  const paramQ = urlParams.get('q');
+  if (paramQ) {
+    searchQ = paramQ.trim().toLowerCase();
+  }
+
+  const paramTest = urlParams.get('test');
+
   async function loadTestsFromAPI() {
     const grid = document.getElementById('tests-grid');
     const loadingEl = document.getElementById('tests-loading');
     const countEl = document.getElementById('result-count');
     const emptyEl = document.getElementById('empty-msg');
+    const searchInput = document.getElementById('search-input');
+    const examFilterGroup = document.getElementById('exam-filter-group');
+
+    if (searchInput && paramQ) {
+      searchInput.value = paramQ;
+    }
+
+    if (paramTest && examFilterGroup) {
+      examFilterGroup.style.display = 'none';
+    }
 
     try {
       const res = await fetch("https://brintoapi.brinto.in/api/mocktests?page=1&limit=50", {
@@ -195,13 +212,37 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     const countEl = document.getElementById('result-count');
     const emptyEl = document.getElementById('empty-msg');
 
+    const searchTerms = searchQ.split(/\s+/).filter(Boolean);
+
     let filtered = allTests.filter(t => {
       const matchesExam = activeExam === 'All' || t.exam.toLowerCase() === activeExam.toLowerCase();
       const matchesDiff = activeDiff === 'All' || t.difficulty.toLowerCase() === activeDiff.toLowerCase();
       const matchesDur = durMatch(t.duration, activeDur);
-      const matchesSearch = searchQ === '' || t.title.toLowerCase().includes(searchQ) || t.tags.some(tag => tag.toLowerCase().includes(searchQ));
+
+      let matchesSearch = true;
+      if (searchTerms.length > 0) {
+        matchesSearch = searchTerms.some(term =>
+          t.title.toLowerCase().includes(term) ||
+          t.exam.toLowerCase().includes(term) ||
+          t.tags.some(tag => tag.toLowerCase().includes(term))
+        );
+      }
       return matchesExam && matchesDiff && matchesDur && matchesSearch;
     });
+
+    if (filtered.length === 0 && searchQ !== '') {
+      filtered = allTests.filter(t => {
+        const matchesExam = activeExam === 'All' || t.exam.toLowerCase() === activeExam.toLowerCase();
+        const matchesDiff = activeDiff === 'All' || t.difficulty.toLowerCase() === activeDiff.toLowerCase();
+        const matchesDur = durMatch(t.duration, activeDur);
+        return matchesExam && matchesDiff && matchesDur;
+      });
+      if (countEl) countEl.textContent = `No exact matches for "${paramQ || searchQ}". Showing ${filtered.length} available test${filtered.length !== 1 ? 's' : ''}:`;
+      emptyEl.style.display = 'none';
+    } else {
+      if (countEl) countEl.textContent = `${filtered.length} test${filtered.length !== 1 ? 's' : ''}`;
+      emptyEl.style.display = filtered.length === 0 ? '' : 'none';
+    }
 
     // Sort
     filtered.sort((a, b) => {
