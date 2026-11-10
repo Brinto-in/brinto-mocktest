@@ -1304,43 +1304,76 @@ function isNavActive(href: string) {
   .mobile-search-go-btn:hover {
     background: var(--brand-dark);
   }
+  /* Modern Asymmetric Pill Hamburger */
   .hamburger {
     display: none;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 4px;
+    gap: 4.5px;
     width: 38px;
     height: 38px;
-    background: transparent;
-    border: none;
+    background: var(--surface-2, #f8fafc);
+    border: 1px solid var(--rule, #e2e8f0);
     border-radius: 999px;
     padding: 0;
     margin-right: 8px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 41;
   }
   .hamburger:hover {
-    background: rgba(176, 0, 32, 0.08);
+    background: var(--brand-light, #FFF0F2);
+    border-color: rgba(176, 0, 32, 0.2);
+    transform: scale(1.04);
   }
   .hamburger span {
     display: block;
-    width: 18px;
     height: 2px;
     background: var(--ink);
-    border-radius: 2px;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s;
+    border-radius: 999px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hamburger span:nth-child(1) {
+    width: 16px;
+  }
+  .hamburger span:nth-child(2) {
+    width: 11px;
+    align-self: flex-start;
+    margin-left: 11px;
+    transition: width 0.25s, opacity 0.25s, transform 0.25s;
+  }
+  .hamburger span:nth-child(3) {
+    width: 16px;
+  }
+  .hamburger:hover span {
+    background: var(--brand, #B00020);
+  }
+  .hamburger:hover span:nth-child(2) {
+    width: 16px;
+  }
+
+  /* Active state - smooth cross morph */
+  .hamburger.active {
+    background: var(--brand-light, #FFF0F2);
+    border-color: rgba(176, 0, 32, 0.25);
+    box-shadow: 0 2px 8px rgba(176, 0, 32, 0.12);
+  }
+  .hamburger.active span {
+    background: var(--brand, #B00020);
   }
   .hamburger.active span:nth-child(1) {
-    transform: translateY(6px) rotate(45deg);
+    width: 16px;
+    transform: translateY(6.5px) rotate(45deg);
   }
   .hamburger.active span:nth-child(2) {
     opacity: 0;
-    transform: translateX(-8px);
+    width: 0;
+    transform: translateX(-10px);
   }
   .hamburger.active span:nth-child(3) {
-    transform: translateY(-6px) rotate(-45deg);
+    width: 16px;
+    transform: translateY(-6.5px) rotate(-45deg);
   }
 
   /* --- Professional iOS / Apple Style Glass Backdrop Overlay --- */
