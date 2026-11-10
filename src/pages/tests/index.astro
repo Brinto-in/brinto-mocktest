@@ -13,8 +13,8 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
 <section class="page-hero">
   <div class="wrap hero-inner">
     <div class="hero-text">
-      <h1>All Mock Tests</h1>
-      <p>280+ free tests across all major Odisha & central govt exams.</p>
+      <h1 id="hero-title">All Mock Tests</h1>
+      <p id="hero-sub">280+ free tests across all major Odisha & central govt exams.</p>
     </div>
     <div class="search-box">
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -67,7 +67,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     <div class="filter-group">
       <h3>Duration</h3>
       <ul class="filter-list" id="dur-filter">
-        {['All', 'Under 30 min', '30–60 min', 'Over 60 min'].map((d, i) => (
+        {['All', '30 min', '60 min', 'Over 60 min'].map((d, i) => (
           <li>
             <button class={`filter-btn ${i === 0 ? 'active' : ''}`} data-dur={d} aria-pressed={i === 0 ? 'true' : 'false'}>
               {d}
@@ -82,14 +82,12 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   <div class="tests-main">
     <div class="toolbar">
       <span class="result-count" id="result-count">Loading tests...</span>
-      <div class="sort-row">
-        <label for="sort-select">Sort:</label>
-        <select id="sort-select" aria-label="Sort tests">
-          <option value="popular">Most Popular</option>
-          <option value="newest">Newest</option>
-          <option value="rating">Top Rated</option>
-          <option value="duration-asc">Shortest First</option>
-        </select>
+      <div class="toolbar-right">
+        <button type="button" id="open-filter-sheet" class="mobile-filter-btn" aria-label="Open filter options">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span>Filters</span>
+          <span class="filter-active-dot" id="filter-active-dot" style="display:none"></span>
+        </button>
       </div>
     </div>
 
@@ -106,6 +104,74 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   </div>
 
 </div>
+
+<!-- Mobile Bottom Sheet Drawer -->
+<div id="filter-sheet" class="filter-sheet" aria-hidden="true">
+  <div class="sheet-backdrop" id="close-filter-sheet-bg"></div>
+  <div class="sheet-content">
+    <div class="sheet-handle-bar"><span class="sheet-handle"></span></div>
+    <div class="sheet-header">
+      <h2>Filters</h2>
+      <button type="button" id="close-filter-sheet-btn" class="sheet-close-btn" aria-label="Close filters">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="filter-group" id="m-exam-filter-group">
+        <h3>Exam</h3>
+        <ul class="filter-list" id="m-exam-filter">
+          {examTypes.map((e, i) => (
+            <li>
+              <button
+                class={`filter-btn ${i === 0 ? 'active' : ''}`}
+                data-exam={e}
+                aria-pressed={i === 0 ? 'true' : 'false'}
+              >
+                {e}
+                <span class="filter-count" id={`m-cnt-${e.toLowerCase()}`}>0</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="filter-group">
+        <h3>Difficulty</h3>
+        <ul class="filter-list" id="m-diff-filter">
+          {['All', 'Easy', 'Medium', 'Hard'].map((d, i) => (
+            <li>
+              <button class={`filter-btn ${i === 0 ? 'active' : ''}`} data-diff={d} aria-pressed={i === 0 ? 'true' : 'false'}>
+                {d}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="filter-group">
+        <h3>Duration</h3>
+        <ul class="filter-list" id="m-dur-filter">
+          {['All', '30 min', '60 min', 'Over 60 min'].map((d, i) => (
+            <li>
+              <button class={`filter-btn ${i === 0 ? 'active' : ''}`} data-dur={d} aria-pressed={i === 0 ? 'true' : 'false'}>
+                {d}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" id="sheet-reset-btn" class="sheet-btn-secondary">Reset</button>
+      <button type="button" id="sheet-apply-btn" class="sheet-btn-primary">Apply Filters</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Bottom-Right Filter Button (shows on scroll) -->
+<button type="button" id="floating-filter-btn" class="floating-filter-btn" aria-label="Open filter options" style="display: none;">
+  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+  <span>Filter</span>
+  <span class="filter-active-dot" id="floating-active-dot" style="display:none"></span>
+</button>
 
 </BaseLayout>
 
@@ -137,13 +203,23 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     const emptyEl = document.getElementById('empty-msg');
     const searchInput = document.getElementById('search-input');
     const examFilterGroup = document.getElementById('exam-filter-group');
+    const heroTitle = document.getElementById('hero-title');
+    const heroSub = document.getElementById('hero-sub');
+
+    if (paramTest) {
+      const titleText = paramTest.toLowerCase().endsWith('tests') || paramTest.toLowerCase().endsWith('test')
+        ? paramTest
+        : `${paramTest} Tests`;
+      if (heroTitle) heroTitle.textContent = titleText;
+      if (heroSub) heroSub.textContent = `Free tests and practice papers for ${paramTest}.`;
+      if (examFilterGroup) examFilterGroup.style.display = 'none';
+      const mExamFilterGroup = document.getElementById('m-exam-filter-group');
+      if (mExamFilterGroup) mExamFilterGroup.style.display = 'none';
+      document.title = `${titleText} | Brinto MockTest`;
+    }
 
     if (searchInput && paramQ) {
       searchInput.value = paramQ;
-    }
-
-    if (paramTest && examFilterGroup) {
-      examFilterGroup.style.display = 'none';
     }
 
     try {
@@ -169,19 +245,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
         tags: [t.exam || t.category || "General"]
       }));
 
-      // Update exam filter button active state if paramExam was present
-      if (paramExam) {
-        document.querySelectorAll('#exam-filter .filter-btn').forEach(b => {
-          if (b.dataset.exam === paramExam) {
-            b.classList.add('active');
-            b.setAttribute('aria-pressed', 'true');
-          } else {
-            b.classList.remove('active');
-            b.setAttribute('aria-pressed', 'false');
-          }
-        });
-      }
-
+      syncFilterUI();
       renderTests();
       updateExamCounts();
     } catch (err) {
@@ -194,15 +258,16 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     const exams = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 'Police', 'General'];
     exams.forEach(ex => {
       const cnt = ex === 'All' ? allTests.length : allTests.filter(t => t.exam.toLowerCase() === ex.toLowerCase()).length;
-      const btn = document.querySelector(`#exam-filter .filter-btn[data-exam="${ex}"] .filter-count`);
-      if (btn) btn.textContent = cnt;
+      document.querySelectorAll(`#cnt-${ex.toLowerCase()}, #m-cnt-${ex.toLowerCase()}`).forEach(btn => {
+        if (btn) btn.textContent = cnt;
+      });
     });
   }
 
   function durMatch(duration, filter) {
     if (filter === 'All') return true;
-    if (filter === 'Under 30 min') return duration < 30;
-    if (filter === '30–60 min') return duration >= 30 && duration <= 60;
+    if (filter === '30 min') return duration <= 30;
+    if (filter === '60 min') return duration > 30 && duration <= 60;
     if (filter === 'Over 60 min') return duration > 60;
     return true;
   }
@@ -307,19 +372,67 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   }
 
   // Filter handlers
+  function syncFilterUI() {
+    ['exam', 'diff', 'dur'].forEach(prop => {
+      const currentVal = prop === 'exam' ? activeExam : prop === 'diff' ? activeDiff : activeDur;
+      const attr = `data-${prop}`;
+      document.querySelectorAll(`[${attr}]`).forEach(b => {
+        const isMatch = b.getAttribute(attr) === currentVal;
+        b.classList.toggle('active', isMatch);
+        b.setAttribute('aria-pressed', String(isMatch));
+      });
+    });
+
+    const activeDot = document.getElementById('filter-active-dot');
+    if (activeDot) {
+      const hasActive = activeExam !== 'All' || activeDiff !== 'All' || activeDur !== 'All';
+      activeDot.style.display = hasActive ? 'inline-block' : 'none';
+    }
+    window.updateFloatingDot?.();
+  }
+
+  function setupFloatingFilterButton() {
+    const floatBtn = document.getElementById('floating-filter-btn');
+    const sheet = document.getElementById('filter-sheet');
+    const floatDot = document.getElementById('floating-active-dot');
+
+    if (!floatBtn || !sheet) return;
+
+    floatBtn.addEventListener('click', () => {
+      sheet.classList.add('open');
+      sheet.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    });
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        floatBtn.style.display = 'inline-flex';
+      } else {
+        floatBtn.style.display = 'none';
+      }
+    }, { passive: true });
+
+    window.updateFloatingDot = () => {
+      const hasActive = activeExam !== 'All' || activeDiff !== 'All' || activeDur !== 'All';
+      if (floatDot) {
+        floatDot.style.display = hasActive ? 'inline-block' : 'none';
+      }
+    };
+  }
+
+  setupFloatingFilterButton();
+
   function setupFilterGroup(groupId, prop) {
-    document.getElementById(groupId).addEventListener('click', e => {
+    const el = document.getElementById(groupId);
+    if (!el) return;
+    el.addEventListener('click', e => {
       const btn = e.target.closest('.filter-btn');
       if (!btn) return;
-      document.querySelectorAll(`#${groupId} .filter-btn`).forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-pressed', 'false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-pressed', 'true');
-      if (prop === 'exam') activeExam = btn.dataset.exam;
-      if (prop === 'diff') activeDiff = btn.dataset.diff;
-      if (prop === 'dur') activeDur = btn.dataset.dur;
+      const val = btn.dataset[prop];
+      if (prop === 'exam') activeExam = val;
+      if (prop === 'diff') activeDiff = val;
+      if (prop === 'dur') activeDur = val;
+      syncFilterUI();
       renderTests();
     });
   }
@@ -327,28 +440,63 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   setupFilterGroup('exam-filter', 'exam');
   setupFilterGroup('diff-filter', 'diff');
   setupFilterGroup('dur-filter', 'dur');
+  setupFilterGroup('m-exam-filter', 'exam');
+  setupFilterGroup('m-diff-filter', 'diff');
+  setupFilterGroup('m-dur-filter', 'dur');
+
+  function setupBottomSheet() {
+    const sheet = document.getElementById('filter-sheet');
+    const openBtn = document.getElementById('open-filter-sheet');
+    const closeBg = document.getElementById('close-filter-sheet-bg');
+    const closeBtn = document.getElementById('close-filter-sheet-btn');
+    const applyBtn = document.getElementById('sheet-apply-btn');
+    const resetBtn = document.getElementById('sheet-reset-btn');
+
+    function openSheet() {
+      if (!sheet) return;
+      sheet.classList.add('open');
+      sheet.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSheet() {
+      if (!sheet) return;
+      sheet.classList.remove('open');
+      sheet.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openSheet);
+    if (closeBg) closeBg.addEventListener('click', closeSheet);
+    if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+    if (applyBtn) {
+      applyBtn.addEventListener('click', () => {
+        closeSheet();
+        renderTests();
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = '';
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.value = '';
+        syncFilterUI();
+        renderTests();
+      });
+    }
+  }
+
+  setupBottomSheet();
 
   document.getElementById('search-input').addEventListener('input', e => {
     searchQ = e.target.value.trim().toLowerCase();
     renderTests();
   });
 
-  document.getElementById('sort-select').addEventListener('change', e => {
-    sortBy = e.target.value;
-    renderTests();
-  });
-
   document.getElementById('reset-filters').addEventListener('click', () => {
     activeExam = 'All'; activeDiff = 'All'; activeDur = 'All'; searchQ = '';
-    document.querySelectorAll('.filter-btn').forEach(b => {
-      b.classList.remove('active');
-      b.setAttribute('aria-pressed', 'false');
-    });
-    document.querySelectorAll('.filter-btn:first-child').forEach(b => {
-      b.classList.add('active');
-      b.setAttribute('aria-pressed', 'true');
-    });
     document.getElementById('search-input').value = '';
+    syncFilterUI();
     renderTests();
   });
 
@@ -428,10 +576,10 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   }
   .filter-group h3 {
     font-family: var(--font-body);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     color: var(--ink-muted);
     margin-bottom: 10px;
   }
@@ -452,6 +600,7 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     border: none;
     padding: 8px 10px;
     border-radius: var(--radius-sm);
+    font-family: var(--font-body);
     font-size: 0.88rem;
     color: var(--ink-soft);
     font-weight: 500;
@@ -462,7 +611,9 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
   .filter-btn:hover { background: var(--surface-2); color: var(--ink); }
   .filter-btn.active { background: var(--brand-light); color: var(--brand-dark); font-weight: 700; }
   .filter-count {
+    font-family: var(--font-body);
     font-size: 0.75rem;
+    font-weight: 600;
     color: var(--ink-muted);
     background: var(--surface-2);
     padding: 1px 7px;
@@ -605,21 +756,192 @@ const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 
     font-size: inherit;
   }
 
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .mobile-filter-btn {
+    display: none;
+  }
+
+  /* Mobile Bottom Sheet Drawer */
+  .filter-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.25s, opacity 0.25s;
+  }
+  .filter-sheet.open {
+    visibility: visible;
+    opacity: 1;
+  }
+  .sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+  .sheet-content {
+    position: relative;
+    z-index: 2;
+    background: var(--surface);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .filter-sheet.open .sheet-content {
+    transform: translateY(0);
+  }
+  .sheet-handle-bar {
+    padding: 10px 0 4px;
+    display: flex;
+    justify-content: center;
+  }
+  .sheet-handle {
+    width: 38px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--rule);
+  }
+  .sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .sheet-header h2 {
+    font-family: var(--font-body);
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+  }
+  .sheet-close-btn {
+    background: var(--surface-2);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .sheet-body {
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .sheet-footer {
+    display: flex;
+    gap: 12px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--rule);
+    background: var(--surface);
+  }
+  .sheet-btn-secondary {
+    flex: 1;
+    padding: 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--rule);
+    background: var(--surface-2);
+    color: var(--ink-soft);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .sheet-btn-primary {
+    flex: 2;
+    padding: 12px;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: var(--brand);
+    color: #ffffff;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
   @media (max-width: 900px) {
     .listing-layout { grid-template-columns: 1fr; }
     .filters {
-      position: static;
-      flex-direction: row;
-      flex-wrap: wrap;
-      gap: 16px;
+      display: none;
     }
-    .filter-group { flex: 1; min-width: 140px; }
-    .filter-list { flex-direction: row; flex-wrap: wrap; gap: 6px; }
-    .filter-btn { width: auto; padding: 6px 12px; }
     .hero-inner { flex-direction: column; align-items: flex-start; }
     .search-box { min-width: 100%; }
+    .mobile-filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--brand-light);
+      color: var(--brand);
+      border: 1px solid var(--brand-mid);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .filter-active-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--brand);
+    }
   }
   @media (max-width: 600px) {
     .tests-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Floating Bottom-Right Filter Button */
+  .floating-filter-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 998;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: var(--brand);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 12px 20px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.92rem;
+    box-shadow: 0 6px 20px rgba(176, 0, 32, 0.35);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .floating-filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(176, 0, 32, 0.45);
+  }
+  .floating-filter-btn .filter-active-dot {
+    background: #ffffff;
+  }
+  @media (min-width: 901px) {
+    .floating-filter-btn {
+      display: none !important;
+    }
   }
 </style>
