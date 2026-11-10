@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import GAd from '../../components/GAd.astro';
 import { fetchMockTests } from '../../lib/api/mockTestService';
 
 const examTypes = ['All', 'OSSSC', 'OPSC', 'OSSC', 'SSC', 'Railway', 'Banking', 'Police', 'General'];
@@ -177,6 +178,10 @@ try {
     <p class="empty-msg" id="empty-msg" style="display:none">
       No tests match your filters. <button id="reset-filters">Reset filters</button>
     </p>
+
+    <div class="tests-ad-bottom" style="margin-top: 32px; display: flex; justify-content: center;">
+      <GAd sizes={{ mobile: "320x100", tablet: "728x90", desktop: "728x90" }} />
+    </div>
   </div>
 
 </div>
