@@ -1,4 +1,5 @@
 ---
+export const prerender = false;
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PerformanceChart from "../../components/result/PerformanceChart.astro";
 ---
@@ -73,6 +74,12 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
 
     <!-- ── RESULTS LIST ── -->
     <div class="wrap results-body">
+        <!-- MCQ Loading state -->
+        <div class="mcq-loading" id="mcq-loading">
+            <div class="am-spinner"></div>
+            <p>Loading your test results…</p>
+        </div>
+
         <!-- Empty state -->
         <div class="empty-state" id="empty-state" style="display:none">
             <div class="empty-icon-wrap">
@@ -88,7 +95,7 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         </div>
 
         <!-- Results grid (populated by JS) -->
-        <div class="results-grid" id="results-grid"></div>
+        <div class="results-grid" id="results-grid" style="display:none"></div>
     </div>
     </div>
 
@@ -182,48 +189,33 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     import { renderPerformanceChart, renderTypingChart, WPM_TARGET } from "../../components/result/performanceChart";
     import { fetchMyAttempts, fetchAttemptDetails, fetchTypingResults, fetchTestDetails } from "../../lib/api";
 
-    let allResults = [];
+    let allResults: any[] = [];
     // testId → maximum marks (from the test's details), so scores respect each test's marking scheme
     const maxMarksByTest = new Map();
-    const perfChartEl = document.getElementById("perf-chart");
     let activeExam = "All";
-
-    const emptyEl = document.getElementById("empty-state");
-    const gridEl = document.getElementById("results-grid");
-    const statsEl = document.getElementById("rh-stats");
-    const filterBar = document.getElementById("filter-bar");
-
-    // Modal elements
-    const amOverlay = document.getElementById("am-overlay");
-    const amCloseBtn = document.getElementById("am-close-btn");
-    const amLoading = document.getElementById("am-loading");
-    const amQuestionsContainer = document.getElementById("am-questions");
-
-    let currentAttemptDetails = null;
+    let isFetchingAttempts = false;
+    let isFetchingTyping = false;
+    let typingResults: any[] | null = null;
+    let currentAttemptDetails: any = null;
     let currentQFilter = "all";
 
-    if (amCloseBtn) {
-        amCloseBtn.addEventListener("click", closeAnalysisModal);
-    }
-    if (amOverlay) {
-        amOverlay.addEventListener("click", (e) => {
-            if (e.target === amOverlay) closeAnalysisModal();
-        });
-    }
-
     function closeAnalysisModal() {
+        const amOverlay = document.getElementById("am-overlay");
         if (amOverlay) amOverlay.style.display = "none";
         document.body.style.overflow = "";
         document.documentElement.style.overflow = "";
     }
 
-    window.openAttemptModal = async function(attemptId) {
+    (window as any).openAttemptModal = async function(attemptId: string) {
+        const amOverlay = document.getElementById("am-overlay");
+        const amLoading = document.getElementById("am-loading");
+        const amQuestionsContainer = document.getElementById("am-questions");
         if (!amOverlay) return;
         amOverlay.style.display = "flex";
         document.body.style.overflow = "hidden";
         document.documentElement.style.overflow = "hidden";
-        amLoading.style.display = "flex";
-        amQuestionsContainer.innerHTML = "";
+        if (amLoading) amLoading.style.display = "flex";
+        if (amQuestionsContainer) amQuestionsContainer.innerHTML = "";
 
         try {
             const data = await fetchAttemptDetails(attemptId);
@@ -231,17 +223,17 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
                 currentAttemptDetails = data;
                 renderAttemptDetailsModal(data);
             } else {
-                amQuestionsContainer.innerHTML = `<p class="am-error">Unable to load details for this attempt.</p>`;
+                if (amQuestionsContainer) amQuestionsContainer.innerHTML = `<p class="am-error">Unable to load details for this attempt.</p>`;
             }
         } catch (e) {
             console.error("Error loading attempt details:", e);
-            amQuestionsContainer.innerHTML = `<p class="am-error">Failed to connect to server. Please try again.</p>`;
+            if (amQuestionsContainer) amQuestionsContainer.innerHTML = `<p class="am-error">Failed to connect to server. Please try again.</p>`;
         } finally {
-            amLoading.style.display = "none";
+            if (amLoading) amLoading.style.display = "none";
         }
     };
 
-    function renderAttemptDetailsModal(d) {
+    function renderAttemptDetailsModal(d: any) {
         const totalQs = d.totalQuestions || (d.questions ? d.questions.length : 0) || 1;
         const correctCount = d.correct || 0;
         const wrongCount = d.wrong || 0;
@@ -250,21 +242,35 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         const date = d.submittedAt ? new Date(d.submittedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
         const timeTakenStr = d.timeTaken ? `${Math.floor(d.timeTaken / 60)}m ${d.timeTaken % 60}s` : "—";
 
-        document.getElementById("am-exam").textContent = d.exam || "EXAM";
-        document.getElementById("am-title").textContent = d.title || "Attempt Analysis";
-        document.getElementById("am-meta").textContent = `Submitted on ${date} • Duration: ${timeTakenStr}`;
+        const amExam = document.getElementById("am-exam");
+        const amTitle = document.getElementById("am-title");
+        const amMeta = document.getElementById("am-meta");
+        const amScore = document.getElementById("am-val-score");
+        const amCorrect = document.getElementById("am-val-correct");
+        const amWrong = document.getElementById("am-val-wrong");
+        const amSkip = document.getElementById("am-val-skip");
+        const amTime = document.getElementById("am-val-time");
 
-        document.getElementById("am-val-score").textContent = `${pct}%`;
-        document.getElementById("am-val-correct").textContent = correctCount;
-        document.getElementById("am-val-wrong").textContent = wrongCount;
-        document.getElementById("am-val-skip").textContent = skippedCount;
-        document.getElementById("am-val-time").textContent = timeTakenStr;
+        if (amExam) amExam.textContent = d.exam || "EXAM";
+        if (amTitle) amTitle.textContent = d.title || "Attempt Analysis";
+        if (amMeta) amMeta.textContent = `Submitted on ${date} • Duration: ${timeTakenStr}`;
+
+        if (amScore) amScore.textContent = `${pct}%`;
+        if (amCorrect) amCorrect.textContent = String(correctCount);
+        if (amWrong) amWrong.textContent = String(wrongCount);
+        if (amSkip) amSkip.textContent = String(skippedCount);
+        if (amTime) amTime.textContent = timeTakenStr;
 
         const questionsList = d.questions || [];
-        document.getElementById("am-cnt-all").textContent = questionsList.length;
-        document.getElementById("am-cnt-correct").textContent = questionsList.filter(q => q.isCorrect).length;
-        document.getElementById("am-cnt-wrong").textContent = questionsList.filter(q => !q.isCorrect && !q.isSkipped).length;
-        document.getElementById("am-cnt-skipped").textContent = questionsList.filter(q => q.isSkipped).length;
+        const cntAll = document.getElementById("am-cnt-all");
+        const cntCorrect = document.getElementById("am-cnt-correct");
+        const cntWrong = document.getElementById("am-cnt-wrong");
+        const cntSkipped = document.getElementById("am-cnt-skipped");
+
+        if (cntAll) cntAll.textContent = String(questionsList.length);
+        if (cntCorrect) cntCorrect.textContent = String(questionsList.filter((q: any) => q.isCorrect).length);
+        if (cntWrong) cntWrong.textContent = String(questionsList.filter((q: any) => !q.isCorrect && !q.isSkipped).length);
+        if (cntSkipped) cntSkipped.textContent = String(questionsList.filter((q: any) => q.isSkipped).length);
 
         currentQFilter = "all";
         setupQuestionFilterButtons();
@@ -274,9 +280,9 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     function setupQuestionFilterButtons() {
         const btns = document.querySelectorAll(".am-qf-btn");
         btns.forEach(b => {
-            b.classList.toggle("active", b.dataset.qfilter === currentQFilter);
-            b.onclick = () => {
-                currentQFilter = b.dataset.qfilter;
+            b.classList.toggle("active", (b as HTMLElement).dataset.qfilter === currentQFilter);
+            (b as HTMLElement).onclick = () => {
+                currentQFilter = (b as HTMLElement).dataset.qfilter || "all";
                 btns.forEach(btn => btn.classList.remove("active"));
                 b.classList.add("active");
                 renderQuestionList();
@@ -285,23 +291,25 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     }
 
     function renderQuestionList() {
+        const amQuestionsContainer = document.getElementById("am-questions");
+        if (!amQuestionsContainer) return;
         if (!currentAttemptDetails || !Array.isArray(currentAttemptDetails.questions)) return;
 
         let qList = currentAttemptDetails.questions;
-        if (currentQFilter === "correct") qList = qList.filter(q => q.isCorrect);
-        else if (currentQFilter === "wrong") qList = qList.filter(q => !q.isCorrect && !q.isSkipped);
-        else if (currentQFilter === "skipped") qList = qList.filter(q => q.isSkipped);
+        if (currentQFilter === "correct") qList = qList.filter((q: any) => q.isCorrect);
+        else if (currentQFilter === "wrong") qList = qList.filter((q: any) => !q.isCorrect && !q.isSkipped);
+        else if (currentQFilter === "skipped") qList = qList.filter((q: any) => q.isSkipped);
 
         if (qList.length === 0) {
             amQuestionsContainer.innerHTML = `<div class="am-empty-q">No questions match this filter.</div>`;
             return;
         }
 
-        amQuestionsContainer.innerHTML = qList.map((q, idx) => {
+        amQuestionsContainer.innerHTML = qList.map((q: any, idx: number) => {
             const statusClass = q.isCorrect ? "q-status-correct" : (q.isSkipped ? "q-status-skipped" : "q-status-wrong");
             const statusLabel = q.isCorrect ? "✓ Correct" : (q.isSkipped ? "⊘ Skipped" : "✕ Incorrect");
 
-            const optionsHtml = (q.options || []).map((opt) => {
+            const optionsHtml = (q.options || []).map((opt: any) => {
                 let optClass = "am-opt";
                 let badge = "";
                 if (opt.isCorrect) {
@@ -341,14 +349,13 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     /**
      * Score % = marks scored (API `score`, already net of negative marking) ÷ the test's maximum marks.
      * Falls back to correct ÷ total only when the marks or the maximum aren't known.
-     * Example: SSB English (+2 / −0.5, 100 Qs): 27 right, 73 wrong → 17.5 / 200 = 9%, not 27%.
      */
-    function scorePct(marks, maxMarks, correct, totalQs) {
-        const raw = typeof marks === "number" && maxMarks > 0 ? (marks / maxMarks) * 100 : (correct / totalQs) * 100;
+    function scorePct(marks: number | null, maxMarks: number | null, correct: number, totalQs: number) {
+        const raw = typeof marks === "number" && maxMarks && maxMarks > 0 ? (marks / maxMarks) * 100 : (correct / totalQs) * 100;
         return Math.min(100, Math.max(0, Math.round(raw)));
     }
 
-    function maxMarksFor(r, totalQs) {
+    function maxMarksFor(r: any, totalQs: number) {
         const fromApi = r.totalMarks ?? r.total_marks ?? r.maxScore ?? r.max_score;
         if (fromApi > 0) return fromApi;
         const testId = String(r.testId ?? r.test_id ?? r.slug ?? "");
@@ -358,7 +365,7 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         return null;
     }
 
-    function formatAttempt(r) {
+    function formatAttempt(r: any) {
         const totalQs = r.totalQuestions || r.total_questions || ((r.correct || 0) + (r.wrong || 0) + (r.skipped || 0)) || 1;
         const correctCount = r.correct || 0;
         const marks = typeof r.score === "number" ? r.score : null;
@@ -383,18 +390,27 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         };
     }
 
-    function updateUI(results) {
+    function updateUI(results: any[]) {
+        const emptyEl = document.getElementById("empty-state");
+        const gridEl = document.getElementById("results-grid");
+        const statsEl = document.getElementById("rh-stats");
+        const filterBar = document.getElementById("filter-bar");
+        const perfChartEl = document.getElementById("perf-chart");
+
         if (!results || results.length === 0) {
-            emptyEl.style.display = "flex";
-            gridEl.style.display = "none";
+            if (emptyEl) emptyEl.style.display = "flex";
+            if (gridEl) {
+                gridEl.style.display = "none";
+                gridEl.innerHTML = "";
+            }
+            if (statsEl) statsEl.style.display = "none";
+            if (filterBar) filterBar.style.display = "none";
             if (perfChartEl) renderPerformanceChart(perfChartEl, []);
-            statsEl.style.display = "none";
-            filterBar.style.display = "none";
         } else {
-            emptyEl.style.display = "none";
-            gridEl.style.display = "grid";
-            statsEl.style.display = "grid";
-            filterBar.style.display = "flex";
+            if (emptyEl) emptyEl.style.display = "none";
+            if (gridEl) gridEl.style.display = "grid";
+            if (statsEl) statsEl.style.display = "grid";
+            if (filterBar) filterBar.style.display = "flex";
             renderStats(results);
             renderFilterTabs(results);
             renderResults(results);
@@ -402,11 +418,8 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         }
     }
 
-    // Initial render with fallback dummy data
-    updateUI(allResults);
-
-    // Look up each attempted test's maximum marks once (tests are few; results are cached per test)
-    async function loadMaxMarks(attempts) {
+    // Look up each attempted test's maximum marks once
+    async function loadMaxMarks(attempts: any[]) {
         const ids = [...new Set(attempts.map((r) => String(r.testId ?? r.test_id ?? r.slug ?? "")))]
             .filter((id) => id && !maxMarksByTest.has(id));
         await Promise.all(
@@ -421,49 +434,59 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
 
     // Fetch dynamic attempts from API
     async function loadDynamicAttempts() {
+        if (isFetchingAttempts) return;
+        isFetchingAttempts = true;
+
+        const mcqLoading = document.getElementById("mcq-loading");
+        const emptyEl = document.getElementById("empty-state");
+        const gridEl = document.getElementById("results-grid");
+
+        // Show loading state if no cached results exist yet
+        if (allResults.length === 0) {
+            if (mcqLoading) mcqLoading.hidden = false;
+            if (emptyEl) emptyEl.style.display = "none";
+            if (gridEl) gridEl.style.display = "none";
+        }
+
         try {
-            const data = await fetchMyAttempts(1, 10);
-            if (Array.isArray(data) && data.length > 0) {
-                await loadMaxMarks(data);
-                allResults = data.map(formatAttempt);
-                activeExam = "All";
-                if (!document.getElementById("view-mcq").hidden) updateUI(allResults);
+            const data = await fetchMyAttempts(1, 20);
+            if (Array.isArray(data)) {
+                if (data.length > 0) {
+                    await loadMaxMarks(data);
+                    allResults = data.map(formatAttempt);
+                    activeExam = "All";
+                } else {
+                    allResults = [];
+                }
             }
         } catch (err) {
             console.warn("Failed to fetch dynamic attempts:", err);
+        } finally {
+            isFetchingAttempts = false;
+            if (mcqLoading) mcqLoading.hidden = true;
+            const viewMcq = document.getElementById("view-mcq");
+            if (viewMcq && !viewMcq.hidden) {
+                updateUI(allResults);
+            }
         }
     }
 
-    loadDynamicAttempts();
-
-    window.addEventListener("brinto:auth-changed", () => {
-        loadDynamicAttempts();
-        if (!viewTyping.hidden) loadTypingResults();
-        else typingResults = null;
-    });
-    window.addEventListener("storage", () => {
-        loadDynamicAttempts();
-        if (!viewTyping.hidden) loadTypingResults();
-        else typingResults = null;
-    });
-
-    // ── MCQ / TYPING SWITCH ──
-    const viewMcq = document.getElementById("view-mcq");
-    const viewTyping = document.getElementById("view-typing");
-    const typingChartEl = document.getElementById("typing-chart");
-    const tabs = document.querySelectorAll(".rt-tab");
-    let typingResults = null; // loaded on first open
-
-    function setStatLabels(labels) {
+    function setStatLabels(labels: string[]) {
         ["st-total-l", "st-avg-l", "st-best-l", "st-time-l"].forEach((id, i) => {
-            document.getElementById(id).textContent = labels[i];
+            const el = document.getElementById(id);
+            if (el) el.textContent = labels[i];
         });
     }
 
-    function showView(view, push = true) {
+    function showView(view: string, push = true) {
+        const viewMcq = document.getElementById("view-mcq");
+        const viewTyping = document.getElementById("view-typing");
+        const tabs = document.querySelectorAll(".rt-tab");
+        if (!viewMcq || !viewTyping) return;
+
         const isTyping = view === "typing";
         tabs.forEach((t) => {
-            const on = t.dataset.view === view;
+            const on = (t as HTMLElement).dataset.view === view;
             t.classList.toggle("active", on);
             t.setAttribute("aria-selected", on ? "true" : "false");
         });
@@ -482,26 +505,27 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
             else loadTypingResults();
         } else {
             setStatLabels(["Tests Taken", "Avg Score", "Best Score", "Time Spent"]);
-            updateUI(allResults);
+            const mcqLoading = document.getElementById("mcq-loading");
+            if (allResults.length > 0) {
+                if (mcqLoading) mcqLoading.hidden = true;
+                updateUI(allResults);
+            } else {
+                loadDynamicAttempts();
+            }
         }
     }
 
-    tabs.forEach((t) => t.addEventListener("click", () => showView(t.dataset.view)));
-    window.addEventListener("popstate", () => {
-        showView(new URL(location.href).searchParams.get("type") === "typing" ? "typing" : "mcq", false);
-    });
-    if (new URL(location.href).searchParams.get("type") === "typing") showView("typing", false);
-
     // ── TYPING RESULTS ──
-    // API dates look like "2026-10-23 05:32:21" (UTC, no zone)
-    const toIso = (s) => (s && !s.endsWith("Z") ? s.replace(" ", "T") + "Z" : s);
+    const toIso = (s: string) => (s && !s.endsWith("Z") ? s.replace(" ", "T") + "Z" : s);
 
     async function loadTypingResults() {
+        if (isFetchingTyping) return;
+        isFetchingTyping = true;
         const loading = document.getElementById("typing-loading");
-        loading.hidden = false;
+        if (loading) loading.hidden = false;
         try {
             const rawData = await fetchTypingResults();
-            typingResults = rawData.map((r) => ({
+            typingResults = (rawData || []).map((r: any) => ({
                 id: r.id,
                 session: r.session_id,
                 passageNumber: r.passage_number,
@@ -517,57 +541,73 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
             console.warn("Failed to fetch typing results:", err);
             typingResults = [];
         } finally {
-            loading.hidden = true;
+            isFetchingTyping = false;
+            if (loading) loading.hidden = true;
         }
-        if (!viewTyping.hidden) renderTypingView(typingResults);
+        const viewTyping = document.getElementById("view-typing");
+        if (viewTyping && !viewTyping.hidden && typingResults) {
+            renderTypingView(typingResults);
+        }
     }
 
-    function renderTypingView(results) {
-        // Passages that were opened but never typed don't count towards speed/stats
+    function renderTypingView(results: any[]) {
         const attempted = results.filter((r) => r.typedWords > 0);
         const emptyEl = document.getElementById("typing-empty");
         const grid = document.getElementById("typing-grid");
+        const statsEl = document.getElementById("rh-stats");
+        const typingChartEl = document.getElementById("typing-chart");
 
         setStatLabels(["Sessions", "Avg WPM", "Best WPM", "Words Typed"]);
         if (!results.length) {
-            emptyEl.style.display = "flex";
-            grid.innerHTML = "";
-            statsEl.style.display = "none";
-            renderTypingChart(typingChartEl, []);
+            if (emptyEl) emptyEl.style.display = "flex";
+            if (grid) {
+                grid.innerHTML = "";
+                grid.style.display = "none";
+            }
+            if (statsEl) statsEl.style.display = "none";
+            if (typingChartEl) renderTypingChart(typingChartEl, []);
             return;
         }
-        emptyEl.style.display = "none";
-        statsEl.style.display = "grid";
+        if (emptyEl) emptyEl.style.display = "none";
+        if (grid) grid.style.display = "grid";
+        if (statsEl) statsEl.style.display = "grid";
 
         const sessions = new Set(results.map((r) => r.session)).size;
         const avg = attempted.length ? attempted.reduce((s, r) => s + r.wpm, 0) / attempted.length : 0;
         const best = attempted.length ? Math.max(...attempted.map((r) => r.wpm)) : 0;
         const words = attempted.reduce((s, r) => s + r.typedWords, 0);
-        document.getElementById("st-total").textContent = sessions;
-        document.getElementById("st-avg").textContent = Math.round(avg * 10) / 10;
-        document.getElementById("st-best").textContent = best;
-        document.getElementById("st-time").textContent = words.toLocaleString("en-IN");
 
-        renderTypingChart(typingChartEl, attempted);
+        const stTotal = document.getElementById("st-total");
+        const stAvg = document.getElementById("st-avg");
+        const stBest = document.getElementById("st-best");
+        const stTime = document.getElementById("st-time");
+
+        if (stTotal) stTotal.textContent = String(sessions);
+        if (stAvg) stAvg.textContent = String(Math.round(avg * 10) / 10);
+        if (stBest) stBest.textContent = String(best);
+        if (stTime) stTime.textContent = words.toLocaleString("en-IN");
+
+        if (typingChartEl) renderTypingChart(typingChartEl, attempted);
         renderTypingSessions(results);
     }
 
-    function wpmClass(w) {
+    function wpmClass(w: number) {
         return w >= WPM_TARGET ? "rank-good" : w >= 25 ? "rank-avg" : "rank-low";
     }
 
-    function renderTypingSessions(results) {
-        // Group passages by session, newest session first
-        const bySession = new Map();
+    function renderTypingSessions(results: any[]) {
+        const bySession = new Map<string, any[]>();
         results.forEach((r) => {
             if (!bySession.has(r.session)) bySession.set(r.session, []);
-            bySession.get(r.session).push(r);
+            bySession.get(r.session)!.push(r);
         });
         const sessions = [...bySession.values()]
             .map((rows) => rows.sort((a, b) => a.passageNumber - b.passageNumber))
             .sort((a, b) => Math.max(...b.map((r) => +new Date(r.date))) - Math.max(...a.map((r) => +new Date(r.date))));
 
         const grid = document.getElementById("typing-grid");
+        if (!grid) return;
+
         grid.innerHTML = sessions.map((rows) => {
             const started = rows.filter((r) => r.typedWords > 0);
             const avg = started.length ? Math.round((started.reduce((s, r) => s + r.wpm, 0) / started.length) * 10) / 10 : 0;
@@ -622,27 +662,30 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     }
 
     // ── STATS ──
-    function renderStats(results) {
+    function renderStats(results: any[]) {
         const total = results.length;
-        const avg = Math.round(
-            results.reduce((s, r) => s + r.score, 0) / total,
-        );
-        const best = Math.max(...results.map((r) => r.score));
+        const avg = total > 0 ? Math.round(results.reduce((s, r) => s + r.score, 0) / total) : 0;
+        const best = total > 0 ? Math.max(...results.map((r) => r.score)) : 0;
         const totalSecs = results.reduce((s, r) => s + (r.timeTaken || 0), 0);
         const hrs = Math.floor(totalSecs / 3600);
         const mins = Math.floor((totalSecs % 3600) / 60);
 
-        document.getElementById("st-total").textContent = total;
-        document.getElementById("st-avg").textContent = avg + "%";
-        document.getElementById("st-best").textContent = best + "%";
-        document.getElementById("st-time").textContent =
-            hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+        const stTotal = document.getElementById("st-total");
+        const stAvg = document.getElementById("st-avg");
+        const stBest = document.getElementById("st-best");
+        const stTime = document.getElementById("st-time");
+
+        if (stTotal) stTotal.textContent = String(total);
+        if (stAvg) stAvg.textContent = avg + "%";
+        if (stBest) stBest.textContent = best + "%";
+        if (stTime) stTime.textContent = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
     }
 
     // ── FILTER TABS ──
-    function renderFilterTabs(results) {
+    function renderFilterTabs(results: any[]) {
         const exams = ["All", ...new Set(results.map((r) => r.exam))];
         const container = document.getElementById("filter-tabs");
+        if (!container) return;
         container.innerHTML = "";
         exams.forEach((ex) => {
             const btn = document.createElement("button");
@@ -667,7 +710,8 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
 
     // ── SORT + FILTER ──
     function applyFilters() {
-        const sort = document.getElementById("sort-sel").value;
+        const sortSel = document.getElementById("sort-sel") as HTMLSelectElement | null;
+        const sort = sortSel ? sortSel.value : "newest";
         let filtered =
             activeExam === "All"
                 ? [...allResults]
@@ -675,16 +719,12 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         if (sort === "best") filtered.sort((a, b) => b.score - a.score);
         if (sort === "worst") filtered.sort((a, b) => a.score - b.score);
         renderResults(filtered);
-        // Chart follows the exam filter (it always plots oldest → newest)
+        const perfChartEl = document.getElementById("perf-chart");
         if (perfChartEl) renderPerformanceChart(perfChartEl, filtered);
     }
 
-    document
-        .getElementById("sort-sel")
-        .addEventListener("change", applyFilters);
-
     // ── SCORE COLOUR ──
-    function scoreColor(pct) {
+    function scoreColor(pct: number) {
         if (pct >= 70)
             return { stroke: "#166534", bg: "#DCFCE7", text: "#166534" };
         if (pct >= 40)
@@ -693,9 +733,11 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     }
 
     // ── RENDER RESULTS ──
-    function renderResults(results) {
+    function renderResults(results: any[]) {
         const grid = document.getElementById("results-grid");
+        if (!grid) return;
         grid.innerHTML = "";
+        grid.style.display = "grid";
 
         results.forEach((r) => {
             const col = scoreColor(r.score);
@@ -712,8 +754,9 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
 
             // Section bars
             const sectionBars = (r.sections || [])
-                .map((sec) => {
-                    const pct = Math.round((sec.correct / sec.total) * 100);
+                .map((sec: any) => {
+                    const totalSec = sec.total || 1;
+                    const pct = Math.round(((sec.correct || 0) / totalSec) * 100);
                     const c = scoreColor(pct);
                     return `
         <div class="sec-bar-row">
@@ -792,6 +835,77 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
     `;
             grid.appendChild(card);
         });
+    }
+
+    // ── PAGE LIFECYCLE (ClientRouter Support) ──
+    function initResultsPage() {
+        const viewMcq = document.getElementById("view-mcq");
+        if (!viewMcq) return;
+
+        // Modal close listeners
+        const amCloseBtn = document.getElementById("am-close-btn");
+        const amOverlay = document.getElementById("am-overlay");
+        if (amCloseBtn) amCloseBtn.onclick = closeAnalysisModal;
+        if (amOverlay) {
+            amOverlay.onclick = (e) => {
+                if (e.target === amOverlay) closeAnalysisModal();
+            };
+        }
+
+        // Tab switches
+        const tabs = document.querySelectorAll(".rt-tab");
+        tabs.forEach((t) => {
+            (t as HTMLElement).onclick = () => {
+                const v = (t as HTMLElement).dataset.view;
+                if (v) showView(v);
+            };
+        });
+
+        // Sort dropdown
+        const sortSel = document.getElementById("sort-sel") as HTMLSelectElement | null;
+        if (sortSel) {
+            sortSel.onchange = applyFilters;
+        }
+
+        // Determine active view
+        const urlType = new URL(location.href).searchParams.get("type");
+        if (urlType === "typing") {
+            showView("typing", false);
+        } else {
+            showView("mcq", false);
+        }
+    }
+
+    // Initialize on astro:page-load and immediately if script executes after DOM is ready
+    document.addEventListener("astro:page-load", initResultsPage);
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        initResultsPage();
+    }
+
+    // Global listeners for auth changes and popstate (attached once to window)
+    if (!(window as any).__resultsPageGlobalListeners) {
+        (window as any).__resultsPageGlobalListeners = true;
+
+        window.addEventListener("popstate", () => {
+            if (!document.getElementById("view-mcq")) return;
+            const isTyping = new URL(location.href).searchParams.get("type") === "typing";
+            showView(isTyping ? "typing" : "mcq", false);
+        });
+
+        const onAuthChange = () => {
+            if (!document.getElementById("view-mcq")) return;
+            allResults = [];
+            typingResults = null;
+            const viewTyping = document.getElementById("view-typing");
+            if (viewTyping && !viewTyping.hidden) {
+                loadTypingResults();
+            } else {
+                loadDynamicAttempts();
+            }
+        };
+
+        window.addEventListener("brinto:auth-changed", onAuthChange);
+        window.addEventListener("storage", onAuthChange);
     }
 </script>
 
@@ -907,8 +1021,9 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
     }
 
-    /* ── TYPING RESULTS ── */
-    .tr-loading {
+    /* ── LOADING STATES (MCQ & TYPING) ── */
+    .tr-loading,
+    .mcq-loading {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -916,8 +1031,9 @@ import PerformanceChart from "../../components/result/PerformanceChart.astro";
         padding: 48px 0;
         color: var(--ink-soft);
     }
-    .tr-loading[hidden] {
-        display: none;
+    .tr-loading[hidden],
+    .mcq-loading[hidden] {
+        display: none !important;
     }
     .tr-avg {
         display: flex;
