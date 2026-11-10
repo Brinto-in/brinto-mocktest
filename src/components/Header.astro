@@ -44,7 +44,7 @@ function isNavActive(href: string) {
     <!-- Logo & Brand -->
     <a href="/mocktest" class="brand" aria-label="Brinto MockTest home">
       <img src="/logo.png" alt="Brinto MockTest logo" width="32" height="32" class="logo-mark" onerror="this.onerror=null;this.src='/mocktest/logo.png';" />
-      <span class="brand-wordmark">Brinto<span class="brand-wordmark-accent">MockTest</span></span>
+<!--      <span class="brand-wordmark">Brinto<span class="brand-wordmark-accent">MockTest</span></span>-->
     </a>
 
     <!-- Centered Pill Navigation -->
@@ -419,47 +419,10 @@ function isNavActive(href: string) {
   import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from 'firebase/auth';
   import { loginWithMobile, saveAuth, getAuth, clearAuth } from '../lib/authService';
 
-  const overlay = document.getElementById('login-overlay');
-  const errorEl = document.getElementById('login-error');
-  const phoneInput = document.getElementById('login-phone') as HTMLInputElement | null;
-  const otpInput = document.getElementById('login-otp') as HTMLInputElement | null;
-  const otpTarget = document.getElementById('otp-target');
-  const sendBtn = document.getElementById('send-otp-btn') as HTMLButtonElement | null;
-  const verifyBtn = document.getElementById('verify-otp-btn') as HTMLButtonElement | null;
-  const changeBtn = document.getElementById('change-number-btn');
-
   let recaptcha: RecaptchaVerifier | null = null;
   let confirmation: ConfirmationResult | null = null;
   let currentPhone = '';
   let loginTimer: any = null;
-
-  // Visual OTP Box Grid Sync
-  function updateOtpGrid() {
-    if (!otpInput) return;
-    const digits = (otpInput.value || '').replace(/\D/g, '').slice(0, 6);
-    otpInput.value = digits;
-    const boxes = document.querySelectorAll<HTMLElement>('.otp-digit-box');
-    boxes.forEach((box, i) => {
-      const val = digits[i] || '';
-      box.textContent = val;
-      if (val) {
-        box.classList.add('filled');
-      } else {
-        box.classList.remove('filled');
-      }
-      if (i === digits.length && digits.length < 6) {
-        box.classList.add('active');
-      } else {
-        box.classList.remove('active');
-      }
-    });
-  }
-
-  otpInput?.addEventListener('input', updateOtpGrid);
-  otpInput?.addEventListener('focus', updateOtpGrid);
-  otpInput?.addEventListener('blur', () => {
-    document.querySelectorAll<HTMLElement>('.otp-digit-box').forEach(b => b.classList.remove('active'));
-  });
 
   // --- Auth UI rendering (localStorage-backed) ---
   function renderAuth() {
@@ -499,56 +462,6 @@ function isNavActive(href: string) {
     }
   }
 
-  function showError(msg: string) {
-    if (!errorEl) return;
-    errorEl.textContent = msg;
-    errorEl.hidden = false;
-  }
-  function clearError() {
-    if (errorEl) errorEl.hidden = true;
-  }
-  function showStep(step: 'phone' | 'otp' | 'done') {
-    document.querySelectorAll<HTMLElement>('.login-step').forEach((el) => {
-      el.hidden = el.dataset.step !== step;
-    });
-    if (phoneInput) phoneInput.disabled = false;
-    if (otpInput) otpInput.disabled = false;
-    if (step === 'otp') {
-      if (otpInput) otpInput.value = '';
-      updateOtpGrid();
-    }
-  }
-  function openModal() {
-    if (!overlay) return;
-    if (loginTimer) {
-      clearTimeout(loginTimer);
-      loginTimer = null;
-    }
-    if (typeof (window as any).closeMenu === 'function') {
-      (window as any).closeMenu();
-    }
-    overlay.style.display = 'flex';
-    void overlay.offsetWidth;
-    overlay.classList.add('open');
-    overlay.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    clearError();
-    showStep('phone');
-    phoneInput?.focus();
-  }
-  function closeModal() {
-    if (!overlay) return;
-    overlay.classList.remove('open');
-    overlay.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-    if (loginTimer) clearTimeout(loginTimer);
-    loginTimer = setTimeout(() => {
-      if (!overlay.classList.contains('open')) {
-        overlay.style.display = 'none';
-      }
-    }, 350);
-  }
-
   function ensureRecaptcha() {
     if (recaptcha) return recaptcha;
     const auth = getFirebaseAuth();
@@ -556,18 +469,243 @@ function isNavActive(href: string) {
     return recaptcha;
   }
 
-  document.querySelectorAll('[data-open-login]').forEach((btn) => {
-    btn.addEventListener('click', openModal);
-  });
-  document.querySelectorAll('[data-close-login]').forEach((btn) => {
-    btn.addEventListener('click', closeModal);
-  });
-  overlay?.addEventListener('click', (e) => {
-    if (e.target === overlay) closeModal();
-  });
+  function initHeader() {
+    const overlay = document.getElementById('login-overlay');
+    const errorEl = document.getElementById('login-error');
+    const phoneInput = document.getElementById('login-phone') as HTMLInputElement | null;
+    const otpInput = document.getElementById('login-otp') as HTMLInputElement | null;
+    const otpTarget = document.getElementById('otp-target');
+    const sendBtn = document.getElementById('send-otp-btn') as HTMLButtonElement | null;
+    const verifyBtn = document.getElementById('verify-otp-btn') as HTMLButtonElement | null;
+    const changeBtn = document.getElementById('change-number-btn');
+    const profileBtn = document.getElementById('profile-btn');
+    const profileMenu = document.getElementById('profile-menu');
+
+    function showError(msg: string) {
+      if (!errorEl) return;
+      errorEl.textContent = msg;
+      errorEl.hidden = false;
+    }
+    function clearError() {
+      if (errorEl) errorEl.hidden = true;
+    }
+    function updateOtpGrid() {
+      if (!otpInput) return;
+      const digits = (otpInput.value || '').replace(/\D/g, '').slice(0, 6);
+      otpInput.value = digits;
+      const boxes = document.querySelectorAll<HTMLElement>('.otp-digit-box');
+      boxes.forEach((box, i) => {
+        const val = digits[i] || '';
+        box.textContent = val;
+        if (val) {
+          box.classList.add('filled');
+        } else {
+          box.classList.remove('filled');
+        }
+        if (i === digits.length && digits.length < 6) {
+          box.classList.add('active');
+        } else {
+          box.classList.remove('active');
+        }
+      });
+    }
+    function showStep(step: 'phone' | 'otp' | 'done') {
+      document.querySelectorAll<HTMLElement>('.login-step').forEach((el) => {
+        el.hidden = el.dataset.step !== step;
+      });
+      if (phoneInput) phoneInput.disabled = false;
+      if (otpInput) otpInput.disabled = false;
+      if (step === 'otp') {
+        if (otpInput) otpInput.value = '';
+        updateOtpGrid();
+      }
+    }
+    function openModal() {
+      if (!overlay) return;
+      if (loginTimer) {
+        clearTimeout(loginTimer);
+        loginTimer = null;
+      }
+      if (typeof (window as any).closeMenu === 'function') {
+        (window as any).closeMenu();
+      }
+      overlay.style.display = 'flex';
+      void overlay.offsetWidth;
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      clearError();
+      showStep('phone');
+      phoneInput?.focus();
+    }
+    function closeModal() {
+      if (!overlay) return;
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (loginTimer) clearTimeout(loginTimer);
+      loginTimer = setTimeout(() => {
+        if (!overlay.classList.contains('open')) {
+          overlay.style.display = 'none';
+        }
+      }, 350);
+    }
+
+    otpInput?.addEventListener('input', updateOtpGrid);
+    otpInput?.addEventListener('focus', updateOtpGrid);
+    otpInput?.addEventListener('blur', () => {
+      document.querySelectorAll<HTMLElement>('.otp-digit-box').forEach(b => b.classList.remove('active'));
+    });
+
+    document.querySelectorAll('[data-open-login]').forEach((btn) => {
+      btn.addEventListener('click', openModal);
+    });
+    document.querySelectorAll('[data-close-login]').forEach((btn) => {
+      btn.addEventListener('click', closeModal);
+    });
+    overlay?.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    sendBtn?.addEventListener('click', async () => {
+      clearError();
+      const digits = (phoneInput?.value || '').replace(/\D/g, '');
+      if (digits.length !== 10) {
+        showError('Enter a valid 10-digit mobile number.');
+        return;
+      }
+      currentPhone = digits;
+      const phoneNumber = '+91' + digits;
+      sendBtn.disabled = true;
+      if (phoneInput) phoneInput.disabled = true;
+      sendBtn.innerHTML = `<span>Sending OTP...</span>`;
+      try {
+        const auth = getFirebaseAuth();
+        confirmation = await signInWithPhoneNumber(auth, phoneNumber, ensureRecaptcha());
+        if (otpTarget) otpTarget.textContent = phoneNumber;
+        showStep('otp');
+        setTimeout(() => otpInput?.focus(), 100);
+      } catch (err) {
+        console.log('[v0] send OTP error:', err);
+        showError('Could not send OTP. Please try again.');
+      } finally {
+        sendBtn.disabled = false;
+        if (phoneInput) phoneInput.disabled = false;
+        sendBtn.innerHTML = `
+          <span>Send OTP</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        `;
+      }
+    });
+
+    verifyBtn?.addEventListener('click', async () => {
+      clearError();
+      const code = (otpInput?.value || '').replace(/\D/g, '');
+      if (code.length !== 6) {
+        showError('Enter the 6-digit code.');
+        return;
+      }
+      if (!confirmation) {
+        showError('Session expired. Please resend the OTP.');
+        return;
+      }
+      verifyBtn.disabled = true;
+      if (otpInput) otpInput.disabled = true;
+      if (changeBtn && 'disabled' in changeBtn) (changeBtn as any).disabled = true;
+      verifyBtn.innerHTML = `<span>Verifying...</span>`;
+      try {
+        await confirmation.confirm(code);
+        const auth = await loginWithMobile(currentPhone);
+        if (!auth) {
+          showError('No account found for this number.');
+          return;
+        }
+        saveAuth(auth);
+        renderAuth();
+        showStep('done');
+        setTimeout(() => {
+          closeModal();
+          const params = new URLSearchParams(window.location.search);
+          const redirectUrl = params.get('redirect');
+          if (redirectUrl) {
+            window.location.href = redirectUrl;
+          }
+        }, 900);
+      } catch (err) {
+        console.log('[v0] verify OTP error:', err);
+        showError('Invalid code. Please try again.');
+      } finally {
+        verifyBtn.disabled = false;
+        if (otpInput) otpInput.disabled = false;
+        if (changeBtn && 'disabled' in changeBtn) (changeBtn as any).disabled = false;
+        verifyBtn.innerHTML = `
+          <span>Verify &amp; Continue</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        `;
+      }
+    });
+
+    changeBtn?.addEventListener('click', () => {
+      clearError();
+      if (otpInput) otpInput.value = '';
+      updateOtpGrid();
+      showStep('phone');
+      phoneInput?.focus();
+    });
+
+    profileBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!profileMenu) return;
+      const open = profileMenu.hidden;
+      profileMenu.hidden = !open;
+      profileBtn.setAttribute('aria-expanded', String(open));
+    });
+
+    function triggerLogoutPrompt(e: Event) {
+      e.preventDefault();
+      if (typeof (window as any).openLogoutSheet === 'function') {
+        (window as any).openLogoutSheet();
+      }
+    }
+
+    document.getElementById('logout-btn')?.addEventListener('click', triggerLogoutPrompt);
+    document.getElementById('mobile-logout-btn')?.addEventListener('click', triggerLogoutPrompt);
+    document.getElementById('confirm-logout-btn')?.addEventListener('click', logout);
+    document.getElementById('cancel-logout-btn')?.addEventListener('click', () => {
+      if (typeof (window as any).closeLogoutSheet === 'function') {
+        (window as any).closeLogoutSheet();
+      }
+    });
+    document.getElementById('hamburger-btn')?.addEventListener('click', renderAuth);
+
+    renderAuth();
+
+    // Clean up any lingering overflow from previous pages
+    document.body.style.overflow = '';
+
+    // Open modal if URL has ?login=true
+    if (new URLSearchParams(window.location.search).get('login') === 'true') {
+      openModal();
+      const url = new URL(window.location.href);
+      url.searchParams.delete('login');
+      window.history.replaceState({}, '', url.pathname + url.search);
+    }
+  }
+
+  // Handle global Escape key and outside click for profile menu
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      closeModal();
+      const overlay = document.getElementById('login-overlay');
+      if (overlay?.classList.contains('open')) {
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
       if (typeof (window as any).closeLogoutSheet === 'function') {
         (window as any).closeLogoutSheet();
       }
@@ -577,108 +715,9 @@ function isNavActive(href: string) {
     }
   });
 
-  sendBtn?.addEventListener('click', async () => {
-    clearError();
-    const digits = (phoneInput?.value || '').replace(/\D/g, '');
-    if (digits.length !== 10) {
-      showError('Enter a valid 10-digit mobile number.');
-      return;
-    }
-    currentPhone = digits;
-    const phoneNumber = '+91' + digits;
-    sendBtn.disabled = true;
-    if (phoneInput) phoneInput.disabled = true;
-    sendBtn.innerHTML = `<span>Sending OTP...</span>`;
-    try {
-      const auth = getFirebaseAuth();
-      confirmation = await signInWithPhoneNumber(auth, phoneNumber, ensureRecaptcha());
-      if (otpTarget) otpTarget.textContent = phoneNumber;
-      showStep('otp');
-      setTimeout(() => otpInput?.focus(), 100);
-    } catch (err) {
-      console.log('[v0] send OTP error:', err);
-      showError('Could not send OTP. Please try again.');
-    } finally {
-      sendBtn.disabled = false;
-      if (phoneInput) phoneInput.disabled = false;
-      sendBtn.innerHTML = `
-        <span>Send OTP</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-      `;
-    }
-  });
-
-  verifyBtn?.addEventListener('click', async () => {
-    clearError();
-    const code = (otpInput?.value || '').replace(/\D/g, '');
-    if (code.length !== 6) {
-      showError('Enter the 6-digit code.');
-      return;
-    }
-    if (!confirmation) {
-      showError('Session expired. Please resend the OTP.');
-      return;
-    }
-    verifyBtn.disabled = true;
-    if (otpInput) otpInput.disabled = true;
-    if (changeBtn && 'disabled' in changeBtn) (changeBtn as any).disabled = true;
-    verifyBtn.innerHTML = `<span>Verifying...</span>`;
-    try {
-      await confirmation.confirm(code);
-      const auth = await loginWithMobile(currentPhone);
-      if (!auth) {
-        showError('No account found for this number.');
-        return;
-      }
-      saveAuth(auth);
-      renderAuth();
-      showStep('done');
-      setTimeout(() => {
-        closeModal();
-        const params = new URLSearchParams(window.location.search);
-        const redirectUrl = params.get('redirect');
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        }
-      }, 900);
-    } catch (err) {
-      console.log('[v0] verify OTP error:', err);
-      showError('Invalid code. Please try again.');
-    } finally {
-      verifyBtn.disabled = false;
-      if (otpInput) otpInput.disabled = false;
-      if (changeBtn && 'disabled' in changeBtn) (changeBtn as any).disabled = false;
-      verifyBtn.innerHTML = `
-        <span>Verify &amp; Continue</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-      `;
-    }
-  });
-
-  changeBtn?.addEventListener('click', () => {
-    clearError();
-    if (otpInput) otpInput.value = '';
-    updateOtpGrid();
-    showStep('phone');
-    phoneInput?.focus();
-  });
-
-  // Profile dropdown
-  const profileBtn = document.getElementById('profile-btn');
-  const profileMenu = document.getElementById('profile-menu');
-  profileBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (!profileMenu) return;
-    const open = profileMenu.hidden;
-    profileMenu.hidden = !open;
-    profileBtn.setAttribute('aria-expanded', String(open));
-  });
   document.addEventListener('click', (e) => {
+    const profileBtn = document.getElementById('profile-btn');
+    const profileMenu = document.getElementById('profile-menu');
     if (profileMenu && !profileMenu.hidden) {
       const t = e.target as Node;
       if (!profileMenu.contains(t) && t !== profileBtn) {
@@ -688,39 +727,11 @@ function isNavActive(href: string) {
     }
   });
 
-  // Logout triggers open confirmation bottom sheet
-  function triggerLogoutPrompt(e: Event) {
-    e.preventDefault();
-    if (typeof (window as any).openLogoutSheet === 'function') {
-      (window as any).openLogoutSheet();
-    }
-  }
-
-  document.getElementById('logout-btn')?.addEventListener('click', triggerLogoutPrompt);
-  document.getElementById('mobile-logout-btn')?.addEventListener('click', triggerLogoutPrompt);
-
-  document.getElementById('confirm-logout-btn')?.addEventListener('click', logout);
-  document.getElementById('cancel-logout-btn')?.addEventListener('click', () => {
-    if (typeof (window as any).closeLogoutSheet === 'function') {
-      (window as any).closeLogoutSheet();
-    }
-  });
-
-  // Initial render based on stored auth state
-  renderAuth();
-
-  // Re-run renderAuth whenever hamburger button is clicked or storage/auth updates
-  document.getElementById('hamburger-btn')?.addEventListener('click', renderAuth);
   window.addEventListener('storage', renderAuth);
   window.addEventListener('brinto:auth-changed', renderAuth);
 
-  // Open modal if URL has ?login=true
-  if (new URLSearchParams(window.location.search).get('login') === 'true') {
-    openModal();
-    const url = new URL(window.location.href);
-    url.searchParams.delete('login');
-    window.history.replaceState({}, '', url.pathname + url.search);
-  }
+  // Initialize on initial page load and on every ClientRouter page transition
+  document.addEventListener('astro:page-load', initHeader);
 </script>
 
 <style>
@@ -729,10 +740,10 @@ function isNavActive(href: string) {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: linear-gradient(180deg, #FFFFFF 0%, #FFFAFB 100%);
+    background: #FFFFFF;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(176, 0, 32, 0.06);
+    border-bottom: 1px solid var(--rule, #e2e8f0);
   }
   .bar {
     display: flex;
@@ -796,10 +807,11 @@ function isNavActive(href: string) {
     font-weight: 600;
     color: var(--ink-soft);
     padding: 8px 16px;
-    border-radius: 8px;
+    border-radius: 999px;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
     position: relative;
+    border: 1px solid transparent;
   }
   .nav-pill-icon {
     display: flex;
@@ -817,22 +829,14 @@ function isNavActive(href: string) {
     color: var(--brand, #B00020);
   }
   .nav-pill.active {
-    background: rgba(176, 0, 32, 0.07);
+    background: var(--brand-light, #FFF0F2);
     color: var(--brand, #B00020);
+    border-color: rgba(176, 0, 32, 0.2);
     font-weight: 700;
+    box-shadow: 0 2px 6px rgba(176, 0, 32, 0.08);
   }
   .nav-pill.active .nav-pill-icon {
     color: var(--brand, #B00020);
-  }
-  .nav-pill.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 12px;
-    right: 12px;
-    height: 2.5px;
-    background: var(--brand);
-    border-radius: 999px;
   }
   .nav-soon-badge {
     display: inline-block;
