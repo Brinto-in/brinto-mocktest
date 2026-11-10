@@ -367,17 +367,20 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       {
         "unit": "Chemical Reactions & Equations",
         "unitOdia": "ରାସାୟନିକ ପ୍ରତିକ୍ରିୟା ଓ ସମୀକରଣ",
-        "topics": []
+        "topics": [],
+        "testId": 24
       },
       {
         "unit": "Acids, Bases & Salts",
         "unitOdia": "ଅମ୍ଳ, କ୍ଷାରକ ଓ ଲବଣ",
-        "topics": []
+        "topics": [],
+        "testId": 76
       },
       {
         "unit": "Metals & Non-Metals",
         "unitOdia": "ଧାତୁ ଓ ଅଧାତୁ",
-        "topics": []
+        "topics": [],
+        "testId": 77
       },
       {
         "unit": "Carbon & Its Compounds",
@@ -385,25 +388,30 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "topics": []
       },
       {
-        "unit": "Light: Reflection & Refraction",
-        "unitOdia": "ଆଲୋକ: ପ୍ରତିଫଳନ ଓ ପ୍ରତିସରଣ",
+        "unit": "Periodic Classification of Elements",
+        "unitOdia": "ମୌଳିକଗୁଡ଼ିକର ପର୍ଯ୍ୟାୟୀ ଶ୍ରେଣୀକରଣ",
         "topics": []
       },
       {
-        "unit": "Human Eye & Colorful World",
-        "unitOdia": "ମାନବ ଚକ୍ଷୁ ଓ ବର୍ଣ୍ଣବିଭବ୍",
+        "unit": "Light - Reflection and Refraction",
+        "unitOdia": "ଆଲୋକ- ପ୍ରତିଫଳନ ଓ ପ୍ରତିସରଣ",
         "topics": []
       },
       {
-        "unit": "Electricity & Magnetic Effects",
-        "unitOdia": "ବିଦ୍ୟୁତ୍ ଓ ବିଦ୍ୟୁତ୍ ଚୁମ୍ବକୀୟ ପ୍ରଭାବ",
+        "unit": "The Human Eye and the Colourful world",
+        "unitOdia": "ମାନବ ଚକ୍ଷୁ ଓ ବର୍ଣ୍ଣଜଗତ",
         "topics": []
       },
       {
-        "unit": "Sources of Energy",
-        "unitOdia": "ଶକ୍ତିର ଉତ୍ସ",
+        "unit": "Electricity",
+        "unitOdia": "ବିଦ୍ୟୁତ୍",
         "topics": []
-      }
+      },
+     {
+       "unit": "Magnetic Effects of Electric Current",
+       "unitOdia": "ବିଦ୍ୟୁତ୍ ସ୍ରୋତର ଚୁମ୍ବକୀୟ ପ୍ରଭାବ",
+       "topics": []
+     }
     ]
   },
   {

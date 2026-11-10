@@ -567,30 +567,7 @@ const webPageJsonLd = {
       </div>
     </section>
 
-    <!-- ── 7. FINAL CALL TO ACTION ────────────────────────── -->
-    <section class="hsc-final-cta" aria-labelledby="cta-title">
-      <div class="wrap">
-        <div class="hsc-cta-inner">
-          <div class="hsc-cta-badge">🌟 100% FREE PRACTICE</div>
-          <h2 id="cta-title">Ready to Score 90%+ in BSE Odisha 10th Board?</h2>
-          <p>
-            Begin practicing high-yield objective MCQs across Mathematics, Science, Social Science, Odia, English, and Sanskrit/Hindi today.
-          </p>
-          <div class="hsc-cta-btn-wrap">
-            {firstActive ? (
-              <a href="#active-tests" class="hsc-btn hsc-btn-primary hsc-btn-lg" id="btn-final-start-grand">
-                Start Free Chapter Test 🚀
-              </a>
-            ) : (
-              <span class="hsc-btn hsc-btn-primary hsc-btn-lg is-disabled" aria-disabled="true">Full 10th Mock Test – Coming Soon</span>
-            )}
-          </div>
-          <p class="hsc-cta-disclaimer">
-            Brinto is an independent educational initiative designed to empower Odisha matric students with free, high quality learning tools.
-          </p>
-        </div>
-      </div>
-    </section>
+
   </div>
 </BaseLayout>
 
@@ -793,8 +770,9 @@ const webPageJsonLd = {
     justify-content: center;
     gap: 8px;
     font-weight: 700;
-    font-size: 0.95rem;
-    padding: 14px 26px;
+    font-size: 0.86rem;
+    line-height: 1.3;
+    padding: 8px 16px;
     border-radius: 999px;
     text-decoration: none;
     border: none;
@@ -842,6 +820,10 @@ const webPageJsonLd = {
   /* ── GENERAL SECTIONS ───────────────────────────────── */
   .hsc-section {
     padding: clamp(48px, 6vw, 80px) 0;
+  }
+
+  .hsc-section:last-of-type {
+    padding-bottom: 24px;
   }
 
   /* Subjects follow the hero directly, so they need less top space */
@@ -1407,62 +1389,7 @@ const webPageJsonLd = {
     align-items: center;
   }
 
-  /* ── FINAL CTA ──────────────────────────────────────── */
-  .hsc-final-cta {
-    background: linear-gradient(135deg, #7b0015 0%, #b00020 100%);
-    color: #ffffff;
-    padding: clamp(48px, 6vw, 80px) 0;
-    text-align: center;
-    /* Cancel the footer's top margin so the band sits flush on the footer */
-    margin-bottom: -40px;
-  }
 
-  .hsc-cta-inner {
-    max-width: 720px;
-    margin: 0 auto;
-  }
-
-  .hsc-cta-badge {
-    display: inline-block;
-    font-size: 0.74rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 4px 14px;
-    border-radius: 999px;
-    margin-bottom: 16px;
-  }
-
-  .hsc-cta-inner h2 {
-    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
-    color: #ffffff;
-    margin-bottom: 12px;
-  }
-
-  .hsc-cta-inner p {
-    font-size: 1.05rem;
-    color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 28px;
-    line-height: 1.6;
-  }
-
-  .hsc-final-cta .hsc-btn-primary {
-    background: #ffffff;
-    color: var(--brand);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  .hsc-final-cta .hsc-btn-primary:hover {
-    background: var(--surface-2);
-    transform: translateY(-2px);
-  }
-
-  .hsc-cta-disclaimer {
-    font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.7) !important;
-    margin-top: 24px;
-  }
 
   /* ── INTERACTIVE TEST RUNNER MODAL ──────────────────── */
 
