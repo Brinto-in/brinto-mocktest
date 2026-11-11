@@ -385,12 +385,14 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       {
         "unit": "Carbon & Its Compounds",
         "unitOdia": "କାର୍ବନ ଓ ଏହାର ଯୌଗିକ",
-        "topics": []
+        "topics": [],
+        "testId": 78
       },
       {
         "unit": "Periodic Classification of Elements",
         "unitOdia": "ମୌଳିକଗୁଡ଼ିକର ପର୍ଯ୍ୟାୟୀ ଶ୍ରେଣୀକରଣ",
-        "topics": []
+        "topics": [],
+        "testId": 79
       },
       {
         "unit": "Light - Reflection and Refraction",
