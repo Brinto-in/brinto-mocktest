@@ -392,7 +392,7 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "unit": "Periodic Classification of Elements",
         "unitOdia": "ମୌଳିକଗୁଡ଼ିକର ପର୍ଯ୍ୟାୟୀ ଶ୍ରେଣୀକରଣ",
         "topics": [],
-        "testId": 79
+        "testId": 80
       },
       {
         "unit": "Light - Reflection and Refraction",
