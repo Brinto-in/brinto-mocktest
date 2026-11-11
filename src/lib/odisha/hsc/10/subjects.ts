@@ -504,35 +504,50 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "isPopular": false,
     "chapters": [
       {
-        "unit": "Resources & Conservation",
-        "unitOdia": "ସମ୍ବଳ: ବିକାଶ ଓ ସଂରକ୍ଷଣ",
-        "topics": []
+        "unit": "",
+        "unitOdia": "ସମ୍ବଳ",
+        "topics": ["ସମ୍ବଳ ଓ ତାହାର ବିକାଶ", "ଭୂ ସମ୍ବଳ", "ମୃତ୍ତିକା ସମ୍ବଳ"]
       },
       {
-        "unit": "Forest, Wildlife & Water",
+        "unit": "ଜୈବ ସମ୍ବଳ",
         "unitOdia": "ବନ, ବନ୍ୟପ୍ରାଣୀ ଓ ଜଳ ସମ୍ବଳ",
-        "topics": []
+        "topics": ["ଅରଣ୍ୟ ସମ୍ବଳ", "ବନ୍ୟ ପ୍ରାଣୀ ସମ୍ବଳ"]
       },
       {
-        "unit": "Agriculture & Minerals",
+        "unit": "ଜଳ ସମ୍ବଳ",
         "unitOdia": "ଭାରତରେ କୃଷି ଓ ଖଣିଜ ସମ୍ବଳ",
         "topics": []
       },
       {
-        "unit": "Energy & Industries",
-        "unitOdia": "ଶକ୍ତି ସମ୍ବଳ ଓ ବିନିର୍ମାଣ ଉଦ୍ୟୋଗ",
+        "unit": "",
+        "unitOdia": "ଖଣିଜ ସମ୍ବଳ",
         "topics": []
       },
       {
-        "unit": "Economic Development & Liberalisation",
-        "unitOdia": "ଅର୍ଥନୈତିକ ବିକାଶ ଓ ଉଦାରୀକରଣ",
+        "unit": "",
+        "unitOdia": "ଶକ୍ତି ସମ୍ବଳ",
         "topics": []
       },
       {
-        "unit": "Consumer Awareness",
-        "unitOdia": "ଖାଉଟି ସଚେତନତା",
+        "unit": "",
+        "unitOdia": "କୃଷି",
         "topics": []
-      }
+      },
+     {
+       "unit": "",
+       "unitOdia": "ବିନିର୍ମାଣ ଉଦ୍ୟୋଗ",
+       "topics": []
+     },
+     {
+        "unit": "",
+        "unitOdia": "ଆର୍ଥିକ ବିକାଶ",
+        "topics": []
+      },
+        {
+          "unit": "",
+          "unitOdia": "ଅର୍ଥନୈତିକ ବ୍ୟବସ୍ଥା",
+          "topics": ["ଦରବୃଦ୍ଧି", "ଖାଉଟି ସଚେତନତା", "ଦାରିଦ୍ର୍ୟ", "ବେକାରୀ"]
+        },
     ]
   },
   {
