@@ -397,7 +397,8 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       {
         "unit": "Light - Reflection and Refraction",
         "unitOdia": "ଆଲୋକ- ପ୍ରତିଫଳନ ଓ ପ୍ରତିସରଣ",
-        "topics": []
+        "topics": [],
+        "testId": 81
       },
       {
         "unit": "The Human Eye and the Colourful world",
