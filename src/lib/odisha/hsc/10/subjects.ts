@@ -46,6 +46,182 @@ export interface SubjectModule {
 
 export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
   {
+    "id": "scp",
+    "code": "SCP",
+    "name": "Physical Science",
+    "nameOdia": "ଭୌତିକ ବିଜ୍ଞାନ",
+    "paperType": "Paper V - Compulsory (SCP)",
+    "icon": "⚛️",
+    "poster": "/images/odisha-10th/physical-science.png",
+    "badge": "Core Subject",
+    "accentColor": "#0D9488",
+    "gradient": "linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)",
+    "description": "Physical Science chapter-wise objective MCQ tests for BSE Odisha Class 10.",
+    "descriptionOdia": "ଭୌତିକ ବିଜ୍ଞାନ ଅଧ୍ୟାୟ ଭିତ୍ତିକ ବସ୍ତୁନିଷ୍ଠ ପ୍ରଶ୍ନ।",
+    "subStreams": [
+      "Physical Science"
+    ],
+    "totalMarks": 100,
+    "mcqMarks": 25,
+    "subjectiveMarks": 50,
+    "durationMinutes": 45,
+    "questionCount": 50,
+    "attempts": "26.9k",
+    "rating": "4.8",
+    "isPopular": true,
+    "chapters": [
+      {
+        "unit": "Chemical Reactions & Equations",
+        "unitOdia": "ରାସାୟନିକ ପ୍ରତିକ୍ରିୟା ଓ ସମୀକରଣ",
+        "topics": [],
+        "testId": 24
+      },
+      {
+        "unit": "Acids, Bases & Salts",
+        "unitOdia": "ଅମ୍ଳ, କ୍ଷାରକ ଓ ଲବଣ",
+        "topics": [],
+        "testId": 76
+      },
+      {
+        "unit": "Metals & Non-Metals",
+        "unitOdia": "ଧାତୁ ଓ ଅଧାତୁ",
+        "topics": [],
+        "testId": 77
+      },
+      {
+        "unit": "Carbon & Its Compounds",
+        "unitOdia": "କାର୍ବନ ଓ ଏହାର ଯୌଗିକ",
+        "topics": [],
+        "testId": 78
+      },
+      {
+        "unit": "Periodic Classification of Elements",
+        "unitOdia": "ମୌଳିକଗୁଡ଼ିକର ପର୍ଯ୍ୟାୟୀ ଶ୍ରେଣୀକରଣ",
+        "topics": [],
+        "testId": 80
+      },
+      {
+        "unit": "Light - Reflection and Refraction",
+        "unitOdia": "ଆଲୋକ- ପ୍ରତିଫଳନ ଓ ପ୍ରତିସରଣ",
+        "topics": [],
+        "testId": 81
+      },
+      {
+        "unit": "The Human Eye and the Colourful world",
+        "unitOdia": "ମାନବ ଚକ୍ଷୁ ଓ ବର୍ଣ୍ଣଜଗତ",
+        "topics": [],
+        "testId": 82
+      },
+      {
+        "unit": "Electricity",
+        "unitOdia": "ବିଦ୍ୟୁତ୍",
+        "topics": [],
+        "testId": 83
+      },
+      {
+        "unit": "Magnetic Effects of Electric Current",
+        "unitOdia": "ବିଦ୍ୟୁତ୍ ସ୍ରୋତର ଚୁମ୍ବକୀୟ ପ୍ରଭାବ",
+        "topics": [],
+        "testId": 84
+      }
+    ]
+  },
+  {
+    "id": "scl",
+    "code": "SCL",
+    "name": "Life Science",
+    "nameOdia": "ଜୀବ ବିଜ୍ଞାନ",
+    "paperType": "Paper V - Compulsory (SCL)",
+    "icon": "🔬",
+    "poster": "/images/odisha-10th/life-science.png",
+    "badge": "Core Subject",
+    "accentColor": "#0D9488",
+    "gradient": "linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)",
+    "description": "Life Science chapter-wise objective MCQ tests for BSE Odisha Class 10.",
+    "descriptionOdia": "ଜୀବ ବିଜ୍ଞାନ ଅଧ୍ୟାୟ ଭିତ୍ତିକ ବସ୍ତୁନିଷ୍ଠ ପ୍ରଶ୍ନ।",
+    "subStreams": [
+      "Life Science"
+    ],
+    "totalMarks": 100,
+    "mcqMarks": 25,
+    "subjectiveMarks": 50,
+    "durationMinutes": 45,
+    "questionCount": 50,
+    "attempts": "26.9k",
+    "rating": "4.8",
+    "isPopular": true,
+    "chapters": [
+      {
+        "unit": "Nutrition",
+        "unitOdia": "ପୋଷଣ",
+        "topics": [
+          "ଆଲୋକଶ୍ଳେଷଣ ଓ ହଜମ"
+        ],
+        "testId": 13
+      },
+      {
+        "unit": "Respiration",
+        "unitOdia": "ଶ୍ୱସନ",
+        "topics": [
+          "ବାୟୁ ଉପଜୀବୀ ଓ ଅପଜୀବୀ"
+        ],
+        "testId": 14
+      },
+      {
+        "unit": "Transportation & Blood Circulation",
+        "unitOdia": "ପରିବହନ ଓ ସଞ୍ଚାଳନ",
+        "topics": [],
+        "testId": 15
+      },
+      {
+        "unit": "Excretion",
+        "unitOdia": "ରେଚନ",
+        "topics": [
+          "ବୃକ୍କକ ଓ ନେଫ୍ରନ୍"
+        ],
+        "testId": 16
+      },
+      {
+        "unit": "Control & Coordination",
+        "unitOdia": "ନିୟନ୍ତ୍ରଣ ଓ ସମନ୍ୱୟ",
+        "topics": [
+          "ସ୍ନାୟୁତନ୍ତ୍ର ଓ ହରମୋନ୍"
+        ],
+        "testId": 17
+      },
+      {
+        "unit": "Reproduction in Plants & Animals",
+        "unitOdia": "ଜନନ",
+        "topics": [],
+        "testId": 18
+      },
+      {
+        "unit": "Heredity & Evolution",
+        "unitOdia": "ବଂଶାନୁକ୍ରମ ଓ ବିବର୍ତ୍ତନ",
+        "topics": [],
+        "testId": 19
+      },
+      {
+        "unit": "Environment & Natural Resources",
+        "unitOdia": "ଶକ୍ତିର ଉତ୍ସ",
+        "topics": [],
+        "testId": 20
+      },
+      {
+        "unit": "Environment & Natural Resources",
+        "unitOdia": "ଆମ ପରିବେଶ",
+        "topics": [],
+        "testId": 21
+      },
+      {
+        "unit": "Environment & Natural Resources",
+        "unitOdia": "ପ୍ରାକୃତିକ ସମ୍ପଦର ସଂରକ୍ଷଣ",
+        "topics": [],
+        "testId": 22
+      }
+    ]
+  },
+  {
     "id": "english",
     "code": "SLE",
     "name": "Second Language English",
@@ -245,182 +421,6 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     ]
   },
   {
-    "id": "scl",
-    "code": "SCL",
-    "name": "Life Science",
-    "nameOdia": "ଜୀବ ବିଜ୍ଞାନ",
-    "paperType": "Paper V - Compulsory (SCL)",
-    "icon": "🔬",
-    "poster": "/images/odisha-10th/life-science.png",
-    "badge": "Core Subject",
-    "accentColor": "#0D9488",
-    "gradient": "linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)",
-    "description": "Life Science chapter-wise objective MCQ tests for BSE Odisha Class 10.",
-    "descriptionOdia": "ଜୀବ ବିଜ୍ଞାନ ଅଧ୍ୟାୟ ଭିତ୍ତିକ ବସ୍ତୁନିଷ୍ଠ ପ୍ରଶ୍ନ।",
-    "subStreams": [
-      "Life Science"
-    ],
-    "totalMarks": 100,
-    "mcqMarks": 25,
-    "subjectiveMarks": 50,
-    "durationMinutes": 45,
-    "questionCount": 50,
-    "attempts": "26.9k",
-    "rating": "4.8",
-    "isPopular": true,
-    "chapters": [
-      {
-        "unit": "Nutrition",
-        "unitOdia": "ପୋଷଣ",
-        "topics": [
-          "ଆଲୋକଶ୍ଳେଷଣ ଓ ହଜମ"
-        ],
-        "testId": 13
-      },
-      {
-        "unit": "Respiration",
-        "unitOdia": "ଶ୍ୱସନ",
-        "topics": [
-          "ବାୟୁ ଉପଜୀବୀ ଓ ଅପଜୀବୀ"
-        ],
-        "testId": 14
-      },
-      {
-        "unit": "Transportation & Blood Circulation",
-        "unitOdia": "ପରିବହନ ଓ ସଞ୍ଚାଳନ",
-        "topics": [],
-        "testId": 15
-      },
-      {
-        "unit": "Excretion",
-        "unitOdia": "ରେଚନ",
-        "topics": [
-          "ବୃକ୍କକ ଓ ନେଫ୍ରନ୍"
-        ],
-        "testId": 16
-      },
-      {
-        "unit": "Control & Coordination",
-        "unitOdia": "ନିୟନ୍ତ୍ରଣ ଓ ସମନ୍ୱୟ",
-        "topics": [
-          "ସ୍ନାୟୁତନ୍ତ୍ର ଓ ହରମୋନ୍"
-        ],
-        "testId": 17
-      },
-      {
-        "unit": "Reproduction in Plants & Animals",
-        "unitOdia": "ଜନନ",
-        "topics": [],
-        "testId": 18
-      },
-      {
-        "unit": "Heredity & Evolution",
-        "unitOdia": "ବଂଶାନୁକ୍ରମ ଓ ବିବର୍ତ୍ତନ",
-        "topics": [],
-        "testId": 19
-      },
-      {
-        "unit": "Environment & Natural Resources",
-        "unitOdia": "ଶକ୍ତିର ଉତ୍ସ",
-        "topics": [],
-        "testId": 20
-      },
-      {
-        "unit": "Environment & Natural Resources",
-        "unitOdia": "ଆମ ପରିବେଶ",
-        "topics": [],
-        "testId": 21
-      },
-      {
-        "unit": "Environment & Natural Resources",
-        "unitOdia": "ପ୍ରାକୃତିକ ସମ୍ପଦର ସଂରକ୍ଷଣ",
-        "topics": [],
-        "testId": 22
-      }
-    ]
-  },
-  {
-    "id": "scp",
-    "code": "SCP",
-    "name": "Physical Science",
-    "nameOdia": "ଭୌତିକ ବିଜ୍ଞାନ",
-    "paperType": "Paper V - Compulsory (SCP)",
-    "icon": "⚛️",
-    "poster": "/images/odisha-10th/physical-science.png",
-    "badge": "Core Subject",
-    "accentColor": "#0D9488",
-    "gradient": "linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)",
-    "description": "Physical Science chapter-wise objective MCQ tests for BSE Odisha Class 10.",
-    "descriptionOdia": "ଭୌତିକ ବିଜ୍ଞାନ ଅଧ୍ୟାୟ ଭିତ୍ତିକ ବସ୍ତୁନିଷ୍ଠ ପ୍ରଶ୍ନ।",
-    "subStreams": [
-      "Physical Science"
-    ],
-    "totalMarks": 100,
-    "mcqMarks": 25,
-    "subjectiveMarks": 50,
-    "durationMinutes": 45,
-    "questionCount": 50,
-    "attempts": "26.9k",
-    "rating": "4.8",
-    "isPopular": true,
-    "chapters": [
-      {
-        "unit": "Chemical Reactions & Equations",
-        "unitOdia": "ରାସାୟନିକ ପ୍ରତିକ୍ରିୟା ଓ ସମୀକରଣ",
-        "topics": [],
-        "testId": 24
-      },
-      {
-        "unit": "Acids, Bases & Salts",
-        "unitOdia": "ଅମ୍ଳ, କ୍ଷାରକ ଓ ଲବଣ",
-        "topics": [],
-        "testId": 76
-      },
-      {
-        "unit": "Metals & Non-Metals",
-        "unitOdia": "ଧାତୁ ଓ ଅଧାତୁ",
-        "topics": [],
-        "testId": 77
-      },
-      {
-        "unit": "Carbon & Its Compounds",
-        "unitOdia": "କାର୍ବନ ଓ ଏହାର ଯୌଗିକ",
-        "topics": [],
-        "testId": 78
-      },
-      {
-        "unit": "Periodic Classification of Elements",
-        "unitOdia": "ମୌଳିକଗୁଡ଼ିକର ପର୍ଯ୍ୟାୟୀ ଶ୍ରେଣୀକରଣ",
-        "topics": [],
-        "testId": 80
-      },
-      {
-        "unit": "Light - Reflection and Refraction",
-        "unitOdia": "ଆଲୋକ- ପ୍ରତିଫଳନ ଓ ପ୍ରତିସରଣ",
-        "topics": [],
-        "testId": 81
-      },
-      {
-        "unit": "The Human Eye and the Colourful world",
-        "unitOdia": "ମାନବ ଚକ୍ଷୁ ଓ ବର୍ଣ୍ଣଜଗତ",
-        "topics": [],
-        "testId": 82
-      },
-      {
-        "unit": "Electricity",
-        "unitOdia": "ବିଦ୍ୟୁତ୍",
-        "topics": [],
-        "testId": 83
-      },
-     {
-       "unit": "Magnetic Effects of Electric Current",
-       "unitOdia": "ବିଦ୍ୟୁତ୍ ସ୍ରୋତର ଚୁମ୍ବକୀୟ ପ୍ରଭାବ",
-       "topics": [],
-       "testId": 84
-     }
-    ]
-  },
-  {
     "id": "hps",
     "code": "HPS",
     "name": "History & Political Science",
@@ -475,11 +475,11 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "unitOdia": "ଭାରତରେ ଗଣତନ୍ତ୍ର",
         "topics": []
       },
-     {
-       "unit": "",
-       "unitOdia": "ଭାରତର ବୈଦେଶିକ ନୀତି",
-       "topics": []
-     }
+      {
+        "unit": "",
+        "unitOdia": "ଭାରତର ବୈଦେଶିକ ନୀତି",
+        "topics": []
+      }
     ]
   },
   {
@@ -537,21 +537,21 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "unitOdia": "କୃଷି",
         "topics": []
       },
-     {
-       "unit": "",
-       "unitOdia": "ବିନିର୍ମାଣ ଉଦ୍ୟୋଗ",
-       "topics": []
-     },
-     {
+      {
+        "unit": "",
+        "unitOdia": "ବିନିର୍ମାଣ ଉଦ୍ୟୋଗ",
+        "topics": []
+      },
+      {
         "unit": "",
         "unitOdia": "ଆର୍ଥିକ ବିକାଶ",
         "topics": []
       },
-        {
-          "unit": "",
-          "unitOdia": "ଅର୍ଥନୈତିକ ବ୍ୟବସ୍ଥା",
-          "topics": ["ଦରବୃଦ୍ଧି", "ଖାଉଟି ସଚେତନତା", "ଦାରିଦ୍ର୍ୟ", "ବେକାରୀ"]
-        },
+      {
+        "unit": "",
+        "unitOdia": "ଅର୍ଥନୈତିକ ବ୍ୟବସ୍ଥା",
+        "topics": ["ଦରବୃଦ୍ଧି", "ଖାଉଟି ସଚେତନତା", "ଦାରିଦ୍ର୍ୟ", "ବେକାରୀ"]
+      },
     ]
   },
   {
