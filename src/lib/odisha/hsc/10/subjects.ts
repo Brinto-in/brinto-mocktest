@@ -403,17 +403,20 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       {
         "unit": "The Human Eye and the Colourful world",
         "unitOdia": "ମାନବ ଚକ୍ଷୁ ଓ ବର୍ଣ୍ଣଜଗତ",
-        "topics": []
+        "topics": [],
+        "testId": 82
       },
       {
         "unit": "Electricity",
         "unitOdia": "ବିଦ୍ୟୁତ୍",
-        "topics": []
+        "topics": [],
+        "testId": 83
       },
      {
        "unit": "Magnetic Effects of Electric Current",
        "unitOdia": "ବିଦ୍ୟୁତ୍ ସ୍ରୋତର ଚୁମ୍ବକୀୟ ପ୍ରଭାବ",
-       "topics": []
+       "topics": [],
+       "testId": 84
      }
     ]
   },
