@@ -639,8 +639,8 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
   }
 ];
 
-// Tests that are live now — shown in the "Available now" row above the subjects.
-// Each needs a testId; the card links to /mocktest/test/{testId}.
+// Tests highlighted in the top row above the subjects list.
+// Cards without a testId display "Coming soon" and are unclickable.
 export interface ActiveTest {
   id: string;
   subjectId: string;
@@ -648,28 +648,26 @@ export interface ActiveTest {
   titleEn: string;
   subtitle: string;
   poster?: string;
-  testId: number;
+  testId?: number;
   questions?: number;
   minutes?: number;
 }
 
 export const ODISHA_10TH_ACTIVE: ActiveTest[] = [
   {
-    id: 'scl-poshana',
-    subjectId: 'scl',
-    title: 'ପୋଷଣ',
-    titleEn: 'Nutrition',
-    subtitle: 'ଜୀବ ବିଜ୍ଞାନ (SCL)',
-    poster: '/images/odisha-10th/life-science.png',
-    testId: 13,
+    id: 'scp-main',
+    subjectId: 'scp',
+    title: 'ଭୌତିକ ବିଜ୍ଞାନ',
+    titleEn: 'Physical Science',
+    subtitle: 'Physical Science (SCP)',
+    poster: '/images/odisha-10th/physical-science.png',
   },
   {
-    id: 'scl-swasana',
+    id: 'scl-main',
     subjectId: 'scl',
-    title: 'ଶ୍ୱସନ',
-    titleEn: 'Respiration',
-    subtitle: 'ଜୀବ ବିଜ୍ଞାନ (SCL)',
+    title: 'ଜୀବ ବିଜ୍ଞାନ',
+    titleEn: 'Life Science',
+    subtitle: 'Life Science (SCL)',
     poster: '/images/odisha-10th/life-science.png',
-    testId: 14,
   },
 ];

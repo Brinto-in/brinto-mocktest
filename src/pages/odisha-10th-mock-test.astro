@@ -25,8 +25,8 @@ const stats = (questions?: number, minutes?: number) =>
 const activeTests = ODISHA_10TH_ACTIVE.map((t) => ({
   ...t,
   subject: ODISHA_10TH_SUBJECTS.find((s) => s.id === t.subjectId),
-})).filter((t) => t.subject && t.testId);
-const firstActive = activeTests[0];
+})).filter((t) => t.subject);
+const firstActive = activeTests.find((t) => t.testId);
 // Removes a missing poster so the gradient + icon underneath shows instead
 const IMG_FALLBACK = 'this.remove()';
 const canonicalUrl = new URL(canonicalPath, Astro.site).toString();
@@ -159,26 +159,34 @@ const webPageJsonLd = {
             </header>
             <ul class="sx-row">
               {activeTests.map((t) => {
+                const href = testHref(t.testId);
+                const Tag = href ? 'a' : 'div';
+                const soon = !href;
                 const info = stats(t.questions, t.minutes);
                 return (
                 <li>
-                  <a
-                    href={testHref(t.testId)}
-                    class="sx-card sx-main"
+                  <Tag
+                    href={href}
+                    class={`sx-card sx-main ${soon ? 'is-soon' : ''}`}
                     style={`--accent:${t.subject!.accentColor};`}
-                    aria-label={`${t.subtitle} chapter test: ${t.title} (${t.titleEn}) – ${info}`}
+                    aria-disabled={soon ? 'true' : undefined}
+                    aria-label={`${t.subtitle}: ${t.title} (${t.titleEn}) – ${soon ? 'coming soon' : info}`}
                   >
                     <span class="sx-fallback" aria-hidden="true">{t.subject!.icon}</span>
                     {t.poster && (
                       <img class="sx-img" src={poster(t.poster)} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
                     )}
-                    <span class="sx-badge sx-badge-live">● LIVE</span>
+                    {soon ? (
+                      <span class="sx-badge sx-badge-pop sx-badge-soon">COMING SOON</span>
+                    ) : (
+                      <span class="sx-badge sx-badge-live">● LIVE</span>
+                    )}
                     <span class="sx-overlay">
-                      <span class="sx-kicker">{t.subtitle} · Chapter test</span>
+                      <span class="sx-kicker">{t.subtitle}</span>
                       <span class="sx-name">{t.title} ({t.titleEn})</span>
-                      <span class="sx-info">{t.questions ? info : `${info} · Start test →`}</span>
+                      <span class="sx-info">{soon ? 'Coming soon' : (t.questions ? info : `${info} · Start test →`)}</span>
                     </span>
-                  </a>
+                  </Tag>
                 </li>
                 );
               })}
