@@ -1,0 +1,713 @@
+---
+// src/components/CbtWorkstationSection.astro
+---
+
+<section class="cbt-section" id="cbt-workstation">
+  <div class="wrap">
+    <!-- Section Header -->
+    <div class="cbt-header">
+      <div class="cbt-pill">
+        <span class="cbt-pill-dot"></span>
+        100% IDENTICAL EXAM WORKSTATION
+      </div>
+      <h2 class="cbt-title">Say Goodbye to Exam-Day Anxiety</h2>
+      <p class="cbt-subtitle">
+        Experience the authentic TCS iON / NTA Computer Based Test (CBT) palette, question numbering, and countdown timer before you step into the real hall.
+      </p>
+    </div>
+
+    <!-- CBT Workstation Mockup UI -->
+    <div class="cbt-mockup-container">
+      <div class="cbt-mockup">
+        <!-- Top Header Bar -->
+        <div class="cbt-topbar">
+          <div class="cbt-topbar-left">
+            <span class="cbt-exam-title">SSC CGL TIER-1 (OFFICIAL REPLICA)</span>
+            <span class="cbt-section-badge">Section: General Intelligence</span>
+          </div>
+          <div class="cbt-topbar-right">
+            <div class="cbt-timer">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Time Left: <strong id="cbt-timer-val" class="cbt-timer-val">47:32</strong></span>
+            </div>
+            <div class="cbt-roll">
+              <span class="cbt-roll-avatar">R</span>
+              <span>Roll: 2201948210</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workstation Main Grid -->
+        <div class="cbt-body">
+          <!-- Left Question Pane -->
+          <div class="cbt-question-pane">
+            <!-- Question Header -->
+            <div class="cbt-q-header">
+              <div class="cbt-q-number">Question No. 14</div>
+              <div class="cbt-q-marks">
+                <span class="cbt-mark-pos">+2.00</span>
+                <span class="cbt-mark-neg">-0.50</span>
+              </div>
+              <button type="button" class="cbt-lang-btn" id="cbt-lang-btn">
+                <span>文A View in हिंदी</span>
+              </button>
+            </div>
+
+            <!-- Question Content -->
+            <div class="cbt-q-content">
+              <p class="cbt-q-text">
+                In a certain code language, <strong class="cbt-hl">"PATNA"</strong> is written as <strong class="cbt-hl">"260"</strong> and <strong class="cbt-hl">"GOA"</strong> is written as <strong class="cbt-hl">"84"</strong>. How will <strong class="cbt-hl">"DELHI"</strong> be coded in that language?
+              </p>
+
+              <!-- Option Cards -->
+              <div class="cbt-options" id="cbt-options-group">
+                <button type="button" class="cbt-option" data-opt="A">
+                  <span class="cbt-opt-badge">A</span>
+                  <span class="cbt-opt-text">190</span>
+                </button>
+                <button type="button" class="cbt-option selected" data-opt="B">
+                  <span class="cbt-opt-badge">B</span>
+                  <span class="cbt-opt-text">195 <span class="cbt-selected-tag">(Selected Response)</span></span>
+                </button>
+                <button type="button" class="cbt-option" data-opt="C">
+                  <span class="cbt-opt-badge">C</span>
+                  <span class="cbt-opt-text">210</span>
+                </button>
+                <button type="button" class="cbt-option" data-opt="D">
+                  <span class="cbt-opt-badge">D</span>
+                  <span class="cbt-opt-text">185</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Question Bottom Actions -->
+            <div class="cbt-q-actions">
+              <div class="cbt-actions-left">
+                <button type="button" class="cbt-btn-outline" id="cbt-btn-review">Mark for Review & Next</button>
+                <button type="button" class="cbt-btn-ghost" id="cbt-btn-clear">Clear Response</button>
+              </div>
+              <div class="cbt-actions-right">
+                <button type="button" class="cbt-btn-primary" id="cbt-btn-save">Save & Next →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Palette Pane -->
+          <div class="cbt-palette-pane">
+            <h3 class="cbt-palette-title">QUESTION PALETTE</h3>
+
+            <!-- Legend Grid -->
+            <div class="cbt-legend-grid">
+              <div class="cbt-legend-item">
+                <span class="cbt-legend-badge cbt-bg-answered">12</span>
+                <span class="cbt-legend-label">Answered</span>
+              </div>
+              <div class="cbt-legend-item">
+                <span class="cbt-legend-badge cbt-bg-notanswered">4</span>
+                <span class="cbt-legend-label">Not Answered</span>
+              </div>
+              <div class="cbt-legend-item">
+                <span class="cbt-legend-badge cbt-bg-review">2</span>
+                <span class="cbt-legend-label">Review</span>
+              </div>
+              <div class="cbt-legend-item">
+                <span class="cbt-legend-badge cbt-bg-notvisited">7</span>
+                <span class="cbt-legend-label">Not Visited</span>
+              </div>
+            </div>
+
+            <!-- Number Grid -->
+            <div class="cbt-num-grid" id="cbt-num-grid">
+              <button type="button" class="cbt-num cbt-num-answered">1</button>
+              <button type="button" class="cbt-num cbt-num-answered">2</button>
+              <button type="button" class="cbt-num cbt-num-notanswered">3</button>
+              <button type="button" class="cbt-num cbt-num-answered">4</button>
+              <button type="button" class="cbt-num cbt-num-review">5</button>
+              <button type="button" class="cbt-num cbt-num-answered">6</button>
+              <button type="button" class="cbt-num cbt-num-answered">7</button>
+              <button type="button" class="cbt-num cbt-num-notanswered">8</button>
+              <button type="button" class="cbt-num cbt-num-answered">9</button>
+              <button type="button" class="cbt-num cbt-num-review">10</button>
+              <button type="button" class="cbt-num cbt-num-answered">11</button>
+              <button type="button" class="cbt-num cbt-num-answered">12</button>
+              <button type="button" class="cbt-num cbt-num-answered">13</button>
+              <button type="button" class="cbt-num cbt-num-review active-q">14</button>
+              <button type="button" class="cbt-num cbt-num-notvisited">15</button>
+              <button type="button" class="cbt-num cbt-num-notvisited">16</button>
+              <button type="button" class="cbt-num cbt-num-notvisited">17</button>
+              <button type="button" class="cbt-num cbt-num-notvisited">18</button>
+              <button type="button" class="cbt-num cbt-num-notvisited">19</button>
+              <button type="button" class="cbt-num cbt-num-notvisited">20</button>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="cbt-submit-wrap">
+              <button type="button" class="cbt-btn-submit">Submit Section Test</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Simple interactive options selection & timer simulation
+  document.addEventListener('DOMContentLoaded', () => {
+    const options = document.querySelectorAll<HTMLButtonElement>('.cbt-option');
+    const clearBtn = document.getElementById('cbt-btn-clear');
+
+    options.forEach((opt) => {
+      opt.addEventListener('click', () => {
+        options.forEach((o) => o.classList.remove('selected'));
+        opt.classList.add('selected');
+      });
+    });
+
+    clearBtn?.addEventListener('click', () => {
+      options.forEach((o) => o.classList.remove('selected'));
+    });
+
+    // Countdown Timer Simulation
+    const timerEl = document.getElementById('cbt-timer-val');
+    if (timerEl) {
+      let totalSeconds = 47 * 60 + 32;
+      setInterval(() => {
+        if (totalSeconds > 0) {
+          totalSeconds--;
+          const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+          const s = String(totalSeconds % 60).padStart(2, '0');
+          timerEl.textContent = `${m}:${s}`;
+        }
+      }, 1000);
+    }
+  });
+</script>
+
+<style>
+  .cbt-section {
+    padding: clamp(40px, 6vw, 72px) 0;
+    background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* Header */
+  .cbt-header {
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto clamp(32px, 4vw, 48px);
+  }
+
+  .cbt-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #d97706;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    padding: 5px 14px;
+    border-radius: var(--radius-pill);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  .cbt-pill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #d97706;
+    display: inline-block;
+  }
+
+  .cbt-title {
+    font-family: var(--font-body);
+    font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .cbt-subtitle {
+    font-size: clamp(0.95rem, 1.4vw, 1.08rem);
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin: 0 auto;
+    max-width: 64ch;
+  }
+
+  /* Mockup Container */
+  .cbt-mockup-container {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 4px;
+  }
+
+  .cbt-mockup {
+    background: #ffffff;
+    border-radius: clamp(12px, 2vw, 20px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+
+  /* Topbar */
+  .cbt-topbar {
+    background: #1e293b;
+    color: #ffffff;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 1px solid #334155;
+  }
+
+  .cbt-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .cbt-exam-title {
+    font-weight: 800;
+    font-size: 0.88rem;
+    letter-spacing: 0.04em;
+    color: #ffffff;
+  }
+
+  .cbt-section-badge {
+    font-size: 0.76rem;
+    background: rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .cbt-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 0.85rem;
+  }
+
+  .cbt-timer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #fbbf24;
+    font-weight: 600;
+  }
+
+  .cbt-timer-val {
+    color: #fbbf24;
+    font-weight: 700;
+  }
+
+  .cbt-roll {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 0.82rem;
+  }
+
+  .cbt-roll-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #475569;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  /* Body Split */
+  .cbt-body {
+    display: grid;
+    grid-template-columns: 1fr 310px;
+    min-height: 440px;
+  }
+
+  /* Left Pane */
+  .cbt-question-pane {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+  }
+
+  .cbt-q-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .cbt-q-number {
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: #0f172a;
+  }
+
+  .cbt-q-marks {
+    display: flex;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .cbt-mark-pos {
+    color: #059669;
+  }
+
+  .cbt-mark-neg {
+    color: #e11d48;
+  }
+
+  .cbt-lang-btn {
+    background: transparent;
+    border: none;
+    color: #ea580c;
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .cbt-q-content {
+    flex-grow: 1;
+  }
+
+  .cbt-q-text {
+    font-size: 0.98rem;
+    color: #1e293b;
+    line-height: 1.65;
+    margin-bottom: 24px;
+  }
+
+  .cbt-hl {
+    color: #d97706;
+    font-weight: 700;
+  }
+
+  /* Option Cards */
+  .cbt-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .cbt-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.92rem;
+    text-align: left;
+    transition: all 0.15s ease;
+    width: 100%;
+  }
+
+  .cbt-option:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .cbt-option.selected {
+    border-color: #ea580c;
+    background: #fff7ed;
+    color: #0f172a;
+    box-shadow: 0 2px 8px rgba(234, 88, 12, 0.08);
+  }
+
+  .cbt-opt-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid #cbd5e1;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .cbt-option.selected .cbt-opt-badge {
+    background: #ea580c;
+    border-color: #ea580c;
+    color: #ffffff;
+  }
+
+  .cbt-opt-text {
+    font-weight: 500;
+
+  }
+
+  .cbt-selected-tag {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #ea580c;
+    margin-left: 4px;
+  }
+
+  /* Bottom Action Buttons */
+  .cbt-q-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .cbt-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .cbt-btn-outline {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 999px;
+    transition: all 0.15s ease;
+  }
+
+  .cbt-btn-outline:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .cbt-btn-ghost {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 8px 12px;
+  }
+
+  .cbt-btn-ghost:hover {
+    color: #0f172a;
+  }
+
+  .cbt-btn-primary {
+    background: #ea580c;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 9px 20px;
+    border-radius: 999px;
+    border: none;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
+  }
+
+  .cbt-btn-primary:hover {
+    background: #c2410c;
+    transform: translateY(-1px);
+  }
+
+  /* Right Palette Pane */
+  .cbt-palette-pane {
+    background: #f8fafc;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .cbt-palette-title {
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #475569;
+    margin-bottom: 14px;
+    font-family: var(--font-body);
+  }
+
+  /* Legend Grid */
+  .cbt-legend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    margin-bottom: 20px;
+  }
+
+  .cbt-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: #475569;
+    font-weight: 500;
+  }
+
+  .cbt-legend-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cbt-bg-answered {
+    background: #059669;
+  }
+
+  .cbt-bg-notanswered {
+    background: #e11d48;
+  }
+
+  .cbt-bg-review {
+    background: #ea580c;
+  }
+
+  .cbt-bg-notvisited {
+    background: #cbd5e1;
+    color: #475569;
+  }
+
+  /* Number Grid */
+  .cbt-num-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .cbt-num {
+    height: 36px;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease;
+  }
+
+  .cbt-num:hover {
+    transform: scale(1.05);
+  }
+
+  .cbt-num-answered {
+    background: #059669;
+  }
+
+  .cbt-num-notanswered {
+    background: #e11d48;
+  }
+
+  .cbt-num-review {
+    background: #ea580c;
+  }
+
+  .cbt-num-notvisited {
+    background: #e2e8f0;
+    color: #475569;
+  }
+
+  .cbt-num.active-q {
+    outline: 3px solid #ea580c;
+    outline-offset: 1px;
+  }
+
+  /* Submit Button */
+  .cbt-submit-wrap {
+    margin-top: auto;
+  }
+
+  .cbt-btn-submit {
+    width: 100%;
+    background: #059669;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: none;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  }
+
+  .cbt-btn-submit:hover {
+    background: #047857;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 900px) {
+    .cbt-body {
+      grid-template-columns: 1fr;
+    }
+
+    .cbt-question-pane {
+      border-right: none;
+      border-bottom: 1px solid #e2e8f0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .cbt-question-pane {
+      padding: 16px;
+    }
+
+    .cbt-palette-pane {
+      padding: 16px;
+    }
+
+    .cbt-q-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .cbt-actions-left {
+      justify-content: space-between;
+    }
+
+    .cbt-btn-primary {
+      width: 100%;
+    }
+  }
+</style>
