@@ -52,6 +52,7 @@ const allTests = [...ossscItems, ...apiItems];
   title="OSSSC Mock Test 2026 & Typing Test – Free Online Practice"
   description="Free OSSSC mock tests and typing practice for Revenue Inspector, ARI, Amin, ICDS Supervisor, VAW and Junior Assistant posts. Timed MCQ tests, live typing speed, instant results."
   image="/mocktest/images/osssc/osssc_cgl_og.jpeg"
+  fluid={true}
 >
   <OssscHero />
 
@@ -80,25 +81,10 @@ const allTests = [...ossscItems, ...apiItems];
       </div>
     </div>
   </section>
-
-  <!-- ── CTA BANNER ────────────────────────────── -->
-  <section class="cta-band">
-    <div class="wrap cta-inner">
-      <div>
-        <h2>Start your OSSSC practice today.</h2>
-        <p>Free mock test and typing practice — no signup required to attempt.</p>
-      </div>
-      <div class="cta-btns">
-        <a href="/mocktest/test/11" class="cta-btn-primary">Computer MCQ</a>
-        <a href="/mocktest/tests/osssc-typing" class="cta-btn-ghost">Typing Test</a>
-        <a href="/mocktest/osssc/tests" class="cta-btn-ghost">Computer skill test for OSSSC 2026</a>
-      </div>
-    </div>
-  </section>
 </BaseLayout>
 
 <style>
-  /* Same section, steps and CTA styles as the home page */
+  /* Same section and steps styles as the home page */
   .section {
     padding: 32px 0 48px;
   }
@@ -109,85 +95,10 @@ const allTests = [...ossscItems, ...apiItems];
     gap: 24px;
   }
 
-  .cta-band {
-    background: var(--brand);
-    padding: 48px 0;
-    /* Cancel the footer's top margin so the band sits flush on the footer */
-    margin-bottom: -40px;
-  }
-
-  .cta-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 32px;
-  }
-
-  .cta-band h2 {
-    font-size: clamp(1.4rem, 2.6vw, 2rem);
-    color: #fff;
-    margin-bottom: 8px;
-  }
-
-  .cta-band p {
-    color: rgba(255, 255, 255, 0.8);
-    margin: 0;
-  }
-
-  .cta-btns {
-    display: flex;
-    gap: 14px;
-    flex-shrink: 0;
-  }
-
-  .cta-btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.92rem;
-    font-weight: 700;
-    line-height: 1.3;
-    color: var(--brand);
-    background: #fff;
-    padding: 10px 20px;
-    border-radius: var(--radius-pill);
-    transition: transform 0.1s;
-  }
-
-  .cta-btn-primary:hover {
-    transform: translateY(-1px);
-  }
-
-  .cta-btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.92rem;
-    font-weight: 600;
-    line-height: 1.3;
-    color: #fff;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    padding: 10px 20px;
-    border-radius: var(--radius-pill);
-    transition: border-color 0.15s;
-  }
-
-  .cta-btn-ghost:hover {
-    border-color: #fff;
-  }
-
   @media (max-width: 768px) {
     .steps-row {
       grid-template-columns: 1fr;
       gap: 12px;
-    }
-    .cta-inner {
-      flex-direction: column;
-      text-align: center;
-    }
-    .cta-btns {
-      justify-content: center;
-      flex-wrap: wrap;
     }
   }
 
