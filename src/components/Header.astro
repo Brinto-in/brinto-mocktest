@@ -20,12 +20,14 @@ const nav = [
     label: 'My Results',
     icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
   },
+  /*
   {
     href: '/mocktest/leaderboard',
     label: 'Leaderboard',
     comingSoon: true,
     icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>`
   },
+  */
 ];
 
 function isNavActive(href: string) {
@@ -51,6 +53,172 @@ function isNavActive(href: string) {
       <img src="/logo.png" alt="Brinto MockTest logo" width="32" height="32" class="logo-mark" onerror="this.onerror=null;this.src='/mocktest/logo.png';" />
 <!--      <span class="brand-wordmark">Brinto<span class="brand-wordmark-accent">MockTest</span></span>-->
     </a>
+
+    <!-- Vertical Divider -->
+    <div class="brand-divider" aria-hidden="true"></div>
+
+    <!-- Live Prep Stream Selector Dropdown -->
+    <div class="stream-selector-wrap" id="stream-selector-wrap">
+      <button
+        type="button"
+        class="stream-selector-btn"
+        id="stream-selector-btn"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-controls="stream-selector-dropdown"
+      >
+        <span class="live-dot-pulse"></span>
+        <span class="stream-btn-text">
+          <strong class="stream-btn-label">Live Prep:</strong>
+          <span class="stream-btn-sub" id="stream-btn-sub">UPSC · SSC CGL · IBPS PO · Railways</span>
+        </span>
+        <svg class="stream-btn-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <!-- Dropdown Card -->
+      <div class="stream-dropdown-card" id="stream-selector-dropdown" hidden role="dialog" aria-label="Switch Exam Stream">
+        <div class="stream-dropdown-header">
+          <span class="stream-header-title">SWITCH EXAM STREAM</span>
+          <span class="stream-header-badge">6 Active Streams</span>
+        </div>
+
+        <div class="stream-items-list" role="radiogroup" aria-label="Exam Streams">
+          <!-- Item 1: UPSC Civil Services -->
+          <button
+            type="button"
+            class="stream-item active"
+            data-stream-id="upsc"
+            data-stream-title="UPSC Civil Services"
+            data-stream-sub="Prelims GS 1 & CSAT · 45+ Mocks"
+            role="radio"
+            aria-checked="true"
+          >
+            <div class="stream-item-left">
+              <div class="stream-item-icon-box upsc-icon-bg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+              </div>
+              <div class="stream-item-details">
+                <span class="stream-item-title">UPSC Civil Services</span>
+                <span class="stream-item-subtitle">Prelims GS 1 & CSAT · 45+ Mocks</span>
+              </div>
+            </div>
+            <div class="stream-item-action">
+              <svg class="stream-check-icon" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="stream-switch-text" hidden>Switch</span>
+            </div>
+          </button>
+
+          <!-- Item 2: SSC CGL & CHSL -->
+          <button
+            type="button"
+            class="stream-item"
+            data-stream-id="ssc"
+            data-stream-title="SSC CGL & CHSL"
+            data-stream-sub="Tier 1 & 2 TCS iON · 60+ Mocks"
+            role="radio"
+            aria-checked="false"
+          >
+            <div class="stream-item-left">
+              <div class="stream-item-icon-box ssc-icon-bg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+              </div>
+              <div class="stream-item-details">
+                <span class="stream-item-title">SSC CGL & CHSL</span>
+                <span class="stream-item-subtitle">Tier 1 & 2 TCS iON · 60+ Mocks</span>
+              </div>
+            </div>
+            <div class="stream-item-action">
+              <svg class="stream-check-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" hidden><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="stream-switch-text">Switch</span>
+            </div>
+          </button>
+
+          <!-- Item 3: Banking & Insurance -->
+          <button
+            type="button"
+            class="stream-item"
+            data-stream-id="banking"
+            data-stream-title="Banking & Insurance"
+            data-stream-sub="IBPS, SBI PO & Clerk · 50+ Mocks"
+            role="radio"
+            aria-checked="false"
+          >
+            <div class="stream-item-left">
+              <div class="stream-item-icon-box banking-icon-bg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="7" cy="15" r="1"/></svg>
+              </div>
+              <div class="stream-item-details">
+                <span class="stream-item-title">Banking & Insurance</span>
+                <span class="stream-item-subtitle">IBPS, SBI PO & Clerk · 50+ Mocks</span>
+              </div>
+            </div>
+            <div class="stream-item-action">
+              <svg class="stream-check-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" hidden><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="stream-switch-text">Switch</span>
+            </div>
+          </button>
+
+          <!-- Item 4: Railways RRB -->
+          <button
+            type="button"
+            class="stream-item"
+            data-stream-id="railways"
+            data-stream-title="Railways RRB"
+            data-stream-sub="NTPC & Group D · 40+ Mocks"
+            role="radio"
+            aria-checked="false"
+          >
+            <div class="stream-item-left">
+              <div class="stream-item-icon-box railway-icon-bg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="13" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-3 3"/><path d="m16 19 3 3"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/></svg>
+              </div>
+              <div class="stream-item-details">
+                <span class="stream-item-title">Railways RRB</span>
+                <span class="stream-item-subtitle">NTPC & Group D · 40+ Mocks</span>
+              </div>
+            </div>
+            <div class="stream-item-action">
+              <svg class="stream-check-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" hidden><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="stream-switch-text">Switch</span>
+            </div>
+          </button>
+
+          <!-- Item 5: State PSCs -->
+          <button
+            type="button"
+            class="stream-item"
+            data-stream-id="state-pscs"
+            data-stream-title="State PSCs"
+            data-stream-sub="BPSC, UPPSC, MPPSC · 35+ Mocks"
+            role="radio"
+            aria-checked="false"
+          >
+            <div class="stream-item-left">
+              <div class="stream-item-icon-box state-icon-bg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              </div>
+              <div class="stream-item-details">
+                <span class="stream-item-title">State PSCs</span>
+                <span class="stream-item-subtitle">BPSC, UPPSC, MPPSC · 35+ Mocks</span>
+              </div>
+            </div>
+            <div class="stream-item-action">
+              <svg class="stream-check-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" hidden><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="stream-switch-text">Switch</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="stream-dropdown-footer">
+          <a href="/mocktest/tests" class="stream-footer-link">
+            Explore All 500+ Category Batches
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+        </div>
+      </div>
+    </div>
 
     <!-- Professional Search Bar next to Logo -->
     <div class="header-search-container" id="desktop-search-container">
@@ -930,8 +1098,98 @@ function isNavActive(href: string) {
       window.history.replaceState({}, '', url.pathname + url.search);
     }
 
+    // Wire up live prep stream selector
+    initStreamSelector();
+
     // Wire up live search suggestions
     initSearchSuggestions();
+  }
+
+  // ── LIVE PREP STREAM SELECTOR DROPDOWN ─────────────────────────────────────
+  function initStreamSelector() {
+    const wrap = document.getElementById('stream-selector-wrap');
+    const btn = document.getElementById('stream-selector-btn');
+    const dropdown = document.getElementById('stream-selector-dropdown');
+    const items = document.querySelectorAll<HTMLElement>('.stream-item');
+
+    if (!wrap || !btn || !dropdown) return;
+
+    function openDropdown() {
+      dropdown.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      wrap.classList.add('is-open');
+    }
+
+    function closeDropdown() {
+      dropdown.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      wrap.classList.remove('is-open');
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (dropdown.hidden) {
+        openDropdown();
+      } else {
+        closeDropdown();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target as Node)) {
+        closeDropdown();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDropdown();
+      }
+    });
+
+    items.forEach((item) => {
+      item.addEventListener('click', () => {
+        const streamId = item.getAttribute('data-stream-id');
+
+        items.forEach((it) => {
+          const isCurrent = it === item;
+          it.classList.toggle('active', isCurrent);
+          it.setAttribute('aria-checked', isCurrent ? 'true' : 'false');
+
+          const checkIcon = it.querySelector('.stream-check-icon') as HTMLElement | null;
+          const switchText = it.querySelector('.stream-switch-text') as HTMLElement | null;
+          if (checkIcon) checkIcon.hidden = !isCurrent;
+          if (switchText) switchText.hidden = isCurrent;
+        });
+
+        if (streamId) {
+          try {
+            localStorage.setItem('brinto_active_stream', streamId);
+          } catch (_) {}
+        }
+
+        closeDropdown();
+      });
+    });
+
+    try {
+      const savedStream = localStorage.getItem('brinto_active_stream');
+      if (savedStream) {
+        const savedItem = document.querySelector(`.stream-item[data-stream-id="${savedStream}"]`) as HTMLElement | null;
+        if (savedItem) {
+          items.forEach((it) => {
+            const isCurrent = it === savedItem;
+            it.classList.toggle('active', isCurrent);
+            it.setAttribute('aria-checked', isCurrent ? 'true' : 'false');
+
+            const checkIcon = it.querySelector('.stream-check-icon') as HTMLElement | null;
+            const switchText = it.querySelector('.stream-switch-text') as HTMLElement | null;
+            if (checkIcon) checkIcon.hidden = !isCurrent;
+            if (switchText) switchText.hidden = isCurrent;
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   // Handle global Escape key and outside click for profile menu
@@ -1482,6 +1740,314 @@ function isNavActive(href: string) {
   .brand-wordmark-accent {
     color: var(--brand);
     margin-left: 1px;
+  }
+
+  /* ── Brand Divider ── */
+  .brand-divider {
+    width: 1px;
+    height: 22px;
+    background: #e2e8f0;
+    margin: 0 14px 0 6px;
+    flex-shrink: 0;
+  }
+
+  /* ── Live Prep Stream Selector Dropdown ── */
+  .stream-selector-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .stream-selector-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 6px 14px 6px 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    user-select: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  }
+
+  .stream-selector-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .stream-selector-wrap.is-open .stream-selector-btn {
+    background: #ffffff;
+    border-color: #d97706;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+  }
+
+  /* Pulsing Green Live Indicator Dot */
+  .live-dot-pulse {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 2px;
+  }
+  .live-dot-pulse::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    background-color: rgba(16, 185, 129, 0.45);
+    animation: live-dot-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  @keyframes live-dot-ping {
+    75%, 100% {
+      transform: scale(1.85);
+      opacity: 0;
+    }
+  }
+
+  .stream-btn-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    line-height: 1;
+  }
+
+  .stream-btn-label {
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .stream-btn-sub {
+    font-weight: 500;
+    color: #475569;
+  }
+
+  .stream-btn-chevron {
+    color: #64748b;
+    flex-shrink: 0;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .stream-selector-wrap.is-open .stream-btn-chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Dropdown Card Container */
+  .stream-dropdown-card {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    z-index: 100;
+    width: 370px;
+    max-width: 92vw;
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.16), 0 8px 18px -6px rgba(15, 23, 42, 0.06);
+    padding: 18px;
+    animation: stream-dropdown-fade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes stream-dropdown-fade {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .stream-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .stream-header-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .stream-header-badge {
+    background: #fffbe6;
+    color: #d97706;
+    border: 1px solid #fde68a;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .stream-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stream-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1.5px solid transparent;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+  }
+
+  .stream-item:hover {
+    background: #f8fafc;
+    border-color: #f1f5f9;
+  }
+
+  .stream-item.active {
+    background: #fff7ed;
+    border-color: #ffedd5;
+  }
+
+  .stream-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .stream-item-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .upsc-icon-bg {
+    background: #ffedd5;
+    color: #d97706;
+  }
+
+  .ssc-icon-bg {
+    background: #eff6ff;
+    color: #2563eb;
+  }
+
+  .banking-icon-bg {
+    background: #faf5ff;
+    color: #9333ea;
+  }
+
+  .railway-icon-bg {
+    background: #fefce8;
+    color: #ca8a04;
+  }
+
+  .state-icon-bg {
+    background: #ecfdf5;
+    color: #059669;
+  }
+
+  .stream-item-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .stream-item-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stream-item.active .stream-item-title {
+    color: #d97706;
+  }
+
+  .stream-item-subtitle {
+    font-size: 0.76rem;
+    font-weight: 400;
+    color: #64748b;
+    margin-top: 2px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stream-item-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+
+  .stream-check-icon {
+    color: #ea580c;
+  }
+
+  .stream-switch-text {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+    transition: color 0.15s;
+  }
+
+  .stream-item:hover .stream-switch-text {
+    color: #0f172a;
+  }
+
+  .stream-dropdown-footer {
+    border-top: 1px solid #f1f5f9;
+    margin-top: 12px;
+    padding-top: 12px;
+    text-align: center;
+  }
+
+  .stream-footer-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #d97706;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
+
+  .stream-footer-link:hover {
+    color: #b45309;
+    background: #fffbe6;
   }
 
   /* ── Header Search Bar (Desktop - Positioned immediately to the left of Tests) ── */
@@ -2415,6 +2981,12 @@ function isNavActive(href: string) {
   }
 
   @media (max-width: 768px) {
+    .brand-divider {
+      display: none;
+    }
+    .stream-selector-wrap {
+      display: none;
+    }
     .header-search-container {
       display: none;
     }
@@ -2484,6 +3056,9 @@ function isNavActive(href: string) {
     .brand-wordmark {
       display: none;
     }
+    .stream-btn-sub {
+      display: none;
+    }
     .header-search-container {
       flex: 0 1 180px;
       max-width: 190px;
@@ -2510,7 +3085,13 @@ function isNavActive(href: string) {
     }
   }
 
-  @media (min-width: 1025px) and (max-width: 1200px) {
+  @media (min-width: 1025px) and (max-width: 1280px) {
+    .stream-btn-sub {
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .header-search-container {
       flex: 0 1 210px;
       max-width: 230px;

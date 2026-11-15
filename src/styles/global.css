@@ -88,6 +88,22 @@ p { margin: 0; }
   padding: 0 24px;
 }
 
+/* Container fluid — full-width mode (home page) */
+.fluid :where(.wrap) {
+  max-width: 100%;
+  padding: 0 40px;
+}
+@media (min-width: 1600px) {
+  .fluid :where(.wrap) {
+    padding: 0 64px;
+  }
+}
+@media (max-width: 600px) {
+  .fluid :where(.wrap) {
+    padding: 0 20px;
+  }
+}
+
 :focus-visible {
   outline: 3px solid var(--brand);
   outline-offset: 3px;

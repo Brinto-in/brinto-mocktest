@@ -11,129 +11,357 @@ const links = {
   ],
   'Platform': [
     { href: '/mocktest/results', label: 'My Results' },
+    { href: '/mocktest/leaderboard', label: 'Leaderboard' },
+    { href: '/mocktest/tests', label: 'All Tests' },
   ],
-  'Brinto': [
-    { href: 'https://brinto.in', label: 'Main Site' },
+  'Resources': [
     { href: 'https://blogs.brinto.in', label: 'Blog' },
     { href: 'https://www.brinto.in/contact', label: 'Contact' },
+    { href: 'https://brinto.in', label: 'Main Site' },
   ],
 };
 ---
 
-<footer class="footer">
-  <div class="wrap footer-inner">
-    <div class="footer-brand">
-      <a href="/mocktest" class="brand" aria-label="Brinto MockTest home">
+<footer class="ft">
+  <!-- ── ROW 1: Tagline (left) + Original Menus (right: Tests, Platform, Resources) ── -->
+  <div class="ft-top">
+    <div class="ft-tagline-col">
+      <h2 class="ft-tagline">Ace every exam</h2>
+    </div>
+
+    <div class="ft-columns">
+      {Object.entries(links).map(([group, items]) => (
+        <div class="ft-col">
+          <h3 class="ft-col-title">{group}</h3>
+          <ul>
+            {items.map(item => (
+              <li>
+                <a
+                  href={item.comingSoon ? undefined : item.href}
+                  class={item.comingSoon ? 'disabled' : undefined}
+                >
+                  {item.label}
+                  {item.comingSoon && <span class="ft-badge">Soon</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- ── ROW 2: Giant brand text ── -->
+  <div class="ft-brand">
+    <span class="ft-brand-text" aria-hidden="true">Brinto Mock Test</span>
+  </div>
+
+  <!-- ── ROW 3: Bottom bar ── -->
+  <div class="ft-bar">
+    <div class="ft-bar-left">
+      <a href="/mocktest" class="ft-logo" aria-label="Brinto MockTest home">
         <img
           src="/logo.png"
-          alt="Brinto MockTest logo"
-          height="36"
-          class="logo-mark"
+          alt="Brinto"
+          height="22"
           onerror="this.onerror=null;this.src='/mocktest/logo.png';"
         />
       </a>
-      <p>Free mock tests for government job aspirants. Prepare smarter with timed tests, instant analysis, and rank tracking.</p>
+      <nav class="ft-bar-links" aria-label="Legal & Information">
+        <a href="https://www.brinto.in/contact">Contact</a>
+        <a href="https://www.brinto.in/privacy">Privacy</a>
+        <a href="https://www.brinto.in/terms">Terms</a>
+      </nav>
     </div>
 
-    {Object.entries(links).map(([group, items]) => (
-      <div class="footer-col">
-        <h3>{group}</h3>
-        <ul>
-          {items.map(item => (
-            <li>
-              <a
-                href={item.comingSoon ? undefined : item.href}
-                style={item.comingSoon ? 'pointer-events: none; opacity: 0.6;' : undefined}
-              >
-                {item.label}
-                {item.comingSoon && <span class="footer-soon-badge">Soon</span>}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    ))}
-  </div>
-
-  <div class="footer-bottom wrap">
-    <span>© {year} Novagenix Lab. All rights reserved.</span>
-    <span class="footer-bottom-links">
-      <a href="https://www.brinto.in/privacy">Privacy</a>
-      <a href="https://www.brinto.in/terms">Terms</a>
-    </span>
+    <div class="ft-bar-right">
+      <!-- X (Twitter) -->
+      <a href="https://x.com/baborbrinto" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <!-- LinkedIn -->
+      <a href="https://linkedin.com/company/brinto" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.75-1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+      </a>
+      <!-- YouTube -->
+      <a href="https://youtube.com/@brinto" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.546 12 3.546 12 3.546s-7.505 0-9.377.504A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.504 9.376.504 9.376.504s7.505 0 9.377-.504a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      </a>
+    </div>
   </div>
 </footer>
 
 <style>
-  .footer {
-    background: var(--ink);
-    color: rgba(255,255,255,0.7);
-    margin-top: 40px;
-  }
-  .footer-inner {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 48px;
-    padding: 56px 24px 40px;
-  }
-  .brand {
-    display: inline-block;
-    margin-bottom: 14px;
-  }
-  .logo-mark {
-    height: 36px;
-    width: auto;
-    max-width: 180px;
-    object-fit: contain;
-    display: block;
-  }
-  .footer-brand p {
-    font-size: 0.88rem;
-    line-height: 1.7;
-    max-width: 28ch;
-    color: rgba(255,255,255,0.55);
-  }
-  .footer-col h3 {
+  /* ═══════════════════════════════════════════════════════════════
+     FOOTER — Exact UI match to reference design
+     • Clean white background
+     • Modern sans-serif typography (Inter)
+     • Tagline top-left: 28px regular weight
+     • Menu columns top-right: 13px muted titles, 13.5px items, 88px gap
+     • Giant bold brand text: tight tracking (-0.055em), ~11.5vw
+     • Bottom bar: subtle 1px border, logo + links left, social right
+     ═══════════════════════════════════════════════════════════════ */
+
+  .ft {
+    background: #ffffff;
+    color: #111111;
+    margin-top: 80px;
+    width: 100%;
+    overflow: hidden;
     font-family: var(--font-body);
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: rgba(255,255,255,0.4);
-    margin-bottom: 14px;
+    -webkit-font-smoothing: antialiased;
   }
-  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-  a { font-size: 0.9rem; color: rgba(255,255,255,0.65); transition: color 0.15s; }
-  a:hover { color: #fff; }
-  .footer-soon-badge {
+
+  /* ── ROW 1: Top section ── */
+  .ft-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 64px 64px 36px;
+    max-width: 1600px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .ft-tagline-col {
+    flex: 1;
+    max-width: 45%;
+  }
+
+  /* Tagline matching "Experience liftoff" — 28px regular weight, clean sans-serif */
+  .ft-tagline {
+    font-family: var(--font-body);
+    font-size: clamp(1.6rem, 2.2vw, 2rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: #111111;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  /* Right-hand side: menu columns styled like reference */
+  .ft-columns {
+    display: flex;
+    gap: 88px;
+    flex-shrink: 0;
+  }
+
+  .ft-col {
+    min-width: 110px;
+  }
+
+  .ft-col-title {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: #555555;
+    margin: 0 0 18px 0;
+    letter-spacing: -0.01em;
+  }
+
+  .ft ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .ft-col a {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    font-weight: 400;
+    color: #111111;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.35;
+  }
+
+  .ft-col a:hover {
+    opacity: 0.55;
+  }
+
+  .ft-col a.disabled {
+    pointer-events: none;
+    color: #888888;
+  }
+
+  .ft-badge {
     display: inline-block;
-    font-size: 0.6rem;
-    font-weight: 700;
+    font-size: 9px;
+    font-weight: 600;
     text-transform: uppercase;
-    background: rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    padding: 1px 5px;
+    background: #f1f1f1;
+    color: #777777;
+    padding: 2px 6px;
     border-radius: 999px;
-    margin-left: 6px;
+    margin-left: 8px;
     vertical-align: middle;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
   }
-  .footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.1);
-    padding: 18px 24px;
+
+  /* ── ROW 2: Giant brand text ── */
+  .ft-brand {
+    width: 100%;
+    padding: 40px 32px 48px;
+    margin: 0;
+    pointer-events: none;
+    user-select: none;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .ft-brand-text {
+    display: block;
+    font-family: var(--font-body);
+    font-size: clamp(3.2rem, 11.5vw, 13.5rem);
+    font-weight: 800;
+    line-height: 0.88;
+    color: #111111;
+    letter-spacing: -0.055em;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* ── ROW 3: Bottom bar ── */
+  .ft-bar {
+    border-top: 1px solid #ededed;
+    padding: 24px 64px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.8rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    box-sizing: border-box;
   }
-  .footer-bottom-links { display: flex; gap: 20px; }
-  @media (max-width: 900px) {
-    .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
-    .footer-brand { grid-column: 1 / -1; }
+
+  .ft-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 36px;
   }
-  @media (max-width: 480px) {
-    .footer-inner { grid-template-columns: 1fr; }
-    .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+
+  .ft-logo {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .ft-logo img {
+    height: 20px;
+    width: auto;
+    display: block;
+  }
+
+  .ft-bar-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .ft-bar-links a {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 400;
+    color: #333333;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .ft-bar-links a:hover {
+    opacity: 0.55;
+  }
+
+  .ft-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .ft-bar-right a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #222222;
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .ft-bar-right a:hover {
+    opacity: 0.55;
+  }
+
+  /* ── RESPONSIVE BREAKPOINTS ── */
+  @media (min-width: 1600px) {
+    .ft-top {
+      padding: 72px 80px 40px;
+    }
+    .ft-columns {
+      gap: 96px;
+    }
+    .ft-bar {
+      padding: 28px 80px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .ft-top {
+      padding: 48px 40px 32px;
+    }
+    .ft-columns {
+      gap: 48px;
+    }
+    .ft-bar {
+      padding: 20px 40px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .ft-top {
+      flex-direction: column;
+      gap: 36px;
+      padding: 40px 24px 28px;
+    }
+    .ft-tagline-col {
+      max-width: 100%;
+    }
+    .ft-columns {
+      gap: 32px;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+    .ft-brand {
+      padding: 24px 16px 36px;
+    }
+    .ft-brand-text {
+      font-size: clamp(2rem, 10.5vw, 4.5rem);
+    }
+    .ft-bar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px 24px;
+    }
+    .ft-bar-left {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .ft-bar-links {
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .ft-bar-right {
+      align-self: flex-start;
+      padding-top: 4px;
+    }
   }
 </style>
