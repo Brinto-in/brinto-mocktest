@@ -16,6 +16,9 @@ export interface Chapter {
   testId?: number;
   questions?: number;
   minutes?: number;
+  section?: string;
+  sectionOdia?: string;
+  sectionIcon?: string;
 }
 
 export interface SubjectModule {
@@ -742,19 +745,245 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "isPopular": false,
     "chapters": [
       {
-        "unit": "Third Language Sanskrit (ସଂସ୍କୃତ)",
-        "unitOdia": "ସଂସ୍କୃତ ବିଭାଗ",
-        "weightageMarks": 50,
-        "topics": [
-          "ଶ୍ରୀରାମସ୍ୟ ପିତୃଭକ୍ତିଃ (ଗଦ୍ୟ)",
-          "ଯକ୍ଷପ୍ରଶ୍ନଃ (ଗଦ୍ୟ)",
-          "ସ୍ୱାମୀ ବିବେକାନନ୍ଦଃ (ଗଦ୍ୟ)",
-          "ଶିଶୁବାତ୍ସଲ୍ୟମ୍ (ପଦ୍ୟ)",
-          "ସଂସ୍କୃତ ବ୍ୟାକରଣ: ଶବ୍ଦରୂପ (ବାଳକ, ଲତା, ନଦୀ, ଫଳ)",
-          "ଧାତୁରୂପ (ଭୂ, ପଠ୍, ଗମ୍ - ଲଟ୍, ଲୋଟ୍, ଲଙ୍ଗ, ବିଧିଲିଙ୍ଗ, ଲୃଟ୍)",
-          "ସନ୍ଧି ଓ ସମାସ",
-          "କାରକ ଓ ବିଭକ୍ତି ପ୍ରୟୋଗ"
-        ]
+        "unit": "୧. ଉପଦେଶାମୃତମ୍",
+        "unitOdia": "१. उपदेशामृतम्",
+        "topics": [],
+        "testId": 24,
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୨. ସୁଶିଷ୍ୟଃ ଉପମନ୍ୟୁଃ",
+        "unitOdia": "२. सुशिष्यः उपमन्युः",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୩. ବରାହୋପାଖ୍ୟାନମ୍",
+        "unitOdia": "३. वराहोपाख्यानम्",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୪. ସିଂହଶୃଗାଳଶିଶୁକଥା",
+        "unitOdia": "४. सिंहशृगालशिशुकथा",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୫. ବକକୁଳୀରକକଥା",
+        "unitOdia": "५. बककुलीरककथा",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୬. ଜନ୍ମବର୍ବରକଥା",
+        "unitOdia": "६. जन्मवर्वरकथा",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୭. ବଳୀୟସୀ କେବଳମୀଶ୍ୱରେଚ୍ଛା",
+        "unitOdia": "७. बलीयसी केवलमीश्वरेच्छा",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୮. ସ୍ୱାମୀ ବିବେକାନନ୍ଦଃ",
+        "unitOdia": "८. स्वामी विवेकानन्दः",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୯. ବୈଜ୍ଞାନିକଃ ଡକ୍ଟର ଅବ୍ଦୁଲକଲାମଃ",
+        "unitOdia": "९. वैज्ञानिकः डक्टर अब्दुलकलामः",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୧୦. ଭୌତିକଂ ପର୍ଯ୍ୟାବରଣମ୍",
+        "unitOdia": "१०. भौतिकं पर्यावरणम्",
+        "topics": [],
+        "section": "गद्यभागः (Prose)",
+        "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📖"
+      },
+      {
+        "unit": "୧୧. ଶିଶୁବାତ୍ସଲ୍ୟମ୍",
+        "unitOdia": "११. शिशुवात्सल्यम्",
+        "topics": [],
+        "section": "एकाङ्किकाभागः (Drama)",
+        "sectionOdia": "ଏକାଙ୍କିକାଭାଗଃ",
+        "sectionIcon": "🎭"
+      },
+      {
+        "unit": "୧୨. ଦେହି ପଦପଲ୍ଲବମୁଦାରମ୍",
+        "unitOdia": "१२. देहि पदपल्लवमुदारम्",
+        "topics": [],
+        "section": "एकाङ्किकाभागः (Drama)",
+        "sectionOdia": "ଏକାଙ୍କିକାଭାଗଃ",
+        "sectionIcon": "🎭"
+      },
+      {
+        "unit": "୧୩. ସୀତାୟାଃ ବନଗମନମ୍",
+        "unitOdia": "१३. सीतायाः वनगमनम्",
+        "topics": [],
+        "section": "पद्यभागः (Poetry)",
+        "sectionOdia": "ପଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📜"
+      },
+      {
+        "unit": "୧୪. ଯୁଧିଷ୍ଠିର-ଯକ୍ଷସଂବାଦଃ",
+        "unitOdia": "१४. युधिष्ठिर-यक्षसंवादः",
+        "topics": [],
+        "section": "पद्यभागः (Poetry)",
+        "sectionOdia": "ପଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📜"
+      },
+      {
+        "unit": "୧୫. ମୋହମୁଦ୍ଗରଃ",
+        "unitOdia": "१५. मोहमुद्गरः",
+        "topics": [],
+        "section": "पद्यभागः (Poetry)",
+        "sectionOdia": "ପଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📜"
+      },
+      {
+        "unit": "୧୬. ଜନନୀ ଗରୀୟସୀ",
+        "unitOdia": "१६. जननी गरीयसी",
+        "topics": [],
+        "section": "पद्यभागः (Poetry)",
+        "sectionOdia": "ପଦ୍ୟଭାଗଃ",
+        "sectionIcon": "📜"
+      },
+      {
+        "unit": "୧. ଅସାଧ୍ୟସାଧନମ୍",
+        "unitOdia": "१. असाध्यसाधनम्",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୨. ସନ୍ନିମିତ୍ତେ ବରଂ ତ୍ୟାଗଃ",
+        "unitOdia": "२. सन्निमित्ते वरं त्यागः",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୩. ବୁଦ୍ଧିର୍ଯସ୍ୟ ବଳଂ ତସ୍ୟ",
+        "unitOdia": "३. बुद्धिर्यस्य बलं तस्य",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୪. ଯଶୋଦେହେନ ଜୀବତି",
+        "unitOdia": "४. यशोदेहेन जीवति",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୫. ହୀରାକୁଦବନ୍ଧଃ",
+        "unitOdia": "५. हीराकुदबन्धः",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୬. ପରବୁଦ୍ଧିର୍ଭୟଙ୍କରୀ",
+        "unitOdia": "६. परबुद्धिर्भयङ्करी",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୭. ସର୍ବଂସହା",
+        "unitOdia": "७. सर्वंसहा",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୮. କିଂ ଫଳମସ୍ତି ଦାନସ୍ୟ",
+        "unitOdia": "८. किं फलमस्ति दानस्य",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୯. ଅହିଂସାଚରଣମ୍",
+        "unitOdia": "९. अहिंसाचरणम्",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "୧୦. ଅସ୍ମାକଂ ରାଷ୍ଟ୍ରୀୟଧ୍ୱଜଃ",
+        "unitOdia": "१०. अस्माकं राष्ट्रियध्वजः",
+        "topics": [],
+        "section": "अनुच्छेदभागः (Comprehension)",
+        "sectionOdia": "ଅନୁଚ୍ଛେଦଭାଗଃ",
+        "sectionIcon": "📝"
+      },
+      {
+        "unit": "",
+        "unitOdia": "ସଂସ୍କୃତ ବ୍ୟାକରଣ: ଶବ୍ଦରୂପ (ବାଳକ, ଲତା, ନଦୀ, ଫଳ)",
+        "topics": [],
+        "section": "संस्कृतव्याकरणम् (Grammar)",
+        "sectionOdia": "ସଂସ୍କୃତ ବ୍ୟାକରଣ",
+        "sectionIcon": "✍️"
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଧାତୁରୂପ (ଭୂ, ପଠ୍, ଗମ୍ - ଲଟ୍, ଲୋଟ୍, ଲଙ୍ଗ, ବିଧିଲିଙ୍ଗ, ଲୃଟ୍)",
+        "topics": [],
+        "section": "संस्कृतव्याकरणम् (Grammar)",
+        "sectionOdia": "ସଂସ୍କୃତ ବ୍ୟାକରଣ",
+        "sectionIcon": "✍️"
+      },
+      {
+        "unit": "",
+        "unitOdia": "ସନ୍ଧି ଓ ସମାସ",
+        "topics": [],
+        "section": "संस्कृतव्याकरणम् (Grammar)",
+        "sectionOdia": "ସଂସ୍କୃତ ବ୍ୟାକରଣ",
+        "sectionIcon": "✍️"
+      },
+      {
+        "unit": "",
+        "unitOdia": "କାରକ ଓ ବିଭକ୍ତି ପ୍ରୟୋଗ",
+        "topics": [],
+        "section": "संस्कृतव्याकरणम् (Grammar)",
+        "sectionOdia": "ସଂସ୍କୃତ ବ୍ୟାକରଣ",
+        "sectionIcon": "✍️"
       }
     ]
   }

@@ -212,9 +212,26 @@ const webPageJsonLd = {
             const fullHref = testHref(s.testId);
             const FullTag = fullHref ? 'a' : 'div';
             const units = (s.chapters.length > 1 ? s.chapters : []).map((u) => ({ ...u, href: testHref(u.testId) }));
+            const hasSections = units.some((u) => u.section);
+            const sectionGroups: { key: string; odia: string; icon: string; items: typeof units }[] = [];
+            if (hasSections) {
+              for (const u of units) {
+                const sec = u.section || '';
+                const last = sectionGroups[sectionGroups.length - 1];
+                if (last && last.key === sec) { last.items.push(u); }
+                else { sectionGroups.push({ key: sec, odia: u.sectionOdia || '', icon: u.sectionIcon || '', items: [u] }); }
+              }
+            }
+            const odiaDigits = '୦୧୨୩୪୫୬୭୮୯';
+            const parseChNum = (unitStr: string, fallback: number) => {
+              const m = unitStr.match(/^([୦-୯0-9]+)/);
+              if (!m) return String(fallback).padStart(2, '0');
+              const num = [...m[1]].map((c) => { const idx = odiaDigits.indexOf(c); return idx >= 0 ? String(idx) : c; }).join('');
+              return num.padStart(2, '0');
+            };
             return (
               <article
-                class="sx-subject hsc-subject-row"
+                class={`sx-subject hsc-subject-row${hasSections ? ' sx-has-sections' : ''}`}
                 data-subject-id={s.id}
                 id={`subject-${s.id}`}
                 style={`--accent:${s.accentColor};`}
@@ -240,84 +257,201 @@ const webPageJsonLd = {
                   </div>
                 </header>
 
-                <ul class="sx-row">
-                  <!-- Main subject: full mock test -->
-                  <li>
-                    <FullTag
-                      href={fullHref}
-                      class={`sx-card sx-main ${fullHref ? '' : 'is-soon'}`}
-                      aria-disabled={fullHref ? undefined : 'true'}
-                      aria-label={fullHref
-                        ? `${s.name} full mock test – ${s.questionCount} questions, ${s.durationMinutes} minutes`
-                        : `${s.name} full mock test – coming soon`}
-                    >
-                      <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
-                      {s.poster && (
-                        <img class="sx-img" src={poster(s.poster)} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
-                      )}
-                      <span class="sx-badge">FULL TEST</span>
-                      {!fullHref
-                        ? <span class="sx-badge sx-badge-pop sx-badge-soon">COMING SOON</span>
-                        : s.isPopular && <span class="sx-badge sx-badge-pop">★ POPULAR</span>}
-                      <span class="sx-overlay">
-                        <span class="sx-kicker">{s.code} · Full mock</span>
-                        <span class="sx-name">{s.name}</span>
-                        <span class="sx-info">
-                          {fullHref ? `${s.questionCount} MCQs · ${s.durationMinutes} min · Free` : 'Full mock test coming soon'}
-                        </span>
-                      </span>
-                    </FullTag>
-                  </li>
+                {hasSections ? (
+                  <>
+                    {/* Compact section filter pills */}
+                    <div class="sx-sec-tabs" role="tablist" aria-label={`${s.name} sections`}>
+                      {sectionGroups.map((grp, gi) => {
+                        const live = grp.items.filter((u) => u.href).length;
+                        return (
+                          <button
+                            type="button"
+                            role="tab"
+                            class={`sx-sec-tab${gi === 0 ? ' is-active' : ''}`}
+                            data-sec-filter={String(gi)}
+                            aria-selected={gi === 0 ? 'true' : 'false'}
+                            title={grp.key}
+                          >
+                            {grp.icon && <span class="sx-sec-tab-icon" aria-hidden="true">{grp.icon}</span>}
+                            <span>{grp.odia || grp.key}</span>
+                            {live > 0 && <span class="sx-sec-tab-dot" aria-label={`${live} live`} title={`${live} live`}></span>}
+                            <span class="sx-sec-tab-count">{grp.items.length}</span>
+                          </button>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        role="tab"
+                        class="sx-sec-tab"
+                        data-sec-filter="all"
+                        aria-selected="false"
+                      >
+                        <span>All</span>
+                        <span class="sx-sec-tab-count">{units.length}</span>
+                      </button>
+                    </div>
 
-                  <!-- Chapter mock tests -->
-                  {units.map((u, i) => {
-                    const img = poster(u.poster);
-                    const Tag = u.href ? 'a' : 'div';
-                    const soon = !u.href;
-                    const info = stats(u.questions, u.minutes);
-                    return (
+                    {/* Main row: Full Test poster + active section's chapters (same layout as every other subject) */}
+                    <ul class="sx-row">
                       <li>
-                        <Tag
-                          href={u.href}
-                          class={`sx-card ${img ? 'sx-chapter-img' : 'sx-chapter'} ${soon ? 'is-soon' : ''}`}
-                          aria-disabled={soon ? 'true' : undefined}
-                          aria-label={`${s.name} chapter test: ${u.unit} – ${soon ? 'coming soon' : info}`}
+                        <FullTag
+                          href={fullHref}
+                          class={`sx-card sx-main ${fullHref ? '' : 'is-soon'}`}
+                          aria-disabled={fullHref ? undefined : 'true'}
+                          aria-label={fullHref
+                            ? `${s.name} full mock test – ${s.questionCount} questions, ${s.durationMinutes} minutes`
+                            : `${s.name} full mock test – coming soon`}
                         >
-                          {img ? (
-                            <>
-                              <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
-                              <img class="sx-img" src={img} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
-                              <span class="sx-badge sx-badge-ch">CHAPTER {String(i + 1).padStart(2, '0')}</span>
-                              {soon && <span class="sx-badge sx-badge-pop sx-badge-soon">SOON</span>}
-                              <span class="sx-overlay">
-                                <span class="sx-kicker">{u.weightageMarks ? `${u.weightageMarks} marks · ` : ''}{u.topics.length} topics</span>
-                                <span class="sx-name">{u.unitOdia}</span>
-                                <span class="sx-info">{soon ? 'Coming soon' : 'Chapter practice →'}</span>
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span class="sx-ch-top">
-                                <span class="sx-ch-num">{String(i + 1).padStart(2, '0')}</span>
-                                <span class="sx-ch-marks">
-                                  {soon ? 'Soon' : u.questions ? `${u.questions} ${u.questions === 1 ? 'MCQ' : 'MCQs'}` : 'Live'}
-                                </span>
-                              </span>
-                              <span class="sx-ch-label">Chapter test</span>
-                              <span class="sx-ch-title">{u.unitOdia}</span>
-                              {u.unit !== u.unitOdia && <span class="sx-ch-en">{u.unit}</span>}
-                              <span class="sx-ch-topics">
-                                {u.topics.slice(0, 3).map((t) => <span>{t}</span>)}
-                                {u.topics.length > 3 && <span class="sx-ch-more">+{u.topics.length - 3} more topics</span>}
-                              </span>
-                              <span class="sx-ch-cta">{soon ? 'Coming soon' : 'Practice →'}</span>
-                            </>
+                          <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
+                          {s.poster && (
+                            <img class="sx-img" src={poster(s.poster)} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
                           )}
-                        </Tag>
+                          <span class="sx-badge">FULL TEST</span>
+                          {!fullHref
+                            ? <span class="sx-badge sx-badge-pop sx-badge-soon">COMING SOON</span>
+                            : s.isPopular && <span class="sx-badge sx-badge-pop">★ POPULAR</span>}
+                          <span class="sx-overlay">
+                            <span class="sx-kicker">{s.code} · Full mock</span>
+                            <span class="sx-name">{s.name}</span>
+                            <span class="sx-info">
+                              {fullHref ? `${s.questionCount} MCQs · ${s.durationMinutes} min · Free` : 'Full mock test coming soon'}
+                            </span>
+                          </span>
+                        </FullTag>
                       </li>
-                    );
-                  })}
-                </ul>
+
+                      {sectionGroups.flatMap((grp, gi) =>
+                        grp.items.map((u, i) => {
+                          const img = poster(u.poster);
+                          const Tag = u.href ? 'a' : 'div';
+                          const soon = !u.href;
+                          const info = stats(u.questions, u.minutes);
+                          const chNum = parseChNum(u.unit, i + 1);
+                          return (
+                            <li data-sec-idx={String(gi)} hidden={gi !== 0}>
+                              <Tag
+                                href={u.href}
+                                class={`sx-card ${img ? 'sx-chapter-img' : 'sx-chapter'} ${soon ? 'is-soon' : ''}`}
+                                aria-disabled={soon ? 'true' : undefined}
+                                aria-label={`${s.name} chapter test: ${u.unit} – ${soon ? 'coming soon' : info}`}
+                              >
+                                {img ? (
+                                  <>
+                                    <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
+                                    <img class="sx-img" src={img} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
+                                    <span class="sx-badge sx-badge-ch">CHAPTER {chNum}</span>
+                                    {soon && <span class="sx-badge sx-badge-pop sx-badge-soon">SOON</span>}
+                                    <span class="sx-overlay">
+                                      <span class="sx-kicker">{u.topics.length} topics</span>
+                                      <span class="sx-name">{u.unitOdia}</span>
+                                      <span class="sx-info">{soon ? 'Coming soon' : 'Chapter practice →'}</span>
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span class="sx-ch-top">
+                                      <span class="sx-ch-num">{chNum}</span>
+                                      <span class="sx-ch-marks">
+                                        {soon ? 'Soon' : u.questions ? `${u.questions} ${u.questions === 1 ? 'MCQ' : 'MCQs'}` : 'Live'}
+                                      </span>
+                                    </span>
+                                    <span class="sx-ch-label">{grp.odia || 'Chapter test'}</span>
+                                    <span class="sx-ch-title">{u.unitOdia}</span>
+                                    {u.unit !== u.unitOdia && <span class="sx-ch-en">{u.unit}</span>}
+                                    <span class="sx-ch-topics">
+                                      {u.topics.slice(0, 3).map((t) => <span>{t}</span>)}
+                                      {u.topics.length > 3 && <span class="sx-ch-more">+{u.topics.length - 3} more topics</span>}
+                                    </span>
+                                    <span class="sx-ch-cta">{soon ? 'Coming soon' : 'Practice →'}</span>
+                                  </>
+                                )}
+                              </Tag>
+                            </li>
+                          );
+                        })
+                      )}
+                    </ul>
+                  </>
+                ) : (
+                  <ul class="sx-row">
+                    {/* Main subject: full mock test */}
+                    <li>
+                      <FullTag
+                        href={fullHref}
+                        class={`sx-card sx-main ${fullHref ? '' : 'is-soon'}`}
+                        aria-disabled={fullHref ? undefined : 'true'}
+                        aria-label={fullHref
+                          ? `${s.name} full mock test – ${s.questionCount} questions, ${s.durationMinutes} minutes`
+                          : `${s.name} full mock test – coming soon`}
+                      >
+                        <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
+                        {s.poster && (
+                          <img class="sx-img" src={poster(s.poster)} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
+                        )}
+                        <span class="sx-badge">FULL TEST</span>
+                        {!fullHref
+                          ? <span class="sx-badge sx-badge-pop sx-badge-soon">COMING SOON</span>
+                          : s.isPopular && <span class="sx-badge sx-badge-pop">★ POPULAR</span>}
+                        <span class="sx-overlay">
+                          <span class="sx-kicker">{s.code} · Full mock</span>
+                          <span class="sx-name">{s.name}</span>
+                          <span class="sx-info">
+                            {fullHref ? `${s.questionCount} MCQs · ${s.durationMinutes} min · Free` : 'Full mock test coming soon'}
+                          </span>
+                        </span>
+                      </FullTag>
+                    </li>
+
+                    {/* Chapter mock tests */}
+                    {units.map((u, i) => {
+                      const img = poster(u.poster);
+                      const Tag = u.href ? 'a' : 'div';
+                      const soon = !u.href;
+                      const info = stats(u.questions, u.minutes);
+                      return (
+                        <li>
+                          <Tag
+                            href={u.href}
+                            class={`sx-card ${img ? 'sx-chapter-img' : 'sx-chapter'} ${soon ? 'is-soon' : ''}`}
+                            aria-disabled={soon ? 'true' : undefined}
+                            aria-label={`${s.name} chapter test: ${u.unit} – ${soon ? 'coming soon' : info}`}
+                          >
+                            {img ? (
+                              <>
+                                <span class="sx-fallback" aria-hidden="true">{s.icon}</span>
+                                <img class="sx-img" src={img} alt="" loading="lazy" decoding="async" onerror={IMG_FALLBACK} />
+                                <span class="sx-badge sx-badge-ch">CHAPTER {String(i + 1).padStart(2, '0')}</span>
+                                {soon && <span class="sx-badge sx-badge-pop sx-badge-soon">SOON</span>}
+                                <span class="sx-overlay">
+                                  <span class="sx-kicker">{u.weightageMarks ? `${u.weightageMarks} marks · ` : ''}{u.topics.length} topics</span>
+                                  <span class="sx-name">{u.unitOdia}</span>
+                                  <span class="sx-info">{soon ? 'Coming soon' : 'Chapter practice →'}</span>
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span class="sx-ch-top">
+                                  <span class="sx-ch-num">{String(i + 1).padStart(2, '0')}</span>
+                                  <span class="sx-ch-marks">
+                                    {soon ? 'Soon' : u.questions ? `${u.questions} ${u.questions === 1 ? 'MCQ' : 'MCQs'}` : 'Live'}
+                                  </span>
+                                </span>
+                                <span class="sx-ch-label">Chapter test</span>
+                                <span class="sx-ch-title">{u.unitOdia}</span>
+                                {u.unit !== u.unitOdia && <span class="sx-ch-en">{u.unit}</span>}
+                                <span class="sx-ch-topics">
+                                  {u.topics.slice(0, 3).map((t) => <span>{t}</span>)}
+                                  {u.topics.length > 3 && <span class="sx-ch-more">+{u.topics.length - 3} more topics</span>}
+                                </span>
+                                <span class="sx-ch-cta">{soon ? 'Coming soon' : 'Practice →'}</span>
+                              </>
+                            )}
+                          </Tag>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </article>
             );
           })}
@@ -600,16 +734,16 @@ const webPageJsonLd = {
     });
   });
 
-  // Row arrows
-  document.querySelectorAll<HTMLElement>('.sx-subject').forEach((sec) => {
-    const row = sec.querySelector<HTMLElement>('.sx-row');
-    const arrows = sec.querySelectorAll<HTMLButtonElement>('.sx-arrow');
-    if (!row || arrows.length < 2) return;
+  // Row arrows – each row is paired with the arrows in its own header
+  function initScrollRow(row: HTMLElement | null, head: HTMLElement | null) {
+    if (!row || !head) return;
+    const arrows = head.querySelectorAll<HTMLButtonElement>('.sx-arrow');
+    if (arrows.length < 2) return;
     const update = () => {
       const max = row.scrollWidth - row.clientWidth - 2;
       arrows[0].disabled = row.scrollLeft <= 2;
       arrows[1].disabled = row.scrollLeft >= max;
-      sec.classList.toggle('sx-no-scroll', max <= 0);
+      head.classList.toggle('sx-no-scroll', max <= 0);
     };
     arrows.forEach((a) =>
       a.addEventListener('click', () => {
@@ -618,7 +752,33 @@ const webPageJsonLd = {
     );
     row.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
+    (row as HTMLElement & { _sxUpdate?: () => void })._sxUpdate = update;
     update();
+  }
+
+  document.querySelectorAll<HTMLElement>('.sx-subject').forEach((sec) => {
+    initScrollRow(sec.querySelector(':scope > .sx-row'), sec.querySelector(':scope > .sx-head'));
+  });
+
+  // Section filter pills inside sectioned subjects (e.g. Sanskrit)
+  document.querySelectorAll<HTMLButtonElement>('.sx-sec-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const subject = tab.closest<HTMLElement>('.sx-subject');
+      if (!subject) return;
+      const target = tab.dataset.secFilter;
+      subject.querySelectorAll<HTMLButtonElement>('.sx-sec-tab').forEach((t) => {
+        const on = t === tab;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', String(on));
+      });
+      const row = subject.querySelector<HTMLElement & { _sxUpdate?: () => void }>(':scope > .sx-row');
+      if (!row) return;
+      row.querySelectorAll<HTMLElement>('li[data-sec-idx]').forEach((li) => {
+        li.hidden = target !== 'all' && li.dataset.secIdx !== target;
+      });
+      row.scrollLeft = 0;
+      row._sxUpdate?.();
+    });
   });
 </script>
 
@@ -1595,6 +1755,93 @@ const webPageJsonLd = {
     display: none;
   }
 
+  /* ── Sectioned subjects (e.g. Sanskrit): sleek section filter pills above the row ── */
+  .sx-sec-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 2px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sx-sec-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sx-sec-tab {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+  }
+
+  .sx-sec-tab:hover {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--rule));
+    color: var(--ink);
+    background: color-mix(in srgb, var(--accent) 6%, #fff);
+  }
+
+  .sx-sec-tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .sx-sec-tab.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 3px 10px -2px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+
+  .sx-sec-tab-icon {
+    font-size: 0.92em;
+    line-height: 1;
+  }
+
+  .sx-sec-tab-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #16a34a;
+    flex-shrink: 0;
+  }
+
+  .sx-sec-tab.is-active .sx-sec-tab-dot {
+    background: #bbf7d0;
+  }
+
+  .sx-sec-tab-count {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--ink-muted);
+  }
+
+  .sx-sec-tab.is-active .sx-sec-tab-count {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+  }
+
+  .sx-row > li[hidden] {
+    display: none;
+  }
+
   /* Row */
   .sx-row {
     --pw: 184px; /* card width */
@@ -1910,6 +2157,14 @@ const webPageJsonLd = {
     }
     .sx-nav {
       display: none;
+    }
+    .sx-sec-tabs {
+      margin: 0 -14px 10px;
+      padding: 2px 14px;
+    }
+    .sx-sec-tab {
+      padding: 5px 10px;
+      font-size: 0.76rem;
     }
     .sx-ch-num {
       font-size: 1.8rem;
