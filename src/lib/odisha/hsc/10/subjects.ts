@@ -761,4 +761,12 @@ export const ODISHA_10TH_ACTIVE: ActiveTest[] = [
     subtitle: 'Life Science (SCL)',
     poster: '/images/odisha-10th/life-science.png',
   },
+  {
+    id: 'hps-main',
+    subjectId: 'hps',
+    title: 'ଇତିହାସ ଓ ରାଜନୀତି ବିଜ୍ଞାନ',
+    titleEn: 'History & Political Science',
+    subtitle: 'History & Political Science (HPS)',
+    poster: '/images/odisha-10th/history.png',
+  },
 ];
