@@ -222,6 +222,159 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     ]
   },
   {
+    "id": "hps",
+    "code": "HPS",
+    "name": "History & Political Science",
+    "nameOdia": "ଇତିହାସ ଓ ରାଜନୀତି ବିଜ୍ଞାନ",
+    "paperType": "Paper VI - Compulsory (HPS)",
+    "icon": "📜",
+    "poster": "/images/odisha-10th/history.png",
+    "badge": "Comprehensive",
+    "accentColor": "#D97706",
+    "gradient": "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)",
+    "description": "History & Political Science chapter-wise objective MCQ tests for BSE Odisha Class 10.",
+    "descriptionOdia": "ଇତିହାସ ଓ ରାଜନୀତି ବିଜ୍ଞାନ ଅଧ୍ୟାୟ ଭିତ୍ତିକ ବସ୍ତୁନିଷ୍ଠ ପ୍ରଶ୍ନ।",
+    "subStreams": [
+      "History & Political Science"
+    ],
+    "totalMarks": 100,
+    "mcqMarks": 25,
+    "subjectiveMarks": 50,
+    "durationMinutes": 45,
+    "questionCount": 50,
+    "attempts": "21.5k",
+    "rating": "4.8",
+    "isPopular": false,
+    "chapters": [
+      {
+        "unit": "",
+        "unitOdia": "ଭାରତୀୟ ଜାତୀୟ ଆନ୍ଦୋଳନରେ ଗାନ୍ଧିଜୀଙ୍କ ଆବିର୍ଭାବ",
+        "topics": [],
+        "testId": 85
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଭାରତରେ ଅସହଯୋଗ ଆନ୍ଦୋଳନ ଓ ଓଡ଼ିଶାରେ ଏହାର ପ୍ରଭାବ",
+        "topics": [],
+        "testId": 86
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଭାରତରେ ଆଇନ ଅମାନ୍ୟ ଆନ୍ଦୋଳନ ଏବଂ ଏଥିରେ ଓଡ଼ିଶାର ଭୂମିକା",
+        "topics": [],
+        "testId": 87
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଭାରତ ଛାଡ଼ ଆନ୍ଦୋଳନ ଏବଂ ଏଥିରେ ଓଡ଼ିଶାର ଭୂମିକା",
+        "topics": [],
+        "testId": 88
+      },
+      {
+        "unit": "",
+        "unitOdia": "ସୁଭାଷ ଚନ୍ଦ୍ର ବୋଷ ଓ ଭାରତୀୟ ଜାତୀୟସେନା",
+        "topics": [],
+        "testId": 89
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଭାରତ ସ୍ୱାଧୀନତା ଆଇନ, ଭାରତ ବିଭାଜନ ଓ ସ୍ୱାଧୀନତା",
+        "topics": [],
+        "testId": 90
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଓଡ଼ିଆ ଜାତୀୟତାର ବିକାଶ",
+        "topics": [],
+        "testId": 91
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଉତ୍କଳ ସମ୍ମିଳନୀର ଗଠନ",
+        "topics": [],
+        "testId": 92
+      },
+      {
+        "unit": "",
+        "unitOdia": "୧୯୧୧ ଖ୍ରୀଷ୍ଟାବ୍ଦ ପର୍ଯ୍ୟନ୍ତ ଓଡ଼ିଆ ଆନ୍ଦୋଳନ",
+        "topics": [],
+        "testId": 93
+      },
+      {
+        "unit": "",
+        "unitOdia": "୧୯୧୧ ଖ୍ରୀଷ୍ଟାବ୍ଦରୁ ୧୯୩୬ ପର୍ଯ୍ୟନ୍ତ ଓଡ଼ିଆ ଆନ୍ଦୋଳନ",
+        "topics": [],
+        "testId": 94
+      },
+      {
+        "unit": "",
+        "unitOdia": "ସ୍ୱତନ୍ତ୍ର ଓଡ଼ିଶା ପ୍ରଦେଶର ପ୍ରତିଷ୍ଠା",
+        "topics": [],
+        "testId": 95
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଦେଶୀୟ ରାଜ୍ୟମାନଙ୍କର ମିଶ୍ରଣ",
+        "topics": [],
+        "testId": 96
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଓଡ଼ିଶା ସହିତ ଗଡ଼ଜାତ ରାଜ୍ୟମାନଙ୍କର ମିଶ୍ରଣ",
+        "topics": [],
+        "testId": 97
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଗୋଆ ଓ ପୁଦୁଚେରୀର ମୁକ୍ତି",
+        "topics": [],
+        "testId": 98
+      },
+      {
+        "unit": "",
+        "unitOdia": "ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ଭାରତୀୟ ଅର୍ଥନୀତି",
+        "topics": [],
+        "testId": 99
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଭାରତରେ ବିଜ୍ଞାନ ଓ ବୈଷୟିକ ଜ୍ଞାନର ବିକାଶ",
+        "topics": [],
+        "testId": 100
+      },
+      {
+        "unit": "",
+        "unitOdia": "ସାମାଜିକ ବିକାଶ",
+        "topics": [],
+        "testId": 101
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଶିକ୍ଷାର ବିକାଶ",
+        "topics": [],
+        "testId": 102
+      },
+      {
+        "unit": "",
+        "unitOdia": "କୃଷିର ବିକାଶ",
+        "topics": [],
+        "testId": 103
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଶିଳ୍ପର ବିକାଶ",
+        "topics": [],
+        "testId": 104
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଭିତ୍ତିଭୂମିର ବିକାଶ",
+        "topics": [],
+        "testId": 105
+      }
+    ]
+  },
+  {
     "id": "english",
     "code": "SLE",
     "name": "Second Language English",
@@ -417,68 +570,6 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
           "ସଡ଼କ ସୁରକ୍ଷା ଶିକ୍ଷା",
           "Road Safety"
         ]
-      }
-    ]
-  },
-  {
-    "id": "hps",
-    "code": "HPS",
-    "name": "History & Political Science",
-    "nameOdia": "ଇତିହାସ ଓ ରାଜନୀତି ବିଜ୍ଞାନ",
-    "paperType": "Paper VI - Compulsory (HPS)",
-    "icon": "📜",
-    "poster": "/images/odisha-10th/history.png",
-    "badge": "Comprehensive",
-    "accentColor": "#D97706",
-    "gradient": "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)",
-    "description": "History & Political Science chapter-wise objective MCQ tests for BSE Odisha Class 10.",
-    "descriptionOdia": "ଇତିହାସ ଓ ରାଜନୀତି ବିଜ୍ଞାନ ଅଧ୍ୟାୟ ଭିତ୍ତିକ ବସ୍ତୁନିଷ୍ଠ ପ୍ରଶ୍ନ।",
-    "subStreams": [
-      "History & Political Science"
-    ],
-    "totalMarks": 100,
-    "mcqMarks": 25,
-    "subjectiveMarks": 50,
-    "durationMinutes": 45,
-    "questionCount": 50,
-    "attempts": "21.5k",
-    "rating": "4.8",
-    "isPopular": false,
-    "chapters": [
-      {
-        "unit": "",
-        "unitOdia": "ଭାରତୀୟ ଜାତୀୟ ଆନ୍ଦୋଳନ – ଗାନ୍ଧୀଯୁଗ",
-        "topics": []
-      },
-      {
-        "unit": "",
-        "unitOdia": "ସ୍ୱତନ୍ତ୍ର ଓଡ଼ିଶା ପ୍ରଦେଶ ଗଠନ",
-        "topics": []
-      },
-      {
-        "unit": "",
-        "unitOdia": "୨୦୦୦ ଖ୍ରୀଷ୍ଟାବ୍ଦ ପର୍ଯ୍ୟନ୍ତ ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ଭାରତ",
-        "topics": []
-      },
-      {
-        "unit": "",
-        "unitOdia": "ସ୍ୱାଧୀନତୋତ୍ତର ଓଡ଼ିଶାର ବିକାଶ",
-        "topics": []
-      },
-      {
-        "unit": "",
-        "unitOdia": "ଭାରତରେ ସ୍ୱାଧୀନତା ପରବର୍ତ୍ତୀ ରାଜ୍ୟ ପୁନର୍ଗଠନ",
-        "topics": []
-      },
-      {
-        "unit": "",
-        "unitOdia": "ଭାରତରେ ଗଣତନ୍ତ୍ର",
-        "topics": []
-      },
-      {
-        "unit": "",
-        "unitOdia": "ଭାରତର ବୈଦେଶିକ ନୀତି",
-        "topics": []
       }
     ]
   },
