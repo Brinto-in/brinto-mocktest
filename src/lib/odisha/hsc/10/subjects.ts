@@ -600,17 +600,32 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
     "chapters": [
       {
         "unit": "",
-        "unitOdia": "ସମ୍ବଳ",
-        "topics": ["ସମ୍ବଳ ଓ ତାହାର ବିକାଶ", "ଭୂ ସମ୍ବଳ", "ମୃତ୍ତିକା ସମ୍ବଳ"]
+        "unitOdia": "ସମ୍ବଳ ଓ ତାହାର ବିକାଶ",
+        "topics": []
       },
       {
-        "unit": "ଜୈବ ସମ୍ବଳ",
-        "unitOdia": "ବନ, ବନ୍ୟପ୍ରାଣୀ ଓ ଜଳ ସମ୍ବଳ",
-        "topics": ["ଅରଣ୍ୟ ସମ୍ବଳ", "ବନ୍ୟ ପ୍ରାଣୀ ସମ୍ବଳ"]
+        "unit": "",
+        "unitOdia": "ଭୂ ସମ୍ବଳ",
+        "topics": []
       },
       {
-        "unit": "ଜଳ ସମ୍ବଳ",
-        "unitOdia": "ଭାରତରେ କୃଷି ଓ ଖଣିଜ ସମ୍ବଳ",
+        "unit": "",
+        "unitOdia": "ମୃତ୍ତିକା ସମ୍ବଳ",
+        "topics": []
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଅରଣ୍ୟ ସମ୍ବଳ",
+        "topics": []
+      },
+      {
+        "unit": "",
+        "unitOdia": "ବନ୍ୟ ପ୍ରାଣୀ ସମ୍ବଳ",
+        "topics": []
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଜଳ ସମ୍ବଳ",
         "topics": []
       },
       {
@@ -635,14 +650,29 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
       },
       {
         "unit": "",
-        "unitOdia": "ଆର୍ଥିକ ବିକାଶ",
+        "unitOdia": "ଆର୍ଥନୀତିକ ବିକାଶ",
         "topics": []
       },
       {
         "unit": "",
-        "unitOdia": "ଅର୍ଥନୈତିକ ବ୍ୟବସ୍ଥା",
-        "topics": ["ଦରବୃଦ୍ଧି", "ଖାଉଟି ସଚେତନତା", "ଦାରିଦ୍ର୍ୟ", "ବେକାରୀ"]
+        "unitOdia": "ଦରବୃଦ୍ଧି",
+        "topics": []
       },
+      {
+        "unit": "",
+        "unitOdia": "ଖାଉଟି ସଚେତନତା",
+        "topics": []
+      },
+      {
+        "unit": "",
+        "unitOdia": "ଦାରିଦ୍ର୍ୟ",
+        "topics": []
+      },
+      {
+        "unit": "",
+        "unitOdia": "ବେକାରୀ",
+        "topics": []
+      }
     ]
   },
   {
