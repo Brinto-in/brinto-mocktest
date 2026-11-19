@@ -748,7 +748,6 @@ export const ODISHA_10TH_SUBJECTS: SubjectModule[] = [
         "unit": "୧. ଉପଦେଶାମୃତମ୍",
         "unitOdia": "१. उपदेशामृतम्",
         "topics": [],
-        "testId": 24,
         "section": "गद्यभागः (Prose)",
         "sectionOdia": "ଗଦ୍ୟଭାଗଃ",
         "sectionIcon": "📖"
